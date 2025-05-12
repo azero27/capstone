@@ -39,11 +39,12 @@ def scan():
     open_ports = nmap_result.get("open_ports", [])
     service_info = nmap_result.get("service_info", [])
 
-    # 후속 도구 실행: 예를 들어 S3Scanner는 HTTP, HTTPS 포트가 열려 있으면 실행
+    """
     s3scanner_result = None
-    if "80/tcp" in open_ports or "443/tcp" in open_ports:
-        s3scanner_result = run_s3scanner(ip)  # HTTP 또는 HTTPS 포트가 열려 있으면 S3Scanner 실행
-
+    if : # 
+        s3scanner_result = run_s3scanner(ip)  #  
+    """
+    
     return jsonify({
         "nmap_result": nmap_result,
         "s3scanner_result": s3scanner_result
