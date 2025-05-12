@@ -11,7 +11,7 @@ def run_s3scanner(domain):
     Returns:
     dict: S3 버킷 스캔 결과를 포함한 딕셔너리
     """
-    command = ["python3", "s3scanner.py", "--target", domain]
+    command = ["s3scanner", "--bucket", domain]
     result = subprocess.run(command, capture_output=True, text=True)
     
     if result.returncode == 0:
