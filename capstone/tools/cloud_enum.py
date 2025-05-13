@@ -1,21 +1,31 @@
 import subprocess
+import os
+from flask import Flask
 
-def run_cloud_enum(ip):
+def run_cloud_enum(keyword):
     """
+    Cloud-Enum을 실행하여 주어진 IP에 대해 클라우드 자원을 스캔하는 함수.
+    
     Parameters:
     ip (str): 분석할 IP 주소
     
     Returns:
     dict: Cloud-Enum 결과를 포함한 딕셔너리
     """
-    command = ["cloud-enum", "--provider", "aws", "--access-key, access_key, "--secret-key", secret_key]
+
+    # 현재 파일이 있는 디렉토리 (tools 디렉토리)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # 'capstone' 디렉토리로 올라가서 'home' 디렉토리로 이동
+    home_dir = os.path.abspath(os.path.join(current_dir, '../../..'))
+
+    # home 디렉토리 기준으로 상대 경로로 파일 열기
+    cloud_enum_file_path = os.path.join(home_dir, 'cloud_enum', 'cloud_enum.py')
+
+    command = ["cloud_enum_file_path", "-k", keyword]
     result = subprocess.run(command, capture_output=True, text=True)
+    
 
-    """
-    command = ["cloud-enum", "--provider", "aws", "--enumerate", "ec2"]
-    command = ["cloud-enum", "--provider", "aws", "--enumerate", "s3"]
-
-    """ 
     if result.returncode == 0:
         return {
             "tool": "cloud_enum",
@@ -28,3 +38,4 @@ def run_cloud_enum(ip):
             "output": result.stderr,
             "status": "error"
         }
+
