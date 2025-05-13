@@ -3,15 +3,7 @@ import os
 from flask import Flask
 
 def run_cloud_enum(keyword):
-    """
-    Cloud-Enum을 실행하여 주어진 IP에 대해 클라우드 자원을 스캔하는 함수.
-    
-    Parameters:
-    ip (str): 분석할 IP 주소
-    
-    Returns:
-    dict: Cloud-Enum 결과를 포함한 딕셔너리
-    """
+
 
     # 현재 파일이 있는 디렉토리 (tools 디렉토리)
     current_dir = os.path.dirname(os.path.abspath(__file__))
