@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanner UI</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="side-bar" id="sideBar">
+    <div class="side-nav-bg"></div>
+    <div class="text-medium-11-gray sidebar-text">
+      <div class="toggle-sidebar2" onclick="toggleSidebar()">Toggle sidebar</div>
+    </div>
+    <img class="icon-menu-toggle" src="icon/icon_menu_toggle.svg" id="toggleIcon" onclick="toggleSidebar()" />
+    
+    <div class="menu-inactive sidebar-text">
+      <div class="settings2">Settings</div>
+    </div>
+    <img class="icon-menu-settings" src="icon/icon_menu_settings.svg" />
+    
+    <div class="menu-inactive sidebar-text">
+      <div class="email2">Report</div>
+    </div>
+    <img class="icon-menu-email" src="icon/icon_menu_email.svg" />
+    
+    <div class="menu-inactive sidebar-text">
+      <div class="tasks2">Archiving</div>
+    </div>
+    <img class="icon-menu-tasks" src="icon/icon_menu_tasks.svg" />
+    
+    <div class="menu-active sidebar-text">
+      <div class="dashboard2">Scan</div>
+    </div>
+    <img class="icon-menu-dashboard-active" src="icon/icon_menu_dashboard-active.svg" />
+    
+    <div class="skyroute sidebar-text">Skyroute</div>
+    <div class="side-nav-devider"></div>
+    <img class="sr-1" src="icon/SR 1.svg" />
+
+    <div class="button-accent sidebar-text" onclick="handleStop()">
+      <div class="rectangle-3"></div>
+      <div class="accent-button">STOP</div>
+    </div>
+    <div class="button-secondary sidebar-text" onclick="handleExit()">
+      <div class="rectangle-32"></div>
+      <div class="secondary-button">EXIT</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+	<div class="system-description">
+    <h2>시스템 개요</h2>
+    <p>
+      본 시스템은 도메인 또는 IP 주소를 입력받아 자동으로 보안 스캔을 수행하고, 
+      그 결과를 시각화하여 사용자에게 제공합니다. 사용자는 스캔 결과를 저장하거나,
+      타임라인 및 리포트 형태로 아카이빙할 수 있으며, 필요 시 스캔을 중단하거나
+      시스템을 종료할 수 있습니다.
+    </p>
+    <p>
+      주요 기능:
+      <ul>
+        <li>정적/동적 스캔 지원</li>
+        <li>자동 리포트 생성</li>
+        <li>아카이빙 기능 (Timeline, Snapshot, Report)</li>
+        <li>사용자 친화적인 대시보드 UI</li>
+      </ul>
+    </p>
+  </div>
+    <input id="ipInput" class="input-box" type="text" placeholder="IP or Domain" />
+    <button class="scan-button" onclick="handleScan()">SCAN</button>
+  </div>
+
+  <script src="common.js"></script>
+  <script src="home.js"></script>
+</body>
+</html>
