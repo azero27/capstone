@@ -2,6 +2,7 @@ import re
 from collections import defaultdict
 from typing import List, Dict
 import csv, json, dns.resolver
+import tldextract
 
 def extract_subdomain(url: str) -> str:
     """
