@@ -64,7 +64,7 @@ def parse_nuclei_output(stdout: str, meta: dict):
 
     # 5. 결과 구성
     return {
-        "tool_id": 1,
+        "tool_id": 6,
         "target": meta.get("target_url"),
         "command": meta.get("command"),
         "success": final_success,

@@ -16,18 +16,6 @@ import re
 import os
 
 RESOURCE_TOOL_MAP = {
-    #도메인인 이유가 있나? ip로 바꿔도 되나?
-   
-    #"domain": [
-    #    {   
-    #        "tool_id": 1,
-    #        "tool": run_nmap_port_scan,
-    #        "input_args" : [{"ip_address": "value"}],
-    #        "parser": parse_nmap_port_scan_output,
-    #        "parser_args": ["output", "command", "status", "start_time", "end_time", "tool_id"],
-    #        "next_resource": []  # nmap은 취약점 정보로 끝
-    #    }
-    #],
     
     "ip": [
         {
@@ -59,6 +47,7 @@ RESOURCE_TOOL_MAP = {
     ],
     "url": [
         {
+            "tool_id": 6,
             "tool": run_nuclei,
             "input_args": [
                 {"url": "value"},
@@ -71,6 +60,7 @@ RESOURCE_TOOL_MAP = {
     ],
     "s3": [
         {
+            "tool_id": 4,
             "tool": run_s3scanner,
             "input_args" : [],
             "parser": parse_s3scanner_output,
@@ -80,6 +70,7 @@ RESOURCE_TOOL_MAP = {
     ],
     "credentials": [
         {
+            "tool_id": 5,
             "tool": run_enumerate_iam,
             "input_args": [
                 {"access_key": "value"},
