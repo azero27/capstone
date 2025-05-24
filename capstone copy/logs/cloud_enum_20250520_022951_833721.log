@@ -1,0 +1,27 @@
+
+##########################
+        cloud_enum
+   github.com/initstring
+##########################
+
+
+Keywords:    sskyroute
+Mutations:   /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+Brute-list:  /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+
+[+] Mutations list imported: 3 items
+[+] Mutated results: 19 items
+
+++++++++++++++++++++++++++
+      amazon checks
+++++++++++++++++++++++++++
+
+[+] Checking for S3 buckets
+  [1m[92mOPEN S3 BUCKET: http://sskyroute.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/sskyroute
+  [1m[33mProtected S3 Bucket: http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/[0m
+    5/19 complete...
+  [1m[92mOPEN S3 BUCKET: http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/sskyroute-private

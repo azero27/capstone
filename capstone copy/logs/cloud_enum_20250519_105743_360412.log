@@ -1,0 +1,5 @@
+usage: cloud_enum.py [-h] (-k KEYWORD | -kf KEYFILE) [-m MUTATIONS] [-b BRUTE]
+[-t THREADS] [-ns NAMESERVER] [-nsf NAMESERVERFILE]
+[-l LOGFILE] [-f FORMAT] [--disable-aws]
+[--disable-azure] [--disable-gcp] [-qs]
+cloud_enum.py: error: unrecognized arguments: --disable-gcp --disable-azure
