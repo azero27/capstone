@@ -1,0 +1,16 @@
+2025-05-15 01:33:37,046 - 65474 - [INFO] Starting permission enumeration for access-key-id "AKIAVD2QDYF6AYOR4M3K"
+2025-05-15 01:33:39,511 - 65474 - [INFO] -- Account ARN : arn:aws:iam::351818465660:user/user-test
+2025-05-15 01:33:39,513 - 65474 - [INFO] -- Account Id  : 351818465660
+2025-05-15 01:33:39,514 - 65474 - [INFO] -- Account Path: user/user-test
+2025-05-15 01:33:39,735 - 65474 - [INFO] Attempting common-service describe / list brute force.
+2025-05-15 01:33:41,570 - 65474 - [INFO] -- ec2.describe_vpc_peering_connections() worked!
+2025-05-15 01:33:41,598 - 65474 - [INFO] -- ec2.describe_vpcs() worked!
+2025-05-15 01:33:41,600 - 65474 - [INFO] -- ec2.describe_vpc_endpoints() worked!
+2025-05-15 01:33:41,984 - 65474 - [INFO] -- ec2.describe_prefix_lists() worked!
+2025-05-15 01:33:42,210 - 65474 - [INFO] -- ec2.describe_principal_id_format() worked!
+2025-05-15 01:33:42,593 - 65474 - [INFO] -- ec2.describe_vpn_connections() worked!
+2025-05-15 01:33:42,633 - 65474 - [INFO] -- ec2.describe_vpn_gateways() worked!
+2025-05-15 01:33:44,391 - 65474 - [INFO] -- s3.list_buckets() worked!
+2025-05-15 01:33:44,609 - 65474 - [INFO] -- ec2.describe_public_ipv4_pools() worked!
+ Let's Go: where
+call

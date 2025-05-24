@@ -1,0 +1,327 @@
+
+##########################
+        cloud_enum
+   github.com/initstring
+##########################
+
+
+Keywords:    sskyroute
+Mutations:   /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+Brute-list:  /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+
+[+] Mutations list imported: 3 items
+[+] Mutated results: 19 items
+
+++++++++++++++++++++++++++
+      amazon checks
+++++++++++++++++++++++++++
+
+[+] Checking for S3 buckets
+    [!] Timeout on sskyroute.s3.ap-northeast-2.amazonaws.com. Investigate if there are many of these
+    [!] Connection error on sskyrouteuserdata.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteuserdata.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b959d640>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.userdata.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.userdata.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b853f730>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-userdata.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-userdata.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b854b160>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userdatasskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userdatasskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b854b730>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    5/19 complete...
+    [!] Connection error on userdata.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userdata.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b853f730>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userdata-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userdata-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b9579910>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteprivate.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteprivate.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b9591bb0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b9591d00>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b854b610>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    10/19 complete...
+    [!] Connection error on privatesskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='privatesskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b959df70>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on private.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='private.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b959d670>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on private-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='private-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b853ffd0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroutetest.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutetest.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b853fbb0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.test.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.test.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b854b3d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    15/19 complete...
+    [!] Connection error on sskyroute-test.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-test.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b853f160>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on testsskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='testsskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b853fd30>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on test.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='test.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b853f2b0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on test-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='test-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b9591250>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    20/19 complete...
+                            
+ Elapsed time: 00:01:23
+
+[+] Checking for AWS Apps
+[*] Brute-forcing a list of 19 possible DNS names
+    [!] DNS Timeout on sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.userdata.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-userdata.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.awsapps.com. Investigate if there are many of these.
+    5/19 complete...
+    [!] DNS Timeout on userdata.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-private.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userdata-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.private.awsapps.com. Investigate if there are many of these.
+    10/19 complete...
+    [!] DNS Timeout on sskyroutetest.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on private.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.test.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on private-sskyroute.awsapps.com. Investigate if there are many of these.
+    15/19 complete...
+    [!] DNS Timeout on test.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on testsskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on test-sskyroute.awsapps.com. Investigate if there are many of these.
+    20/19 complete...
+                            
+ Elapsed time: 00:00:20
+
+
+++++++++++++++++++++++++++
+       azure checks
+++++++++++++++++++++++++++
+
+[+] Checking for Azure Storage Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on userdatasskyroute.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.blob.core.windows.net. Investigate if there are many of these.
+    5/7 complete...
+    [!] DNS Timeout on testsskyroute.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutetest.blob.core.windows.net. Investigate if there are many of these.
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:10
+
+[+] Checking for Azure File Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on privatesskyroute.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.file.core.windows.net. Investigate if there are many of these.
+    5/7 complete...
+    [!] DNS Timeout on testsskyroute.file.core.windows.net. Investigate if there are many of these.
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:10
+
+[+] Checking for Azure Queue Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on userdatasskyroute.queue.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.queue.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.queue.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.queue.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.queue.core.windows.net. Investigate if there are many of these.
+    5/7 complete...
+    [!] DNS Timeout on sskyroutetest.queue.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on testsskyroute.queue.core.windows.net. Investigate if there are many of these.
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:10
+
+[+] Checking for Azure Table Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on privatesskyroute.table.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.table.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.table.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.table.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.table.core.windows.net. Investigate if there are many of these.
+    5/7 complete...
+    [!] DNS Timeout on testsskyroute.table.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutetest.table.core.windows.net. Investigate if there are many of these.
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:10
+
+[+] Checking for Azure App Management Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on sskyrouteprivate.scm.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.scm.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.scm.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.scm.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.scm.azurewebsites.net. Investigate if there are many of these.
+    5/7 complete...
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:05
+
+[+] Checking for Azure Key Vault Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on userdatasskyroute.vault.azure.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.vault.azure.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.vault.azure.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.vault.azure.net. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.vault.azure.net. Investigate if there are many of these.
+    5/7 complete...
+    [!] DNS Timeout on testsskyroute.vault.azure.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutetest.vault.azure.net. Investigate if there are many of these.
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:10
+
+[+] Checking for Azure Websites
+[*] Brute-forcing a list of 19 possible DNS names
+    [!] DNS Timeout on sskyroute-userdata.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.userdata.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.azurewebsites.net. Investigate if there are many of these.
+    5/19 complete...
+    [!] DNS Timeout on sskyroute-private.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdata-sskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdata.sskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.private.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.azurewebsites.net. Investigate if there are many of these.
+    10/19 complete...
+    [!] DNS Timeout on privatesskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on private.sskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on private-sskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.test.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutetest.azurewebsites.net. Investigate if there are many of these.
+    15/19 complete...
+    [!] DNS Timeout on sskyroute-test.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on testsskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on test.sskyroute.azurewebsites.net. Investigate if there are many of these.
+    [!] DNS Timeout on test-sskyroute.azurewebsites.net. Investigate if there are many of these.
+    20/19 complete...
+                            
+ Elapsed time: 00:00:20
+
+[+] Checking for Azure Databases
+[*] Brute-forcing a list of 19 possible DNS names
+    [!] DNS Timeout on sskyroute.userdata.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-userdata.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.database.windows.net. Investigate if there are many of these.
+    5/19 complete...
+    [!] DNS Timeout on userdata.sskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdata-sskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.private.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-private.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.database.windows.net. Investigate if there are many of these.
+    10/19 complete...
+    [!] DNS Timeout on privatesskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on private.sskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on private-sskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutetest.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.test.database.windows.net. Investigate if there are many of these.
+    15/19 complete...
+    [!] DNS Timeout on sskyroute-test.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on testsskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on test.sskyroute.database.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on test-sskyroute.database.windows.net. Investigate if there are many of these.
+    20/19 complete...
+                            
+ Elapsed time: 00:00:20
+
+[+] Checking for Azure Virtual Machines
+[*] Testing across 1 regions defined in the config file
+[*] Brute-forcing a list of 19 possible DNS names
+    [!] DNS Timeout on sskyroute-userdata.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.userdata.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    5/19 complete...
+    [!] DNS Timeout on userdata.sskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on userdata-sskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.private.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-private.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    10/19 complete...
+    [!] DNS Timeout on private-sskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on private.sskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutetest.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.test.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    15/19 complete...
+    [!] DNS Timeout on test.sskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on testsskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on test-sskyroute.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-test.eastus.cloudapp.azure.com. Investigate if there are many of these.
+    20/19 complete...
+                            
+ Elapsed time: 00:00:20
+
+
+++++++++++++++++++++++++++
+      google checks
+++++++++++++++++++++++++++
+
+[+] Checking for Google buckets
+    [!] Connection error on storage.googleapis.com/sskyroute:
+HTTPConnectionPool(host='storage.googleapis.com', port=80): Max retries exceeded with url: /sskyroute (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b844f730>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on storage.googleapis.com/sskyrouteuserdata:
+HTTPConnectionPool(host='storage.googleapis.com', port=80): Max retries exceeded with url: /sskyrouteuserdata (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b844f550>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on storage.googleapis.com/sskyroute.userdata:
+HTTPConnectionPool(host='storage.googleapis.com', port=80): Max retries exceeded with url: /sskyroute.userdata (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b8445280>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on storage.googleapis.com/sskyroute-userdata:
+HTTPConnectionPool(host='storage.googleapis.com', port=80): Max retries exceeded with url: /sskyroute-userdata (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b84452e0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on storage.googleapis.com/userdatasskyroute:
+HTTPConnectionPool(host='storage.googleapis.com', port=80): Max retries exceeded with url: /userdatasskyroute (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b84457f0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    5/19 complete...
+    10/19 complete...
+    15/19 complete...
+    20/19 complete...
+                            
+ Elapsed time: 00:01:20
+
+[+] Checking for Google Firebase Realtime Databases
+    [!] Connection error on sskyroute.firebaseio.com/.json:
+HTTPSConnectionPool(host='sskyroute.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b8438910>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteuserdata.firebaseio.com/.json:
+HTTPSConnectionPool(host='sskyrouteuserdata.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b8445dc0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-userdata.firebaseio.com/.json:
+HTTPSConnectionPool(host='sskyroute-userdata.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b8445820>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    5/13 complete...
+    [!] Connection error on sskyrouteprivate.firebaseio.com/.json:
+HTTPSConnectionPool(host='sskyrouteprivate.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b844fe80>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-private.firebaseio.com/.json:
+HTTPSConnectionPool(host='sskyroute-private.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b8445f40>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on privatesskyroute.firebaseio.com/.json:
+HTTPSConnectionPool(host='privatesskyroute.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b845ba00>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Timeout on private-sskyroute.firebaseio.com/.json. Investigate if there are many of these
+    [!] Connection error on sskyroutetest.firebaseio.com/.json:
+HTTPSConnectionPool(host='sskyroutetest.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b8438c40>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    10/13 complete...
+    [!] Connection error on sskyroute-test.firebaseio.com/.json:
+HTTPSConnectionPool(host='sskyroute-test.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b8445490>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on testsskyroute.firebaseio.com/.json:
+HTTPSConnectionPool(host='testsskyroute.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b844fe80>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on test-sskyroute.firebaseio.com/.json:
+HTTPSConnectionPool(host='test-sskyroute.firebaseio.com', port=443): Max retries exceeded with url: /.json (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa8b84aeb50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    15/13 complete...
+                            
+ Elapsed time: 00:01:40
+
+[+] Checking for Google App Engine apps
+    [!] Connection error on sskyroute.appspot.com:
+HTTPConnectionPool(host='sskyroute.appspot.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b844f910>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteuserdata.appspot.com:
+HTTPConnectionPool(host='sskyrouteuserdata.appspot.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b844fa30>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userdatasskyroute.appspot.com:
+HTTPConnectionPool(host='userdatasskyroute.appspot.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b8438520>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userdata-sskyroute.appspot.com:
+HTTPConnectionPool(host='userdata-sskyroute.appspot.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fa8b8449250>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))

@@ -1,0 +1,83 @@
+
+##########################
+        cloud_enum
+   github.com/initstring
+##########################
+
+
+Keywords:    sskyroute
+Mutations:   /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+Brute-list:  /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+
+[+] Mutations list imported: 3 items
+[+] Mutated results: 19 items
+
+++++++++++++++++++++++++++
+      amazon checks
+++++++++++++++++++++++++++
+
+[+] Checking for S3 buckets
+  [1m[92mOPEN S3 BUCKET: http://sskyroute.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/sskyroute
+  [1m[33mProtected S3 Bucket: http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/[0m
+    5/19 complete...
+  [1m[92mOPEN S3 BUCKET: http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/sskyroute-private
+    10/19 complete...
+    15/19 complete...
+  [1m[92mOPEN S3 BUCKET: http://sskyroute-test.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute-test.s3.ap-northeast-2.amazonaws.com/sskyroute-test
+    20/19 complete...
+                            
+ Elapsed time: 00:00:06
+
+[+] Checking for AWS Apps
+[*] Brute-forcing a list of 19 possible DNS names
+    5/19 complete...
+    10/19 complete...
+    15/19 complete...
+    [!] DNS Timeout on test.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on test-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-test.awsapps.com. Investigate if there are many of these.
+    20/19 complete...
+                            
+ Elapsed time: 00:00:05
+
+
+++++++++++++++++++++++++++
+       azure checks
+++++++++++++++++++++++++++
+
+[+] Checking for Azure Storage Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on sskyrouteuserdata.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.blob.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.blob.core.windows.net. Investigate if there are many of these.
+    5/7 complete...
+    [!] DNS Timeout on sskyroutetest.blob.core.windows.net. Investigate if there are many of these.
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:10
+
+[+] Checking for Azure File Accounts
+[*] Brute-forcing a list of 7 possible DNS names
+    [!] DNS Timeout on sskyrouteprivate.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on privatesskyroute.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.file.core.windows.net. Investigate if there are many of these.
+    5/7 complete...
+    [!] DNS Timeout on testsskyroute.file.core.windows.net. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutetest.file.core.windows.net. Investigate if there are many of these.
+    10/7 complete...
+                            
+                            
+ Elapsed time: 00:00:10
+
+[+] Checking for Azure Queue Accounts
+[*] Brute-forcing a list of 7 possible DNS names
