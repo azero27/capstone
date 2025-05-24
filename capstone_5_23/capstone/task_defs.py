@@ -5,6 +5,9 @@ from datetime import datetime
 import requests
 import re
 import subprocess
+import sys
+import os
+from DB.save_nmap import save_nmap_result
 from shadow_it_analysis.shadow_domain import build_resource_subdomain_map  
 
 # Celery 인스턴스 정의
@@ -32,7 +35,9 @@ def build_meta(tool_id, raw):
             "tool_id": tool_id,
             "output": raw.get("output"),
             "command": raw.get("command"),
-            "status": raw.get("status")
+            "status": raw.get("status"),
+            "start_time": raw.get("start_time"),
+            "end_time": raw.get("end_time")
         }
     elif tool_id == 2:  # cloud_enum
         return {
@@ -121,6 +126,13 @@ def schedule_scan(resource_type, value, scan_job_id):
 
             parsed = m["parser"](*parser_args)
             print("[DEBUG] Parsed Result:", parsed)
+            
+            if tool_id == 1:
+                try:
+                    save_nmap_result(raw, value, tool_id)
+                    print(f"[+] Nmap 결과 DB 저장 완료 for {value}")
+                except Exception as e:
+                    print(f"[ERROR] Nmap 결과 저장 실패: {e}")
 
             # 튜플이면 두 리스트를 병합
             if isinstance(parsed, tuple):
