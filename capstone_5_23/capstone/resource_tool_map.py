@@ -45,7 +45,7 @@ RESOURCE_TOOL_MAP = {
             "tool": run_cloud_enum,
             "input_args" : [{"keyword": "value"}],
             "parser": parse_cloud_enum_output,
-            "parser_args": ["output_file", "command", "start_time", "end_time", "tool"],
+            "parser_args": ["output_file", "command", "start_time", "end_time", "tool_id"],
             "next_resource": ["target"]  # 퍼블릭 S3 버킷 식별
         },
         {

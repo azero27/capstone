@@ -153,7 +153,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
                     save_nmap_result(raw, value, tool_id, scan_result_id, step)
                 elif tool_id == 2:
                     from DB.save_cloud_enum import save_cloud_enum_result
-                    save_cloudenum_result(parsed, scan_result_id, step)
+                    save_cloud_enum_result(parsed, scan_result_id, step)
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
                     save_amass_result(parsed, scan_result_id, step)
