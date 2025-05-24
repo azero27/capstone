@@ -1,0 +1,52 @@
+
+##########################
+        cloud_enum
+   github.com/initstring
+##########################
+
+
+Keywords:    sskyroute
+Mutations:   /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+Brute-list:  /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/enum_tools/fuzz.txt
+
+[+] Mutations list imported: 3 items
+[+] Mutated results: 19 items
+
+++++++++++++++++++++++++++
+      amazon checks
+++++++++++++++++++++++++++
+
+[+] Checking for S3 buckets
+  [1m[92mOPEN S3 BUCKET: http://sskyroute.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/sskyroute
+  [1m[33mProtected S3 Bucket: http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/[0m
+    5/19 complete...
+  [1m[92mOPEN S3 BUCKET: http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/sskyroute-private
+    10/19 complete...
+    15/19 complete...
+    [!] Connection error on sskyroute-test.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-test.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f93f07ee8b0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on testsskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='testsskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f93ef79c6a0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on test.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='test.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f93ef79cb50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    20/19 complete...
+                            
+ Elapsed time: 00:00:45
+
+[+] Checking for AWS Apps
+[*] Brute-forcing a list of 19 possible DNS names
+    [!] DNS Timeout on sskyroute.userdata.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserdata.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-userdata.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userdatasskyroute.awsapps.com. Investigate if there are many of these.
+    5/19 complete...
+    [!] DNS Timeout on userdata-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteprivate.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userdata.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.private.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-private.awsapps.com. Investigate if there are many of these.
