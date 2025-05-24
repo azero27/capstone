@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for
 from task_defs import celery, make_celery, schedule_scan  # ❗ make_celery 추가
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 
+
 def create_app():
     app = Flask(__name__)
     app.config.update(
@@ -24,16 +25,7 @@ def create_app():
             return "❌ keyword는 필수입니다.", 400
         if not ip_address and not domain:
             return "❌ IP 또는 도메인 중 하나는 반드시 입력해야 합니다.", 400
-
-        if ip_address and not domain:
-            domain = convert_ip_to_domain(ip_address)
-            if not domain:
-                return "❌ IP로부터 도메인을 찾을 수 없습니다.", 400
-
-        if domain and not ip_address:
-            ip_address = convert_domain_to_ip(domain)
-            if not ip_address:
-                return "❌ 도메인으로부터 IP를 찾을 수 없습니다.", 400
+                
 
         schedule_scan.delay('ip', ip_address, 0)
         schedule_scan.delay('domain', domain, 0)

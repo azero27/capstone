@@ -8,7 +8,9 @@ import subprocess
 import sys
 import os
 from DB.save_nmap import save_nmap_result
-from shadow_it_analysis.shadow_domain import build_resource_subdomain_map  
+from shadow_it_analysis.shadow_domain import build_resource_subdomain_map
+from dns_utils import convert_domain_to_ip, convert_ip_to_domain
+from DB.cloud_info import save_cloud_info
 
 # Celery 인스턴스 정의
 celery = Celery('capstone_tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
@@ -89,6 +91,19 @@ def build_meta(tool_id, raw):
 def schedule_scan(resource_type, value, scan_job_id):
     visited = set()
     queue = [(resource_type, value)]
+    
+    ip_address = None
+    domain_name = None
+
+    if resource_type == "ip":
+        ip_address = value
+        domain_name = convert_ip_to_domain(value)
+    elif resource_type == "domain":
+        domain_name = value
+        ip_address = convert_domain_to_ip(value)
+
+    if ip_address and domain_name:
+        save_cloud_info(ip_address, domain_name)
 
     while queue:
         resource_type, value = queue.pop(0)
