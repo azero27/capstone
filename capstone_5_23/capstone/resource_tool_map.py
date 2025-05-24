@@ -16,8 +16,10 @@ import re
 import os
 
 RESOURCE_TOOL_MAP = {
-    "domain": [
+    
+    "ip": [
         {
+            "tool_id": 1,
             "tool": run_nmap_port_scan,
             "input_args" : [{"ip_address": "value"}],
             "parser": parse_nmap_port_scan_output,
@@ -27,13 +29,15 @@ RESOURCE_TOOL_MAP = {
     ],
     "keyword": [
         {
+            "tool_id": 2,
             "tool": run_cloud_enum,
             "input_args" : [{"keyword": "value"}],
             "parser": parse_cloud_enum_output,
-            "parser_args": ["output_file", "command", "start_time", "end_time", "tool"],
+            "parser_args": ["output_file", "command", "start_time", "end_time", "tool_id"],
             "next_resource": ["target"]  # 퍼블릭 S3 버킷 식별
         },
         {
+            "tool_id": 3,
             "tool": run_amass,
             "input_args" : [{"keyword": "value"}],
             "parser": parse_amass_output,
@@ -43,6 +47,7 @@ RESOURCE_TOOL_MAP = {
     ],
     "url": [
         {
+            "tool_id": 6,
             "tool": run_nuclei,
             "input_args": [
                 {"url": "value"},
@@ -55,6 +60,7 @@ RESOURCE_TOOL_MAP = {
     ],
     "s3": [
         {
+            "tool_id": 4,
             "tool": run_s3scanner,
             "input_args" : [],
             "parser": parse_s3scanner_output,
@@ -64,6 +70,7 @@ RESOURCE_TOOL_MAP = {
     ],
     "credentials": [
         {
+            "tool_id": 5,
             "tool": run_enumerate_iam,
             "input_args": [
                 {"access_key": "value"},

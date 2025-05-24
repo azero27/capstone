@@ -1,8 +1,16 @@
-from datetime import datetime
+# parses/parse_cloud_enum.py
+
 import re
 import os
+from datetime import datetime
 
-def parse_cloud_enum_output(output_file_path: str, keyword_command: str, start_time: datetime, end_time: datetime, tool_id=6):
+def parse_cloud_enum_output(
+    output_file_path: str,
+    keyword_command: str,
+    start_time: datetime,
+    end_time: datetime,
+    tool_id=2
+):
     results_main = []
     results_files = []
 
@@ -13,7 +21,7 @@ def parse_cloud_enum_output(output_file_path: str, keyword_command: str, start_t
 
     blocks = re.split(r'OPEN S3 BUCKET: ', cloud_enum_output)[1:]
 
-    for idx, block in enumerate(blocks):
+    for bucket_index, block in enumerate(blocks):
         lines = block.strip().splitlines()
 
         raw_target = lines[0].strip()
@@ -38,27 +46,23 @@ def parse_cloud_enum_output(output_file_path: str, keyword_command: str, start_t
             else:
                 log_lines.append(line)
 
-        scan_result_id = idx + 1
-
         result_main = {
-            "id": scan_result_id,
             "tool_id": tool_id,
             "target": target,
             "command": keyword_command,
-            "success_failure": "success" if discovered_info_list else "failure",
+            "success_failure": 1 if discovered_info_list else 0,
             "logs": '\n'.join(log_lines),
             "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S")
         }
         results_main.append(result_main)
 
         for url in discovered_info_list:
             results_files.append({
-                "scan_result_id": scan_result_id,
-                "file_url": url
+                "file_url": url,
+                "bucket_index": bucket_index
             })
 
-    # 파일 삭제
     try:
         os.remove(output_file_path)
         print(f"[INFO] Temporary file {output_file_path} deleted.")
