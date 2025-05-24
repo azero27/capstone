@@ -9,7 +9,7 @@ def parse_cloud_enum_output(
     keyword_command: str,
     start_time: datetime,
     end_time: datetime,
-    tool_id=6
+    tool_id=2
 ):
     results_main = []
     results_files = []
