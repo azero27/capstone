@@ -17,16 +17,18 @@ import os
 
 RESOURCE_TOOL_MAP = {
     #도메인인 이유가 있나? ip로 바꿔도 되나?
-    "domain": [
-        {   
-            "tool_id": 1,
-            "tool": run_nmap_port_scan,
-            "input_args" : [{"ip_address": "value"}],
-            "parser": parse_nmap_port_scan_output,
-            "parser_args": ["output", "command", "status", "start_time", "end_time", "tool_id"],
-            "next_resource": []  # nmap은 취약점 정보로 끝
-        }
-    ],
+   
+    #"domain": [
+    #    {   
+    #        "tool_id": 1,
+    #        "tool": run_nmap_port_scan,
+    #        "input_args" : [{"ip_address": "value"}],
+    #        "parser": parse_nmap_port_scan_output,
+    #        "parser_args": ["output", "command", "status", "start_time", "end_time", "tool_id"],
+    #        "next_resource": []  # nmap은 취약점 정보로 끝
+    #    }
+    #],
+    
     "ip": [
         {
             "tool_id": 1,
@@ -47,6 +49,7 @@ RESOURCE_TOOL_MAP = {
             "next_resource": ["target"]  # 퍼블릭 S3 버킷 식별
         },
         {
+            "tool_id": 3,
             "tool": run_amass,
             "input_args" : [{"keyword": "value"}],
             "parser": parse_amass_output,
