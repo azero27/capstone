@@ -35,3 +35,5 @@ for entry in result:
     print(f"   Type: {entry['resource_type']}")
     print(f"   Linked Subdomains: {entry['linked_subdomains']}")
     print()
+
+#hello
