@@ -2,6 +2,31 @@ import re
 from collections import defaultdict
 import json
 
+import csv
+import tldextract
+import json
+from celery_worker import celery  # 반드시 celery 인스턴스를 import 해야 함
+
+def extract_keywords_task(csv_path: str) -> str:
+    """
+    주어진 CSV 파일에서 도메인 키워드를 추출하여 JSON 문자열로 반환합니다.
+    """
+    keywords = set()
+
+    with open(csv_path, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            domain = row.get('domain', '').strip()
+            if not domain:
+                continue
+            ext = tldextract.extract(domain)
+            if ext.domain:
+                keywords.add(ext.domain)
+
+    result = sorted(list(keywords))
+    return json.dumps(result)  # Celery가 안전하게 전달할 수 있도록 JSON 직렬화
+
+
 def extract_resource_identifier(resource: str) -> str:
     """
     리소스의 고유 식별자 추출 (예: S3 버킷 이름, CloudFront ID, GitHub 사용자 등)
@@ -108,3 +133,4 @@ user_resources = {"my-owned-bucket"}  # 사용자가 소유한 S3 버킷 이름 
 
 results = analyze_nuclei_shadow_domains(parsed_nuclei_results, user_resources)
 print(json.dumps(results, indent=2))
+
