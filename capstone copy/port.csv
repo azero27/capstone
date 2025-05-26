@@ -1,5 +1,3 @@
-ip
-15.165.170.99
 port, service
-20, SSH
+22, SSH
 80, HTTP
