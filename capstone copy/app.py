@@ -76,7 +76,7 @@ def create_app():
         try:
             interval = float(request.json.get("interval_seconds"))
             if interval < 60:
-                return jsonify({"status": "error", "message": "주기는 최소 60초 이상이어야 합니다."}), 400
+                return jsonify({"status": "error", "message": "주기는 최소 60분 이상이어야 합니다."}), 400
 
             # 현재 시간
             now = time.time()

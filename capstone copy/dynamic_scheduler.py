@@ -19,7 +19,7 @@ class DynamicScheduler(Scheduler):
 
     def load_interval(self):
         try:
-            from DB.scan_setting import get_latest_scan_period  # DB에서 분 단위로 가져옴
+            from DB.scan_setting import latest_scan_setting  # DB에서 분 단위로 가져옴
             minutes = get_latest_scan_period()
             return minutes * 60  # 초 단위로 변환해서 반환
         except Exception as e:
