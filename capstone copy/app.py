@@ -76,7 +76,7 @@ def create_app():
         try:
             interval = float(request.json.get("interval_seconds"))
             if interval < 60:
-                return jsonify({"status": "error", "message": "주기는 최소 60분 이상이어야 합니다."}), 400
+                return jsonify({"status": "error", "message": "주기는 최소 60초 이상이어야 합니다."}), 400
 
             # 현재 시간
             now = time.time()
@@ -160,6 +160,137 @@ def create_app():
 
         schedule_scan.delay(resource_type, value, job_id)
         return jsonify({'status': 'scheduled'}), 202
+
+    @app.route('/scan-page')
+    def scan():
+        return render_template('scan.html')
+
+    @app.route('/settings')
+    def settings():
+        return render_template('settings.html')
+
+    @app.route('/report')
+    def report():
+        return render_template('report.html')
+
+    @app.route('/archiving/timeline')
+    def archiving_tl():
+        return render_template('archiving_tl.html')
+
+    @app.route('/archiving/snapshot')
+    def archiving_sn():
+        return render_template('archiving_sn.html')
+
+    @app.route('/archiving/snapshot/scan/<int:id>')
+    def archiving_sn_scan(id):
+        return render_template('archiving_sn_scan.html', scan_id=id)
+
+    @app.route('/archiving/snapshot/info/<int:id>')
+    def archiving_sn_info(id):
+        return render_template('archiving_sn_info.html', scan_id=id)
+
+    @app.route('/api/snapshots', methods=['GET'])
+    def api_snapshots():
+        # 실제 구현 시 DB에서 전체 스냅샷(스캔) 목록을 조회
+        scanResults = [
+            {
+                "id": 1,
+                "cloud_info_id": 101,
+                "scan_setting_id": 201,
+                "start_time": "2025-05-15T14:30:00",
+                "end_time": "2025-05-15T14:40:00"
+            },
+            {
+                "id": 2,
+                "cloud_info_id": 102,
+                "scan_setting_id": 202,
+                "start_time": "2025-05-18T09:00:00",
+                "end_time": "2025-05-18T09:15:00"
+            }
+        ]
+        return jsonify(scanResults)
+
+    @app.route('/api/snapshots/<int:id>/resources', methods=['GET'])
+    def api_snapshot_resources(id):
+        # 실제로는 DB/Redis에서 해당 id에 대한 리소스 리스트 반환
+        resources = [
+            "EC2", "S3", "Lambda", "IAM", "RDS", "CloudFront", "EBS", "VPC", "Route53", "ECS"
+        ]
+        return jsonify(resources)
+
+    @app.route('/api/snapshots/<int:id>/scan_result', methods=['GET'])
+    def api_snapshot_scan_result(id):
+        # 실제로는 id에 따른 DB/Redis 조회
+        scan_result = [
+            {
+                "step": 1,
+                "tool": "Nmap",
+                "tool_id": 101,
+                "status": "success",
+                "log": "Open ports: 22, 80, 443",
+                "summary": "22, 80, 443 open"
+            },
+            {
+                "step": 1,
+                "tool": "Amass",
+                "tool_id": 201,
+                "status": "fail",
+                "log": "Failed to resolve domain",
+                "summary": "Domain resolution failed"
+            },
+            {
+                "step": 2,
+                "tool": "S3scanner",
+                "tool_id": 301,
+                "status": "success",
+                "log": "Found open bucket: company-public-data",
+                "summary": "company-public-data open"
+            },
+            {
+                "step": 2,
+                "tool": "Nuclei",
+                "tool_id": 401,
+                "status": "success",
+                "log": "Found: CVE-2021-1234, CVE-2022-5678",
+                "summary": "2 vulnerabilities detected"
+            }
+        ]
+        return jsonify(scan_result)
+
+    @app.route('/api/timeline', methods=['GET'])
+    def api_timeline():
+        timelineData = [
+            { "date": "2025-05-01T10:00", "rsc": "server1", "dif": "port 80 opened" },
+            { "date": "2025-05-02T12:30", "rsc": "server2", "dif": "new user added" },
+            { "date": "2025-05-04T09:15", "rsc": "server1", "dif": "config change" },
+            { "date": "2025-05-05T14:00", "rsc": "server3", "dif": "SSH disabled" },
+            { "date": "2025-05-05T16:00", "rsc": "server1", "dif": "SSH disabled" }
+        ]
+        return jsonify(timelineData)
+
+    @app.route('/api/resources', methods=['GET'])
+    def api_resources():
+        resources = [
+            "EC2", "S3", "Lambda", "IAM Role", "RDS", "VPC",
+            "CloudFront", "ECS", "EBS", "Route53"
+        ]
+        return jsonify(resources)
+
+    @app.route('/api/generate_report', methods=['POST'])
+    def api_generate_report():
+        data = request.json
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        resources = data.get('resources', [])
+        if not start_date or not end_date or not resources:
+            return jsonify({'status': 'error', 'message': '필터가 부족합니다.'}), 400
+
+        # (실제로는 DB 조회, PDF 생성 태스크 트리거)
+        pdf_url = f"/static/reports/report_{start_date}_{end_date}.pdf"
+        # 예: celery_report_generate.delay(start_date, end_date, resources)
+        return jsonify({'status': 'ok', 'pdf_url': pdf_url})
+
+
 
     return app
 
