@@ -9,7 +9,7 @@ from celery_worker import celery  # 반드시 celery 인스턴스를 import 해�
 
 def extract_keywords_task(csv_path: str) -> str:
     """
-    주어진 CSV 파일에서 도메인 키워드를 추출하여 JSON 문자열로 반환합니다.
+    도메인 CSV 파일에서 도메인 키워드 추출 후 JSON 문자열로 반환
     """
     keywords = set()
 
