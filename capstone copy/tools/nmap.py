@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 def run_nmap_port_scan(ip_address: str) -> dict:
-    command = ["/usr/bin/nmap", "-Pn", "-sV", ip_address]
+    command = ["/usr/bin/nmap", "-Pn", "-sV","--script=banner", ip_address]
 
     env = os.environ.copy()
     env["HOME"] = "/home/skyroute"

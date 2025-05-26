@@ -15,11 +15,10 @@ def extract_core_logs(log_text):
         if line.startswith("[detect-dangling-s3")
     )
 
-def infer_success(log_text):
+def infer_match_count(log_text):
     matches = re.findall(r"Matched:\s*(\d+)", log_text)
     if matches:
-        final = int(matches[-1])  # 마지막 matched 값으로 판단
-        return 1 if final >= 1 else 0
+        return int(matches[-1])  # 마지막 matched 값으로 판단
     return 0
 
 def extract_all_cname_records(log_text, base_domain):
@@ -55,8 +54,30 @@ def parse_nuclei_output(stdout: str, meta: dict):
                     domain = match.group(1).replace("http://", "").replace("https://", "")
                     detections[domain].add("http")
 
+    # DNS/HTTP 매칭 개수 확인 
+    dns_matched = sum("dns" in tags for tags in detections.values())
+    http_matched = sum("http" in tags for tags in detections.values())
+    match_count = dns_matched + http_matched
+
     # 3. success 판별 (마지막 matched가 2인지 여부)
-    final_success = infer_success(clean_stdout)
+    match_count = infer_match_count(clean_stdout)
+
+    if match_count >= 2:
+        success = 1
+        vuln_msg = "detect-dangling-s3-cname [dns] and [http] matched"
+        risk = "high"
+    elif dns_matched == 1 and http_matched == 0:
+        success = 1
+        vuln_msg = "detect-dangling-s3-cname [dns] matched"
+        risk = "medium"
+    elif dns_matched == 0 and http_matched == 1:
+        success = 1
+        vuln_msg = "detect-dangling-s3-cname [http] matched"
+        risk = "medium"
+    else:
+        success = 0
+        vuln_msg = "no detect-dangling-s3-cname matched"
+        risk = "info"
 
     # 4. CNAME 레코드 추출
     base_domain = meta.get("target_url", "").replace("http://", "").replace("https://", "")
@@ -67,10 +88,9 @@ def parse_nuclei_output(stdout: str, meta: dict):
         "tool_id": 6,
         "target": meta.get("target_url"),
         "command": meta.get("command"),
-        "success": final_success,
-        "vulnerability": "detect-dangling-s3-cname [dns] and [http] matched"
-                         if final_success == 1 else "No vulnerable CNAME record detected",
-        "risk_level": "high" if final_success == 1 else "info",
+        "success": success,
+        "vulnerability": vuln_msg,
+        "risk_level": risk,
         "url": "\n".join(cname_records),       # 문자열 (DB용)
         "url_list": cname_records,             # 리스트 (프론트용)
         "log": extract_core_logs(clean_stdout),
