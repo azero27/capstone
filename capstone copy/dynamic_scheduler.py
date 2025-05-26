@@ -7,7 +7,7 @@ from task_defs import schedule_scan
 class DynamicScheduler(Scheduler):
     def __init__(self, *args, **kwargs):
         self._last_loaded_interval = None
-        self._interval = 300
+        self._interval = 60
         self.r = redis.Redis(host='localhost', port=6379, db=0)
 
         # 서버 시작 시 초기화
@@ -19,14 +19,12 @@ class DynamicScheduler(Scheduler):
 
     def load_interval(self):
         try:
-            with open("schedule_config.json", "r") as f:
-                config = json.load(f)
-                interval = float(config.get("interval_seconds", 300))
-                print(f"[DEBUG] 불러온 interval: {interval}")
-                return interval
+            from DB.scan_setting import get_latest_scan_period  # DB에서 분 단위로 가져옴
+            minutes = get_latest_scan_period()
+            return minutes * 60  # 초 단위로 변환해서 반환
         except Exception as e:
             print(f"[ERROR] load_interval 실패: {e}")
-            return 300
+
 
     def tick(self):
         print("[DEBUG] tick 호출됨")
