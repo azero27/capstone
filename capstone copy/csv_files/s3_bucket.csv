@@ -10,7 +10,7 @@ skyroute-test, TRUE
 skyroute-userdata, FALSE
 skyroute6, TRUE
 skyroute7, TRUE
-skyroute, TRUE
+sskyroute, TRUE
 sskyroute-private, TRUE
 sskyroute-test, TRUE
 sskyroute-userdata, FALSE
