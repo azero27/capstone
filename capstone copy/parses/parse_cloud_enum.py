@@ -19,7 +19,9 @@ def parse_cloud_enum_output(
     with open(output_file_path, 'r', encoding='utf-8') as f:
         cloud_enum_output = f.read()
 
+    print("[DEBUG] Raw cloud_enum_output:\n", cloud_enum_output)
     blocks = re.split(r'OPEN S3 BUCKET: ', cloud_enum_output)[1:]
+    print("[DEBUG] 파싱된 OPEN S3 BUCKET 블럭 수:", len(blocks))
 
     for bucket_index, block in enumerate(blocks):
         lines = block.strip().splitlines()

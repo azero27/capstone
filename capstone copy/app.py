@@ -5,6 +5,9 @@ import json
 import redis
 from datetime import datetime
 import time 
+from DB.cloud_info import get_or_create_cloud_info
+from DB.save_scan_result import save_scan_result_start, update_scan_result_end
+from DB.scan_setting import save_scan_setting, latest_scan_setting
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -45,6 +48,11 @@ def create_app():
             ip_address = convert_domain_to_ip(domain)
             if not ip_address:
                 return "❌ 도메인으로부터 IP를 찾을 수 없습니다.", 400
+        
+        # cloud_info 및 scan_result_id 미리 생성
+        cloud_info_id = get_or_create_cloud_info(ip_address, domain)
+        scan_setting_id = latest_scan_setting()
+        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
         r.set("scheduled_ip", ip_address)
         r.set("scheduled_domain", domain)
@@ -56,9 +64,8 @@ def create_app():
 
         # 세 개의 스캔 태스크 병렬 실행
         task_ids = []
-        task_ids.append(schedule_scan.delay('ip', ip_address, 'scan_job_ip'))
-        # task_ids.append(schedule_scan.delay('domain', domain, 'scan_job_domain'))
-        task_ids.append(schedule_scan.delay('keyword', keyword, 'scan_job_keyword'))
+        task_ids.append(schedule_scan.delay('ip', ip_address, scan_setting_id, 1, scan_result_id))
+        task_ids.append(schedule_scan.delay('keyword', keyword, scan_setting_id, 1, scan_result_id))
 
         # 상태 관리는 Celery 완료 콜백에서 직접 처리 x → 대신 추후 백엔드에서 모니터링 가능
         # 콜백 내부에서 상태를 무조건 idle로 바꾸면 race condition 발생 가능

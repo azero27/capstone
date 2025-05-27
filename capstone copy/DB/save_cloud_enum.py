@@ -15,6 +15,7 @@ def save_cloud_enum_result(results_main: list, results_files: list, scan_result_
     cloud_enum_id_list = []
 
     for result in results_main:
+        print("[DEBUG] bucket row:", result)
         result["scan_result_id"] = scan_result_id
         result["step"] = step
 
@@ -39,11 +40,12 @@ def save_cloud_enum_result(results_main: list, results_files: list, scan_result_
         cloud_enum_id_list.append(cursor.lastrowid)
 
     for file in results_files:
+        print("[DEBUG] file row:", file)
         bucket_index = file["bucket_index"]
         cloud_enum_id = cloud_enum_id_list[bucket_index]
 
         cursor.execute("""
-            INSERT INTO CloudEnumFiles (
+            INSERT INTO CloudEnumFile (
                 cloud_enum_id,
                 file
             ) VALUES (%s, %s)

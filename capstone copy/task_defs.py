@@ -112,6 +112,10 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
         elif resource_type == "domain":
             domain_name = value
             ip_address = convert_domain_to_ip(value)
+        elif resource_type == "keyword":
+            # ✅ Redis에서 최근 사용자 입력 꺼내기
+            ip_address = r.get("scheduled_ip").decode() if r.get("scheduled_ip") else None
+            domain_name = r.get("scheduled_domain").decode() if r.get("scheduled_domain") else None
 
         if ip_address and domain_name:
             cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
@@ -162,7 +166,8 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
                     save_nmap_result(raw, value, tool_id, scan_result_id, step)
                 elif tool_id == 2:
                     from DB.save_cloud_enum import save_cloud_enum_result
-                    save_cloud_enum_result(parsed, scan_result_id, step)
+                    buckets, files = parsed
+                    save_cloud_enum_result(buckets, files, scan_result_id, step)
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
                     save_amass_result(parsed, scan_result_id, step)
@@ -232,5 +237,4 @@ def analyze_shadow_it(scan_job_id):
     mapping = build_resource_subdomain_map(nuclei_results)
     #save_shadowit_mapping(mapping, scan_job_id)
     print(f"[SHADOW IT] 분석 완료 - 리소스 {len(mapping)}개")
-
 

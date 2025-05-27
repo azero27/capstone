@@ -3,7 +3,7 @@ import subprocess
 from datetime import datetime
 
 def run_cloud_enum(keyword):
-    cloud_enum_path = os.path.expanduser("~/cloud-1/capstone/capstone/tools/cloud_enum/cloud_enum.py")
+    cloud_enum_path = os.path.expanduser("~/capstone/capstone copy/tools/cloud_enum/cloud_enum.py")
     command = ["python3", cloud_enum_path, "-k", keyword]
 
     start_time = datetime.now()
@@ -11,7 +11,7 @@ def run_cloud_enum(keyword):
     start_time = datetime.now()
 
     # [추가] names.txt 초기화
-    names_path = os.path.expanduser("~/cloud-1/capstone/capstone/tools/S3Scanner/names.txt")
+    names_path = os.path.expanduser("~/capstone/capstone copy/tools/S3Scanner/names.txt")
     try:
         with open(names_path, "w") as f:
             f.write("")  # 빈 파일로 초기화
@@ -19,7 +19,7 @@ def run_cloud_enum(keyword):
     except Exception as e:
         print(f"[ERROR] names.txt 초기화 실패: {e}")
         
-    log_dir = os.path.expanduser("~/cloud-1/capstone/capstone/logs")
+    log_dir = os.path.expanduser("~/capstone/capstone copy/logs")
     os.makedirs(log_dir, exist_ok=True)
 
     timestamp = start_time.strftime("%Y%m%d_%H%M%S_%f")

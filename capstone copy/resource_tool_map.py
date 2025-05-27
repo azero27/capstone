@@ -106,7 +106,7 @@ def custom_preprocess(nxt_val: str, nxt_key: str, tool_name: str) -> str:
             bucket_name = match.group(1)
             names_path = os.path.join(
                 os.path.expanduser("~"),
-                "cloud-1", "capstone", "capstone", "tools", "S3Scanner", "names.txt"
+                "capstone", "capstone copy", "tools", "S3Scanner", "names.txt"
             )
 
             # 항상 append (초기화는 run_cloud_enum()에서 처리)

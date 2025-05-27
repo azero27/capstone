@@ -5,12 +5,12 @@ def run_s3scanner():
 
     s3scanner_path = os.path.join(
         os.path.expanduser("~"),
-        "cloud-1", "capstone", "capstone", "tools", "S3Scanner", "s3scanner"
+        "capstone", "capstone copy", "tools", "S3Scanner", "s3scanner"
     )
 
     bucket_list = os.path.join(
         os.path.expanduser("~"),
-        "cloud-1", "capstone", "capstone", "tools", "S3Scanner", "names.txt"
+        "capstone", "capstone copy", "tools", "S3Scanner", "names.txt"
     )
 
     command = [s3scanner_path, "-bucket-file", bucket_list, "-enumerate"]
