@@ -64,7 +64,7 @@ RESOURCE_TOOL_MAP = {
             "tool": run_s3scanner,
             "input_args" : [],
             "parser": parse_s3scanner_output,
-            "parser_args": ["output", "tool", "command", "start_time", "end_time"],
+            "parser_args": ["output", "tool_id", "command", "start_time", "end_time"],
             "next_resource": ["object_paris"]  # S3 내부에서 key 발견 시
         }
     ],

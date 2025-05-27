@@ -1,2 +1,2 @@
-sskyroute-private
-sskyroute-test
+sskyroute
+sskyroute-userdata

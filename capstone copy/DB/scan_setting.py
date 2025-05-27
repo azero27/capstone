@@ -33,9 +33,35 @@ def save_scan_setting(period: int):
 
 # 현재 사용 중인 주기 조회 (가장 최신 레코드의 id 기준)
 def latest_scan_setting() -> int:
-    import mysql.connector
-    from datetime import datetime
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="DBA",
+        password="1234",
+        database="SKYROUTE"
+    )
+    cursor = conn.cursor()
 
+    cursor.execute("SELECT period FROM ScanSetting ORDER BY id DESC LIMIT 1")
+    result = cursor.fetchone()
+
+    if result:
+        period = result[0]  # ✅ 진짜 주기
+    else:
+        # 기본 주기 60분으로 삽입
+        start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute("""
+            INSERT INTO ScanSetting (period, start_time, stop_time)
+            VALUES (%s, %s, NULL)
+        """, (60, start_time))
+        conn.commit()
+        period = 60
+        print(f"[+] 기본 ScanSetting 저장됨 (period=60)")
+
+    cursor.close()
+    conn.close()
+    return period
+
+def latest_scan_setting_id() -> int:
     conn = mysql.connector.connect(
         host="localhost",
         user="DBA",
@@ -51,10 +77,11 @@ def latest_scan_setting() -> int:
         setting_id = result[0]
     else:
         # 기본 주기 60분으로 삽입
+        start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute("""
             INSERT INTO ScanSetting (period, start_time, stop_time)
             VALUES (%s, %s, NULL)
-        """, (60, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        """, (60, start_time))
         conn.commit()
         setting_id = cursor.lastrowid
         print(f"[+] 기본 ScanSetting 저장됨 (id={setting_id}, period=60)")
@@ -62,4 +89,3 @@ def latest_scan_setting() -> int:
     cursor.close()
     conn.close()
     return setting_id
-

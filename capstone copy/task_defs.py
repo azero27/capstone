@@ -12,7 +12,7 @@ from DB.save_nmap import save_nmap_result
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
-from DB.scan_setting import save_scan_setting, latest_scan_setting
+from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_setting_id
 from celery.schedules import crontab
 import redis
 import json 
@@ -63,6 +63,7 @@ def build_meta(tool_id, raw):
             "output": raw.get("output"),
             "output_log": raw.get("output_log"),
             "command": raw.get("command"),
+            "status": raw.get("status", "success"), 
             "target_url": raw.get("target_url"),
             "start_time": raw.get("start_time"),
             "end_time": raw.get("end_time")
@@ -119,7 +120,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
 
         if ip_address and domain_name:
             cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-            scan_setting_id = latest_scan_setting()
+            scan_setting_id = latest_scan_setting_id()
             scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
             
 

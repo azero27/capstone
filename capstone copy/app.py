@@ -7,7 +7,7 @@ from datetime import datetime
 import time 
 from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
-from DB.scan_setting import save_scan_setting, latest_scan_setting
+from DB.scan_setting import save_scan_setting, latest_scan_setting_id, latest_scan_setting
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -18,6 +18,12 @@ def create_app():
         result_backend='redis://localhost:6379/0'
     )
     make_celery(app)  # 필수
+
+    try:
+        if latest_scan_setting_id() is None:
+            save_scan_setting(60)  # 기본 주기 60분
+    except Exception as e:
+        print(f"[ERROR] 초기 ScanSetting 저장 실패: {e}")
 
     r.set('has_user_input', 'false')  # 사용자 입력 없음으로 초기화
     r.set('scan_status', 'idle')      # 스캔 상태도 초기화
@@ -51,7 +57,7 @@ def create_app():
         
         # cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
-        scan_setting_id = latest_scan_setting()
+        scan_setting_id = latest_scan_setting_id()
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
         r.set("scheduled_ip", ip_address)
@@ -59,7 +65,7 @@ def create_app():
         r.set("scheduled_keyword", keyword)
         # 사용자 입력에 따라 스케줄 타이머 시작
         r.set('scan_status', 'running')
-        # r.set('last_scan_time', time.time())       # datetime.now().timestamp()도 가능
+        r.set('last_scan_time', time.time())       # datetime.now().timestamp()도 가능
         r.set('has_user_input', 'true')
 
         # 세 개의 스캔 태스크 병렬 실행
