@@ -7,6 +7,8 @@ import re
 import subprocess
 import sys
 import os
+import csv
+import tldextract
 from DB.save_nmap import save_nmap_result
 #from shadow_it_analysis.shadow_domain import build_resource_subdomain_map
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
@@ -16,6 +18,10 @@ from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_
 from celery.schedules import crontab
 import redis
 import json 
+
+from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
+from shadow_it_analysis.shadow_network import compare_nmap_with_target_reference
+from shadow_it_analysis.shadow_resource import show_violating_buckets_verbose
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -186,9 +192,9 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
                 print(f"[ERROR] 도구 {tool_id} 결과 저장 실패: {e}")
 
             # 튜플이면 두 리스트를 병합
-            # parsed_list = []
+            parsed_list = []
             if isinstance(parsed, tuple):
-                parsed_list = []
+                # parsed_list = []
                 for item in parsed:
                     if isinstance(item, list):
                         parsed_list.extend(item)
@@ -224,18 +230,93 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
     # if depth == 0:
     #    print("[DEBUG] 모든 스캔 완료 후 Shadow IT 분석 시작")
     #    analyze_shadow_it.delay(scan_setting_id)
-    if scan_result_id:
-        update_scan_result_end(scan_result_id)
-        print(f"[+] ScanResult 종료 시간 기록 완료 (ID={scan_result_id})")    
+    if scan_result_id is not None:
+        print(f"[MOCK] DB 저장 생략 - 종료 시간 기록 생략 (ID={scan_result_id})")
+    else:
+        print("[MOCK] scan_result_id 없음 - DB 저장 생략")
+        
+    return scan_result_id  
 
 
-@celery.task(name='tasks.analyze_shadow_it')
-def analyze_shadow_it(scan_job_id):
-    from shadow_it_analysis.loader import fetch_nuclei_results
-    from shadow_it_analysis.reporter import save_shadowit_mapping
+@celery.task(name='tasks.analyze_shadow_components_mock')
+def analyze_shadow_components_mock(scan_result_ids):
+    print(f"[SHADOW IT MOCK 분석 시작] ScanResult ID 목록: {scan_result_ids}")
 
-    #nuclei_results = fetch_nuclei_results(scan_job_id)
-    mapping = build_resource_subdomain_map(nuclei_results)
-    #save_shadowit_mapping(mapping, scan_job_id)
-    print(f"[SHADOW IT] 분석 완료 - 리소스 {len(mapping)}개")
+    # ========== MOCK 1. nuclei + 사용자 소유 버킷 ==========
+    parsed_nuclei_results = [
+        {"target": "cdn.skyroute.com", "url_list": ["CNAME\tbucket1.s3.amazonaws.com"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
+        {"target": "img.skyroute.com", "url_list": ["CNAME\tmy-owned-bucket.s3.amazonaws.com"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
+        {"target": "static.skyroute.com", "url_list": ["CNAME\tstatic-site.github.io"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
+        {"target": "media.skyroute.com", "url_list": ["CNAME\td111111abcdef8.cloudfront.net"], "vulnerability": "detect-dangling-s3-cname [dns] and [http] matched"}
+    ]
+    user_resources = {"my-owned-bucket"}
+
+    print("\n===== 1. analyze_nuclei_shadow_domains() 결과 =====")
+    print(json.dumps(analyze_nuclei_shadow_domains(parsed_nuclei_results, user_resources), indent=2, ensure_ascii=False))
+
+    # ========== MOCK 2. Nmap 결과 및 허용 포트 ==========
+    nmap_results = [
+        {"target": "15.165.170.99", "port_number": 22, "service_name": "ssh"},
+        {"target": "15.165.170.99", "port_number": 80, "service_name": "apache httpd"},
+        {"target": "192.168.0.10", "port_number": 3306, "service_name": "mysql"},
+        {"target": "192.168.0.10", "port_number": 22, "service_name": "ssh"}
+    ]
+    target_specific_mappings = {
+        "15.165.170.99": [
+            {"port": 22, "service": "ssh"},
+            {"port": 443, "service": "https"}
+        ],
+        "192.168.0.10": [
+            {"port": 3306, "service": "mysql"}
+        ]
+    }
+
+    print("\n===== 2. compare_nmap_with_target_reference() 결과 =====")
+    print(json.dumps(compare_nmap_with_target_reference(nmap_results, target_specific_mappings), indent=2, ensure_ascii=False))
+
+    # ========== MOCK 3. S3scanner + 공개정책 ==========
+    bucket_public_policy = {
+        "sskyroute-userdata": False,
+        "sskyroute": True,
+        "skyroute7": True,
+        "sskyroute-private": True,
+        "sskyroute-test": False
+    }
+
+    scan_result = {
+        "parsed_s3scanner_result": [
+            {
+                "bucket_name": "sskyroute-userdata",
+                "allusers_permission": "[FULL_CONTROL]",
+                "authusers_permission": "[READ_ACP]"
+            },
+            {
+                "bucket_name": "sskyroute",
+                "allusers_permission": "[READ, READ_ACP]",
+                "authusers_permission": "[]"
+            },
+            {
+                "bucket_name": "skyroute7",
+                "allusers_permission": "[READ, READ_ACP]",
+                "authusers_permission": "[READ, READ_ACP]"
+            },
+            {
+                "bucket_name": "sskyroute-private",
+                "allusers_permission": "[READ, READ_ACP]",
+                "authusers_permission": "[]"
+            },
+            {
+                "bucket_name": "sskyroute-test",
+                "allusers_permission": "[READ, READ_ACP]",
+                "authusers_permission": "[]"
+            }
+        ]
+    }
+
+    print("\n===== 3. show_violating_buckets_verbose() 결과 =====")
+    show_violating_buckets_verbose(bucket_public_policy, scan_result)
+
+
+
+
 

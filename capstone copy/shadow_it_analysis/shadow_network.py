@@ -39,6 +39,19 @@ def compare_nmap_with_target_reference(nmap_results: list, target_mappings: dict
             "mismatched_services": mismatched_services
         }
 
+    print("전체 비교 결과")
+
+    for target, findings in all_results.items():
+        print(f"\n[Target]: {target}")
+
+        print("허용되지 않은 포트")
+        for item in findings["unexpected_ports"]:
+            print(f"  - Port {item['port']} ({item['service']}): {item['reason']}")
+
+        print("서비스 불일치")
+        for item in findings["mismatched_services"]:
+            print(f"  - Port {item['port']}: expected '{item['expected_service']}', got '{item['actual_service']}' → {item['reason']}")
+
     return all_results
 
 
@@ -59,17 +72,4 @@ target_specific_mappings = {
     ]
 }
 
-result = compare_nmap_with_target_reference(nmap_results, target_specific_mappings)
-
-print("전체 비교 결과")
-
-for target, findings in result.items():
-    print(f"\n[Target]: {target}")
-
-    print("허용되지 않은 포트")
-    for item in findings["unexpected_ports"]:
-        print(f"  - Port {item['port']} ({item['service']}): {item['reason']}")
-
-    print("서비스 불일치")
-    for item in findings["mismatched_services"]:
-        print(f"  - Port {item['port']}: expected '{item['expected_service']}', got '{item['actual_service']}' → {item['reason']}")
+# result = compare_nmap_with_target_reference(nmap_results, target_specific_mappings)

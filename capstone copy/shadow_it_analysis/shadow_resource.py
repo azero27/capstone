@@ -117,4 +117,4 @@ def show_violating_buckets_verbose(bucket_public_policy, scan_result):
             print("  AuthUsers 권한 없음")
 
 # 6. 실행
-show_violating_buckets_verbose(bucket_public_policy, scan_result)
+# show_violating_buckets_verbose(bucket_public_policy, scan_result)

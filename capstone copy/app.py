@@ -1,3 +1,9 @@
+import sys
+import os
+print("sys.path =", sys.path)
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from task_defs import celery, make_celery, schedule_scan  # ❗ make_celery 추가
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
@@ -8,6 +14,9 @@ import time
 from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
 from DB.scan_setting import save_scan_setting, latest_scan_setting_id, latest_scan_setting
+from celery import chord
+from api.snapshotList import archiving_bp
+from api.infoView import info_bp
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -18,6 +27,10 @@ def create_app():
         result_backend='redis://localhost:6379/0'
     )
     make_celery(app)  # 필수
+
+    # Blueprint 등록
+    app.register_blueprint(archiving_bp)
+    app.register_blueprint(info_bp)
 
     try:
         if latest_scan_setting_id() is None:
@@ -68,10 +81,14 @@ def create_app():
         r.set('last_scan_time', time.time())       # datetime.now().timestamp()도 가능
         r.set('has_user_input', 'true')
 
-        # 세 개의 스캔 태스크 병렬 실행
-        task_ids = []
-        task_ids.append(schedule_scan.delay('ip', ip_address, scan_setting_id, 1, scan_result_id))
-        task_ids.append(schedule_scan.delay('keyword', keyword, scan_setting_id, 1, scan_result_id))
+        # 병렬 스캔 태스크 (Signature 형태로)
+        scan_tasks = [
+            schedule_scan.s('ip', ip_address, 'scan_job_ip'),
+            schedule_scan.s('keyword', keyword, 'scan_job_keyword')
+        ]
+
+        # 병렬 태스크 모두 끝나면 shadow 분석(mock) 실행
+        chord(scan_tasks)(analyze_shadow_components_mock.s())
 
         # 상태 관리는 Celery 완료 콜백에서 직접 처리 x → 대신 추후 백엔드에서 모니터링 가능
         # 콜백 내부에서 상태를 무조건 idle로 바꾸면 race condition 발생 가능
