@@ -45,6 +45,7 @@ class ContextTask(Task):
             return self.run(*args, **kwargs)
 celery.Task = ContextTask
 
+
 def build_meta(tool_id, raw):
     if tool_id == 1:  # nmap
         return {
@@ -110,7 +111,9 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
     visited = set()
     queue = [(resource_type, value, step)]
     
+    
     if scan_result_id is None:
+        step = 1
         ip_address, domain_name = None, None
 
         if resource_type == "ip":
@@ -128,7 +131,6 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
             cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
             scan_setting_id = latest_scan_setting_id()
             scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
-            
 
     while queue:
         resource_type, value, job_name = queue.pop(0)
@@ -166,27 +168,29 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
 
             parsed = m["parser"](*parser_args)
             print("[DEBUG] Parsed Result:", parsed)
-            
+            current_step = step + 1 if m.get("next_resource") else step
+
+
             try:
                 if tool_id == 1:
                     from DB.save_nmap import save_nmap_result
-                    save_nmap_result(raw, value, tool_id, scan_result_id, step)
+                    save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
                 elif tool_id == 2:
                     from DB.save_cloud_enum import save_cloud_enum_result
                     buckets, files = parsed
-                    save_cloud_enum_result(buckets, files, scan_result_id, step)
+                    save_cloud_enum_result(buckets, files, scan_result_id, current_step)
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
-                    save_amass_result(parsed, scan_result_id, step)
+                    save_amass_result(parsed, scan_result_id, current_step)
                 elif tool_id == 4:
                     from DB.save_s3scanner import save_s3scanner_result
-                    save_s3scanner_result(parsed, scan_result_id, step)
+                    save_s3scanner_result(parsed, scan_result_id, current_step)
                 elif tool_id == 5:
                     from DB.save_enumerate_iam import save_enumerate_iam_result
-                    save_enumerate_iam_result(parsed, scan_result_id, step)
+                    save_enumerate_iam_result(parsed, scan_result_id, current_step)
                 elif tool_id == 6:
                     from DB.save_nuclei import save_nuclei_result
-                    save_nuclei_result(parsed, scan_result_id, step)
+                    save_nuclei_result(parsed, scan_result_id, current_step)
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
             except Exception as e:
                 print(f"[ERROR] 도구 {tool_id} 결과 저장 실패: {e}")

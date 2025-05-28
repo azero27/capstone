@@ -4,7 +4,7 @@ from datetime import datetime
 
 def run_cloud_enum(keyword):
     cloud_enum_path = os.path.expanduser("~/capstone/capstone copy/tools/cloud_enum/cloud_enum.py")
-    command = ["python3", cloud_enum_path, "-k", keyword]
+    command = ["python3", cloud_enum_path, "-k", keyword, "--disable-azure", "--disable-gcp"]
 
     start_time = datetime.now()
 
