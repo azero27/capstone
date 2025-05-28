@@ -83,12 +83,24 @@
         <input id="ipInput" class="input-box" type="text" placeholder="IP를 입력하세요" style="display: none;" />
       </div>
 
-      <!-- 파일 업로드 영역 -->
+<!-- 파일 업로드 영역 (3개 파일 각각) -->
 <div class="upload-section">
   <label class="label-title">리소스 목록 파일 업로드</label>
-  <input type="file" id="resourceFile" class="input-box" accept=".csv" />
-  <p class="upload-note">※ 리소스 목록이 포함된 CSV 파일을 업로드하세요.</p>
+  <div class="file-upload-row">
+    <label>Domain 파일 (domain.csv):
+      <input type="file" id="domainFileInput" accept=".csv" />
+    </label>
+    <label>Port 파일 (port.csv):
+      <input type="file" id="portFileInput" accept=".csv" />
+    </label>
+    <label>S3 파일 (s3.csv):
+      <input type="file" id="s3FileInput" accept=".csv" />
+    </label>
+  </div>
+  <p class="upload-note">※ 각 항목에 해당하는 CSV 파일을 업로드하세요.<br>
+     파일명은 각각 <b>domain.csv</b>, <b>port.csv</b>, <b>s3.csv</b>로 업로드 바랍니다.</p>
 </div>
+
 
 
       <button class="scan-button" onclick="handleScan()">SCAN</button>
