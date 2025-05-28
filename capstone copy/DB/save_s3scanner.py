@@ -16,6 +16,18 @@ def save_s3scanner_result(parsed_tuple, scan_result_id, step):
     s3scanner_id_map = {}  # bucket_name → id 매핑
 
     for entry in bucket_results:
+        # 1) 기존 ID (버킷 이름) 조회해서
+        cursor.execute(
+            "SELECT id FROM S3scannerResult WHERE scan_result_id=%s AND bucket_name=%s LIMIT 1",
+            (scan_result_id, entry.get("bucket_name"))
+        )
+        row = cursor.fetchone()
+        if row:
+            # 이미 저장된 버킷이면 기존 id만 맵에 추가하고 INSERT 건너뛰기
+            s3scanner_id_map[entry.get("bucket_name")] = row[0]
+            continue
+
+
         cursor.execute("""
             INSERT INTO S3scannerResult (
                 tool_id, scan_result_id, step, target, command,
@@ -46,6 +58,14 @@ def save_s3scanner_result(parsed_tuple, scan_result_id, step):
     for file in file_objects:
         s3scanner_id = s3scanner_id_map.get(file.get("target"))
         if s3scanner_id:
+            cursor.execute(
+                 "SELECT 1 FROM S3scannerObject WHERE s3scanner_id=%s AND `object`=%s AND url=%s LIMIT 1",
+                 (s3scanner_id, file.get("object"), file.get("url"))
+             )
+            if cursor.fetchone():
+                 # 이미 저장된 거면 패스
+                 continue
+
             cursor.execute("""
                 INSERT INTO S3scannerObject (
                     s3scanner_id, object, object_type, object_size, url

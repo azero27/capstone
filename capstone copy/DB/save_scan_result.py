@@ -2,10 +2,7 @@
 import mysql.connector
 from datetime import datetime
 
-def save_scan_result_start(cloud_info_id: int, scan_setting_id: int,
-                            domain_file_id: int = None,
-                            port_file_id: int = None,
-                            s3_file_id: int = None) -> int:
+def save_scan_result_start(cloud_info_id: int, scan_setting_id: int) -> int:
     conn = mysql.connector.connect(
         host="localhost",
         user="DBA",
@@ -15,12 +12,11 @@ def save_scan_result_start(cloud_info_id: int, scan_setting_id: int,
     cursor = conn.cursor()
 
     start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     cursor.execute("""
-        INSERT INTO ScanResult (cloud_info_id, scan_setting_id, start_time,
-                                domain_id, port_id, s3_id)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (cloud_info_id, scan_setting_id, start_time,
-          domain_file_id, port_file_id, s3_file_id))
+        INSERT INTO ScanResult (cloud_info_id, scan_setting_id, start_time)
+        VALUES (%s, %s, %s)
+    """, (cloud_info_id, scan_setting_id, start_time))
 
     conn.commit()
     scan_result_id = cursor.lastrowid
@@ -30,6 +26,7 @@ def save_scan_result_start(cloud_info_id: int, scan_setting_id: int,
 
     print(f"[+] ScanResult 시작 저장 완료 (ID={scan_result_id})")
     return scan_result_id
+
 
 def update_scan_result_end(scan_result_id: int):
     conn = mysql.connector.connect(

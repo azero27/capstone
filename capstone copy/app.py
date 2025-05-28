@@ -81,21 +81,11 @@ def create_app():
             ip_address = convert_domain_to_ip(domain)
             if not ip_address:
                 return "❌ 도메인으로부터 IP를 찾을 수 없습니다.", 400
-        
-        # Redis에서 최신 파일 ID 가져오기
-        domain_file_id = r.get("domain_file_id")
-        port_file_id   = r.get("port_file_id")
-        s3_file_id     = r.get("s3_file_id")
-
-        # bytes → int 변환
-        domain_file_id = int(domain_file_id) if domain_file_id else None
-        port_file_id   = int(port_file_id) if port_file_id else None
-        s3_file_id     = int(s3_file_id) if s3_file_id else None
 
         # cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = latest_scan_setting_id()
-        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id, domain_file_id, port_file_id, s3_file_id)
+        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
         r.set("scheduled_ip", ip_address)
         r.set("scheduled_domain", domain)
@@ -107,8 +97,8 @@ def create_app():
 
         # 병렬 스캔 태스크 (Signature 형태로)
         scan_tasks = [
-            schedule_scan.s('ip', ip_address, 'scan_job_ip', 1, scan_result_id),
-            schedule_scan.s('keyword', keyword, 'scan_job_keyword', 1, scan_result_id)
+            schedule_scan.s('ip', ip_address, scan_setting_id, 1, scan_result_id),
+            schedule_scan.s('keyword', keyword, scan_setting_id, 1, scan_result_id)
         ]
 
         # 병렬 태스크 모두 끝나면 shadow 분석(mock) 실행
@@ -126,43 +116,23 @@ def create_app():
 
     @app.route('/upload-data', methods=['POST'])
     def upload_data():
-        domain_file = request.files.get('domain_file')
-        if domain_file:
-            domain_path = os.path.join(upload_dir, 'domain.csv')
-            domain_file.save(domain_path)
-            new_hash = get_file_hash(domain_path)
-            old_hash = r.get("domain_file_hash")
+        def process_file(name, path, redis_key, parser_func):
+            uploaded_file = request.files.get(name)
+            if uploaded_file:
+                uploaded_file.save(path)
+                new_hash = get_file_hash(path)
+                old_hash = r.get(redis_key)
 
-            if not old_hash or old_hash.decode() != new_hash:
-                domain_file_id = parse_domain_file(domain_path)
-                r.set("domain_file_hash", new_hash)
-                r.set("domain_file_id", domain_file_id)
+                if not old_hash or old_hash.decode() != new_hash:
+                    # 데이터 재삽입을 위해 기존 데이터 삭제는 parser 내부에서 처리
+                    parser_func(path)
+                    r.set(redis_key, new_hash)
 
-        port_file = request.files.get('port_file')
-        if port_file:
-            port_path = os.path.join(upload_dir, 'port.csv')
-            port_file.save(port_path)
-            new_hash = get_file_hash(port_path)
-            old_hash = r.get("port_file_hash")
+        process_file('domain_file', os.path.join(upload_dir, 'domain.csv'), 'domain_file_hash', parse_domain_file)
+        process_file('port_file', os.path.join(upload_dir, 'port.csv'), 'port_file_hash', parse_port_file)
+        process_file('s3_file', os.path.join(upload_dir, 's3_bucket.csv'), 's3_file_hash', parse_s3_file)
 
-            if not old_hash or old_hash.decode() != new_hash:
-                port_file_id = parse_port_file(port_path)
-                r.set("port_file_hash", new_hash)
-                r.set("port_file_id", port_file_id)
-
-        s3_file = request.files.get('s3_file')
-        if s3_file:
-            s3_path = os.path.join(upload_dir, 's3_bucket.csv')
-            s3_file.save(s3_path)
-            new_hash = get_file_hash(s3_path)
-            old_hash = r.get("s3_file_hash")
-
-            if not old_hash or old_hash.decode() != new_hash:
-                s3_file_id = parse_s3_file(s3_path)
-                r.set("s3_file_hash", new_hash)
-                r.set("s3_file_id", s3_file_id)
-
-        return "파일 업로드 및 필요한 경우만 DB 저장 완료", 200
+        return "✅ 파일 파싱 완료 및 DB 반영됨", 200
 
     @app.route('/set-schedule', methods=['POST'])
     def set_schedule():
@@ -384,9 +354,24 @@ def create_app():
         return jsonify({'status': 'ok', 'pdf_url': pdf_url})
 
 
-
     return app
 
 if __name__ == '__main__':
     app = create_app()
+        
+    #파일 파싱 테스트
+    domain_path = os.path.join(upload_dir, 'domain.csv')
+    if os.path.exists(domain_path):
+        domain_file_id = parse_domain_file(domain_path)
+        r.set("domain_file_id", domain_file_id)
+
+    port_path = os.path.join(upload_dir, 'port.csv')
+    if os.path.exists(port_path):
+        port_file_id = parse_port_file(port_path)
+        r.set("port_file_id", port_file_id)
+
+    s3_path = os.path.join(upload_dir, 's3_bucket.csv')
+    if os.path.exists(s3_path):
+        s3_file_id = parse_s3_file(s3_path)
+        r.set("s3_file_id", s3_file_id)
     app.run(debug=True)

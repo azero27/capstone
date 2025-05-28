@@ -13,7 +13,7 @@ def run_s3scanner():
         "capstone", "capstone copy", "tools", "S3Scanner", "names.txt"
     )
 
-    command = [s3scanner_path, "-bucket-file", bucket_list, "-enumerate"]
+    command = [s3scanner_path, "-bucket-file", bucket_list, "-enumerate", "-provider", "aws"]
     # command = [s3scanner_path, "-bucket", bucket_name, "-enumerate"]
     start_time = datetime.now()
 

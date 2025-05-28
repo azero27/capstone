@@ -227,11 +227,9 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
 
         print("[DEBUG] 전체 스캔 흐름 종료. 더 이상 실행할 도구 없음.")
 
-    # if depth == 0:
-    #    print("[DEBUG] 모든 스캔 완료 후 Shadow IT 분석 시작")
-    #    analyze_shadow_it.delay(scan_setting_id)
     if scan_result_id is not None:
-        print(f"[MOCK] DB 저장 생략 - 종료 시간 기록 생략 (ID={scan_result_id})")
+        update_scan_result_end(scan_result_id)
+        print(f"[+] 스캔 종료 시간 저장 완료 (ScanResult ID={scan_result_id})")
     else:
         print("[MOCK] scan_result_id 없음 - DB 저장 생략")
         

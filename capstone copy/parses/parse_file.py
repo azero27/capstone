@@ -9,23 +9,32 @@ def parse_domain_file(file_path: str) -> int:
         database="SKYROUTE"
     )
     cursor = conn.cursor()
+    file_id = None
 
-    cursor.execute("INSERT INTO DomainFile (file_path) VALUES (%s)", (file_path,))
-    domain_file_id = cursor.lastrowid  # 🔑 이 ID를 반환할 것
+    try:
+        cursor.execute("DELETE FROM DomainList")
 
-    with open(file_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.reader(csvfile)
-        next(reader)
-        for row in reader:
-            domain = row[0].strip()
-            cursor.execute("""
-                INSERT INTO DomainList (domain, domain_file_id) VALUES (%s, %s)
-            """, (domain, domain_file_id))
+        with open(file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            try:
+                next(reader)
+            except StopIteration:
+                return 0
 
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return domain_file_id
+            for row in reader:
+                domain = row[0].strip()
+                cursor.execute("INSERT INTO DomainList (domain) VALUES (%s)", (domain,))
+                file_id = cursor.lastrowid
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
+
+    return file_id or 0
 
 def parse_port_file(file_path: str) -> int:
     conn = mysql.connector.connect(
@@ -35,26 +44,36 @@ def parse_port_file(file_path: str) -> int:
         database="SKYROUTE"
     )
     cursor = conn.cursor()
+    file_id = None
 
-    # 포트 파일 테이블에 파일 정보 저장
-    cursor.execute("INSERT INTO PortFile (file_path) VALUES (%s)", (file_path,))
-    port_file_id = cursor.lastrowid
+    try:
+        cursor.execute("DELETE FROM PortList")
 
-    with open(file_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.reader(csvfile)
-        next(reader)  # skip header
-        for row in reader:
-            port = int(row[0].strip())
-            service = row[1].strip()
-            cursor.execute("""
-                INSERT INTO PortList (port, service, port_file_id)
-                VALUES (%s, %s, %s)
-            """, (port, service, port_file_id))
+        with open(file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            try:
+                next(reader)
+            except StopIteration:
+                return 0
 
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return port_file_id
+            for row in reader:
+                port = int(row[0].strip())
+                service = row[1].strip()
+                cursor.execute(
+                    "INSERT INTO PortList (port, service) VALUES (%s, %s)",
+                    (port, service)
+                )
+                file_id = cursor.lastrowid
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
+
+    return file_id or 0
 
 def parse_s3_file(file_path: str) -> int:
     conn = mysql.connector.connect(
@@ -64,24 +83,33 @@ def parse_s3_file(file_path: str) -> int:
         database="SKYROUTE"
     )
     cursor = conn.cursor()
+    file_id = None
 
-    # S3 파일 테이블에 파일 정보 저장
-    cursor.execute("INSERT INTO S3File (file_path) VALUES (%s)", (file_path,))
-    s3_file_id = cursor.lastrowid
+    try:
+        cursor.execute("DELETE FROM S3List")
 
-    with open(file_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.reader(csvfile)
-        next(reader)  # skip header
-        for row in reader:
-            bucket_name = row[0].strip()
-            is_public = 1 if row[1].strip().upper() == "TRUE" else 0
-            cursor.execute("""
-                INSERT INTO S3List (s3_bucket, public, s3_file_id)
-                VALUES (%s, %s, %s)
-            """, (bucket_name, is_public, s3_file_id))
+        with open(file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            try:
+                next(reader)
+            except StopIteration:
+                return 0
 
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return s3_file_id
+            for row in reader:
+                bucket_name = row[0].strip()
+                is_public = 1 if row[1].strip().upper() == "TRUE" else 0
+                cursor.execute(
+                    "INSERT INTO S3List (s3_bucket, public) VALUES (%s, %s)",
+                    (bucket_name, is_public)
+                )
+                file_id = cursor.lastrowid
 
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
+
+    return file_id or 0
