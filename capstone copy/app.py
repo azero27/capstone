@@ -18,7 +18,7 @@ from DB.scan_setting import save_scan_setting, latest_scan_setting_id, latest_sc
 from celery import chord
 from api.snapshotList import archiving_bp
 from api.infoView import info_bp
-from parses.parser_file import parse_domain_file, parse_port_file, parse_s3_file
+from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 upload_dir = 'csv_files'
