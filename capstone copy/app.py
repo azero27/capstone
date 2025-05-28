@@ -64,9 +64,8 @@ def create_app():
         if not ip_address and not domain:
             return "❌ IP 또는 도메인 중 하나는 반드시 입력해야 합니다.", 400
         
-        task = extract_keyword.delay('csv_files/domain.csv')
-        keyword_json = task.get(timeout=200)
-        keyword = json.loads(keyword_json)
+        from shadow_it_analysis.extract_keyword import extract_keyword
+        keyword = extract_keyword('csv_files/domain.csv')
 
         print("[DOMAIN KEYWORD ANALYSIS]", keyword)
 
@@ -108,8 +107,8 @@ def create_app():
 
         # 병렬 스캔 태스크 (Signature 형태로)
         scan_tasks = [
-            schedule_scan.s('ip', ip_address, 'scan_job_ip'),
-            schedule_scan.s('keyword', keyword, 'scan_job_keyword')
+            schedule_scan.s('ip', ip_address, 'scan_job_ip', 1, scan_result_id),
+            schedule_scan.s('keyword', keyword, 'scan_job_keyword', 1, scan_result_id)
         ]
 
         # 병렬 태스크 모두 끝나면 shadow 분석(mock) 실행

@@ -108,7 +108,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
     print(f"[{datetime.now()}] 🚀 [SCHEDULE SCAN START] type={resource_type}, value={value}, scan_setting_id={scan_setting_id}")
     
     visited = set()
-    queue = [(resource_type, value)]
+    queue = [(resource_type, value, step)]
     
     if scan_result_id is None:
         ip_address, domain_name = None, None
@@ -131,7 +131,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
             
 
     while queue:
-        resource_type, value = queue.pop(0)
+        resource_type, value, job_name = queue.pop(0)
 
         if (resource_type, value) in visited:
             continue
@@ -222,7 +222,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
 
                         if nxt_type and (nxt_type, nxt_val) not in visited:
                             print(f"[DEBUG] 다음 자원 발견 → type: {nxt_type}, value: {nxt_val}")
-                            queue.append((nxt_type, nxt_val))
+                            queue.append((nxt_type, nxt_val, step + 1))
                             print("===========")
 
         print("[DEBUG] 전체 스캔 흐름 종료. 더 이상 실행할 도구 없음.")
