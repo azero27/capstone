@@ -21,6 +21,12 @@ from api.infoView import info_bp
 from parses.parser_file import parse_domain_file, parse_port_file, parse_s3_file
 
 r = redis.Redis(host='localhost', port=6379, db=0)
+upload_dir = 'csv_files'
+os.makedirs(upload_dir, exist_ok=True)
+
+def get_file_hash(file_path):
+    with open(file_path, 'rb') as f:
+        return hashlib.sha256(f.read()).hexdigest()
 
 def create_app():
     app = Flask(__name__)
@@ -51,12 +57,19 @@ def create_app():
     def submit():
         ip_address = request.form.get('ip_address', '').strip()
         domain     = request.form.get('domain', '').strip()
-        keyword    = request.form.get('keyword', '').strip()
+        #keyword    = request.form.get('keyword', '').strip()
 
-        if not keyword:
-            return "❌ keyword는 필수입니다.", 400
+        #if not keyword:
+        #    return "❌ keyword는 필수입니다.", 400
         if not ip_address and not domain:
             return "❌ IP 또는 도메인 중 하나는 반드시 입력해야 합니다.", 400
+        
+        task = extract_keyword.delay('csv_files/domain.csv')
+        keyword_json = task.get(timeout=200)
+        keyword = json.loads(keyword_json)
+
+        print("[DOMAIN KEYWORD ANALYSIS]", keyword)
+
 
         # IP → 도메인 변환
         if ip_address and not domain:
@@ -70,10 +83,20 @@ def create_app():
             if not ip_address:
                 return "❌ 도메인으로부터 IP를 찾을 수 없습니다.", 400
         
+        # Redis에서 최신 파일 ID 가져오기
+        domain_file_id = r.get("domain_file_id")
+        port_file_id   = r.get("port_file_id")
+        s3_file_id     = r.get("s3_file_id")
+
+        # bytes → int 변환
+        domain_file_id = int(domain_file_id) if domain_file_id else None
+        port_file_id   = int(port_file_id) if port_file_id else None
+        s3_file_id     = int(s3_file_id) if s3_file_id else None
+
         # cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = latest_scan_setting_id()
-        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id, domain_file_id, port_file_id, s3_file_id)
 
         r.set("scheduled_ip", ip_address)
         r.set("scheduled_domain", domain)
@@ -104,31 +127,43 @@ def create_app():
 
     @app.route('/upload-data', methods=['POST'])
     def upload_data():
-        upload_dir = 'csv_files'
-        os.makedirs(upload_dir, exist_ok=True)
-
-        # 도메인
         domain_file = request.files.get('domain_file')
         if domain_file:
             domain_path = os.path.join(upload_dir, 'domain.csv')
             domain_file.save(domain_path)
-            parse_domain_file(domain_path)
+            new_hash = get_file_hash(domain_path)
+            old_hash = r.get("domain_file_hash")
 
-        # 포트
+            if not old_hash or old_hash.decode() != new_hash:
+                domain_file_id = parse_domain_file(domain_path)
+                r.set("domain_file_hash", new_hash)
+                r.set("domain_file_id", domain_file_id)
+
         port_file = request.files.get('port_file')
         if port_file:
             port_path = os.path.join(upload_dir, 'port.csv')
             port_file.save(port_path)
-            parse_port_file(port_path)
+            new_hash = get_file_hash(port_path)
+            old_hash = r.get("port_file_hash")
 
-        # S3
+            if not old_hash or old_hash.decode() != new_hash:
+                port_file_id = parse_port_file(port_path)
+                r.set("port_file_hash", new_hash)
+                r.set("port_file_id", port_file_id)
+
         s3_file = request.files.get('s3_file')
         if s3_file:
             s3_path = os.path.join(upload_dir, 's3_bucket.csv')
             s3_file.save(s3_path)
-            parse_s3_file(s3_path)
+            new_hash = get_file_hash(s3_path)
+            old_hash = r.get("s3_file_hash")
 
-        return "파일 업로드 및 파싱 완료", 200
+            if not old_hash or old_hash.decode() != new_hash:
+                s3_file_id = parse_s3_file(s3_path)
+                r.set("s3_file_hash", new_hash)
+                r.set("s3_file_id", s3_file_id)
+
+        return "파일 업로드 및 필요한 경우만 DB 저장 완료", 200
 
     @app.route('/set-schedule', methods=['POST'])
     def set_schedule():
