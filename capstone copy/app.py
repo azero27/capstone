@@ -1,5 +1,6 @@
 import sys
 import os
+import csv
 print("sys.path =", sys.path)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -17,6 +18,7 @@ from DB.scan_setting import save_scan_setting, latest_scan_setting_id, latest_sc
 from celery import chord
 from api.snapshotList import archiving_bp
 from api.infoView import info_bp
+from parses.parser_file import parse_domain_file, parse_port_file, parse_s3_file
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -44,7 +46,7 @@ def create_app():
     @app.route('/')
     def index():
         return render_template('index.html')
-
+    
     @app.route('/submit', methods=['POST'])
     def submit():
         ip_address = request.form.get('ip_address', '').strip()
@@ -100,6 +102,33 @@ def create_app():
             'keyword': keyword
         }), 202
 
+    @app.route('/upload-data', methods=['POST'])
+    def upload_data():
+        upload_dir = 'csv_files'
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # 도메인
+        domain_file = request.files.get('domain_file')
+        if domain_file:
+            domain_path = os.path.join(upload_dir, 'domain.csv')
+            domain_file.save(domain_path)
+            parse_domain_file(domain_path)
+
+        # 포트
+        port_file = request.files.get('port_file')
+        if port_file:
+            port_path = os.path.join(upload_dir, 'port.csv')
+            port_file.save(port_path)
+            parse_port_file(port_path)
+
+        # S3
+        s3_file = request.files.get('s3_file')
+        if s3_file:
+            s3_path = os.path.join(upload_dir, 's3_bucket.csv')
+            s3_file.save(s3_path)
+            parse_s3_file(s3_path)
+
+        return "파일 업로드 및 파싱 완료", 200
 
     @app.route('/set-schedule', methods=['POST'])
     def set_schedule():
