@@ -6,7 +6,7 @@ print("sys.path =", sys.path)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for
-from task_defs import celery, make_celery, schedule_scan  # ❗ make_celery 추가
+from task_defs import celery, make_celery, schedule_scan, analyze_shadow_components_mock  # ❗ make_celery 추가
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 import json
 import redis
