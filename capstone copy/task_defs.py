@@ -261,24 +261,9 @@ def analyze_shadow_components_mock(scan_result_ids):
     print(json.dumps(analyze_nuclei_shadow_domains(parsed_nuclei_results, user_resources), indent=2, ensure_ascii=False))
 
     # ========== MOCK 2. Nmap 결과 및 허용 포트 ==========
-    nmap_results = [
-        {"target": "15.165.170.99", "port_number": 22, "service_name": "ssh"},
-        {"target": "15.165.170.99", "port_number": 80, "service_name": "apache httpd"},
-        {"target": "192.168.0.10", "port_number": 3306, "service_name": "mysql"},
-        {"target": "192.168.0.10", "port_number": 22, "service_name": "ssh"}
-    ]
-    target_specific_mappings = {
-        "15.165.170.99": [
-            {"port": 22, "service": "ssh"},
-            {"port": 443, "service": "https"}
-        ],
-        "192.168.0.10": [
-            {"port": 3306, "service": "mysql"}
-        ]
-    }
 
-    print("\n===== 2. compare_nmap_with_target_reference() 결과 =====")
-    print(json.dumps(compare_nmap_with_target_reference(nmap_results, target_specific_mappings), indent=2, ensure_ascii=False))
+    compare_nmap_with_target_reference()
+
 
     # ========== MOCK 3. S3scanner + 공개정책 ==========
     bucket_public_policy = {
