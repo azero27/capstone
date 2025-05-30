@@ -2,6 +2,7 @@
 
 import subprocess
 import datetime
+import mysql.connector 
 
 def run_nuclei(url: str, template_path: str):
     """
@@ -48,18 +49,26 @@ def run_nuclei_from_db(template_path: str, scan_result_id: int = None) -> dict:
     - List[dict]: 각 도메인 스캔 결과의 dict 리스트
     """
     # 1) MySQL에서 도메인 목록 조회
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="DBA",
-        password="1234",
-        database="SKYROUTE",
-        port=3306
-    )
-    cursor = conn.cursor()
-    cursor.execute("SELECT domain FROM DomainList")
-    domains = [row[0] for row in cursor.fetchall()]
-    cursor.close()
-    conn.close()
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="DBA",
+            password="1234",
+            database="SKYROUTE",
+            port=3306
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT domain FROM DomainList")
+        domains = [row[0] for row in cursor.fetchall()]
+    except mysql.connector.Error as e:
+        # 연결 또는 쿼리 오류 처리
+        print(f"[ERROR] 도메인 목록 조회 실패: {e}")
+        return []
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
     # 2) 각 도메인에 대해 Nuclei 스캔 실행
     results = []
