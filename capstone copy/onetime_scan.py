@@ -44,6 +44,7 @@ def run_full_scan_once():
     r.set('has_user_input', 'false')
     print("[ONEOFF] 일회성 전체 스캔 태스크 등록 끝")
 
+# 근데 이제 등록은 했는데 실제 스캔이 안돌아갈 가능성도? 오류 처리 필요
 
 if __name__ == '__main__':
     run_full_scan_once()
