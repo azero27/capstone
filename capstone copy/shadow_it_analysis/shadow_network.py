@@ -1,7 +1,7 @@
 import mysql.connector
 import json
 
-def compare_and_store_shadow_network_findings():
+def compare_nmap_with_target_reference():
     conn = mysql.connector.connect(
         host="localhost",
         user="DBA",
