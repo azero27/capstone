@@ -317,7 +317,6 @@ def dummy_task():
     pass
 
 
-
 @celery.task(name='tasks.run_oneoff_full_scan')
 def run_oneoff_full_scan(resource_type):
     """
@@ -344,7 +343,5 @@ def run_oneoff_full_scan(resource_type):
     # 3) schedule_scan 태스크 한 번만 호출
     # 기존의 주기 스캔 로직(schedule_scan)을 재사용
     schedule_scan.apply_async(args=(resource_type, value, scan_setting_id))
-
->>>>>>> 37cc10784df4eecfcd35d869a86c877999411d9d
 
 
