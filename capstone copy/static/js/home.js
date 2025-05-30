@@ -68,13 +68,12 @@ async function handleScan() {
       body: formData
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
+    const data = await res.json();
+    if (!res.ok || data.status !== 'scheduled') {
+      throw new Error(data.message || "스캔 요청 실패");
     }
     window.location.href = '/scan-page';
-  } catch (error) {
-    alert(error.message);
+
   }
 }
 
@@ -90,8 +89,9 @@ async function uploadResourceFiles(domainFile, portFile, s3File) {
     body: formData
   });
 
-  if (!response.ok) {
-    throw new Error('리소스 파일 업로드 실패');
+  const data = await response.json();
+  if (!response.ok || data.status !== 'ok') {
+    throw new Error('리소스 파일 업로드 실패: ' + (data.message || ''));
   }
-  return await response.text();
+  return data.message || '업로드 성공';
 }
