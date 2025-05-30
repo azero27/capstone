@@ -8,7 +8,7 @@ from DB.save_scan_result import save_scan_result_start
 # Redis 연결 (기존에 쓰는 동일한 DB/키를 공유)
 r = redis.Redis(host='localhost', port=6379, db=0)
 
-# Celery 인스턴스 (기존 설정과 동일하게 맞춰 주세요)
+# Celery 인스턴스
 celery = Celery('capstone_tasks',
                 broker='redis://localhost:6379/0',
                 backend='redis://localhost:6379/0')
@@ -44,6 +44,8 @@ def run_full_scan_once():
     r.set('has_user_input', 'false')
     print("[ONEOFF] 일회성 전체 스캔 태스크 등록 끝")
 
+# 근데 이제 등록은 했는데 실제 스캔이 안돌아갈 가능성도? 오류 처리 필요
 
+# 버튼 연결하고 나면 지울 거 터미널에서 디버깅 실행용으로 둔거
 if __name__ == '__main__':
     run_full_scan_once()

@@ -3,20 +3,21 @@ let exitFlag = false;
 let isscanning = true;
 
 let results = []; // 실제 scan 결과 배열
+let displayedToolIds = new Set(); // 중복 방지용 
 
 document.addEventListener('DOMContentLoaded', scan_show);
 
 async function scan_show() {
   const type = localStorage.getItem('resource_type');
   const value = localStorage.getItem('target_value');
-  if (!type || !value) {
+  const scanId = localStorage.getItem('scan_result_id'); // 추가 (scan_id 저장 필요)
+
+  if (!type || !value || !scanId) {
     alert("스캔 정보가 없습니다. 홈으로 돌아갑니다.");
     window.location.href = '/';
     return;
   }
 
-  // 스캔 현황/결과를 Flask API에서 가져오는 부분 (아래는 더미)
-  let results = [];
   try {
     const res = await fetch('/status');
     if (res.ok) {
@@ -39,6 +40,38 @@ async function scan_show() {
 
   renderScanTree(results);
   renderResultTable(results);
+
+  // API에서 새 도구 결과 수신 시 중복 없이 반영
+  setInterval(async () => {
+    const toolIds = [1, 2, 3, 4, 5, 6];
+    for (const toolId of toolIds) {
+      try {
+        const res = await fetch(`/api/snapshots/${scanId}/scan_result?tool_id=${toolId}`);
+        if (res.ok) {
+          const data = await res.json();
+
+          const receivedToolId = data.tool_id || toolId;
+
+          if (!displayedToolIds.has(receivedToolId)) {
+            results.push({
+              step: data.step || 1,
+              tool: data.tool || `Tool ${receivedToolId}`,
+              tool_id: receivedToolId,
+              status: data.status || 'success',
+              log: data.log || '',
+              summary: data.summary || 'No summary'
+            });
+            displayedToolIds.add(receivedToolId);
+
+            renderScanTree(results);
+            renderResultTable(results);
+          }
+        }
+      } catch (err) {
+        console.warn(`[ERROR] 도구 ${toolId} 결과 조회 실패`, err);
+      }
+    }
+  }, 10000); // 🔁 10초마다
 
   const intervalId = setInterval(() => {
     renderScanTree(results);
