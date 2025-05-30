@@ -49,12 +49,11 @@ class DynamicScheduler(Scheduler):
 
         if has_input_value != 'true':
             print(f"[DEBUG] has_user_input 값이 '{has_input_value}' → 입력 아직 안 됨")
-            # elf.r.delete('last_scan_time')
             return 10.0
 
         new_interval = self.load_interval()
 
-        # interval이 변경된 경우 → last_scan_time을 보정
+        # 주기 변경 감지
         if self._interval != new_interval:
             self._interval = new_interval
             last_scan_raw = self.r.get('last_scan_time')
@@ -67,7 +66,6 @@ class DynamicScheduler(Scheduler):
                     print(f"[DEBUG] interval 변경 감지 → last_scan_time 보정됨: {adjusted_last_scan}")
                 except Exception as e:
                     print(f"[ERROR] last_scan_time 보정 실패: {e}")
-            # self._interval = new_interval
 
         last_scan_raw = self.r.get('last_scan_time')
         print("[DEBUG] last_scan_time =", last_scan_raw)
@@ -75,8 +73,8 @@ class DynamicScheduler(Scheduler):
         if not last_scan_raw:
             self.r.set('last_scan_time', now)
             print("[DEBUG] last_scan_time이 없어 현재 시간으로 설정만 함 (실행하지 않음)")
-            return self._interval  # 첫 주기 이후 실행되도록 설정
-
+            return self._interval
+    
         last_scan = float(last_scan_raw.decode())
         elapsed = now - last_scan
 
@@ -87,20 +85,36 @@ class DynamicScheduler(Scheduler):
             self.r.set('last_scan_time', now)
 
             ip_address = self.r.get("scheduled_ip")
-            #domain = self.r.get("scheduled_domain")
-            #keyword = self.r.get("scheduled_keyword")
+            domain = self.r.get("scheduled_domain")
+            keyword = self.r.get("scheduled_keyword")
 
-            if ip_address:
-                schedule_scan.delay('ip', ip_address.decode(), 'beat_job_ip')
-            
-            # if domain:
-            #    schedule_scan.delay('domain', domain.decode(), 'beat_job_domain')
-            #if keyword:
-            #    schedule_scan.delay('keyword', keyword.decode(), 'beat_job_keyword')
+            if ip_address and domain and keyword:
+                ip_address = ip_address.decode()
+                domain = domain.decode()
+                keyword = keyword.decode()
 
-            # self.r.set('has_user_input', 'false')
+                # ✅ DB 작업 및 병렬 스캔 실행
+                from DB.cloud_info import get_or_create_cloud_info
+                from DB.scan_setting import latest_scan_setting_id
+                from DB.save_scan_result import save_scan_result_start
+                from celery import chord
+                from task_defs import schedule_scan, analyze_shadow_components_mock
 
-            return min(self._interval, 10.0)  # 즉시 다음 tick 체크
+                cloud_info_id = get_or_create_cloud_info(ip_address, domain)
+                scan_setting_id = latest_scan_setting_id()
+                scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+
+                scan_tasks = [
+                    schedule_scan.s('ip', ip_address, scan_setting_id, 1, scan_result_id),
+                    schedule_scan.s('keyword', keyword, scan_setting_id, 1, scan_result_id)
+                ]
+
+                chord(scan_tasks)(analyze_shadow_components_mock.s())
+                print("[+] 동적 스케줄러에서 병렬 스캔 실행 완료")
+            else:
+                print("[WARNING] IP / Domain / Keyword 중 일부 없음 → 스캔 생략")
+
+            return min(self._interval, 10.0)
 
         else:
             remaining = self._interval - elapsed
