@@ -25,6 +25,13 @@ from shadow_it_analysis.shadow_resource import show_violating_buckets_verbose
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
+def cache_result_for_dashboard(scan_result_id, tool_id, parsed_result):
+    """
+    도구 실행 결과를 Redis에 캐시 (대시보드에서 주기적으로 읽어갈 수 있도록)
+    """
+    key = f"scan_result:{scan_result_id}:tool:{tool_id}"
+    r.setex(key, 60, json.dumps(parsed_result))  # TTL: 60초 유지
+
 # Celery 인스턴스 정의
 celery = Celery('capstone_tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
 celery.conf.timezone = 'Asia/Seoul'

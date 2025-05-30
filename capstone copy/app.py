@@ -18,6 +18,7 @@ from DB.scan_setting import save_scan_setting, latest_scan_setting_id, latest_sc
 from celery import chord
 from api.snapshotList import archiving_bp
 from api.infoView import info_bp
+from api.snapshot.scan_result_api import scan_result_bp
 from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 from flask_cors import CORS
 from waitress import serve
@@ -42,6 +43,7 @@ def create_app():
     # Blueprint 등록
     app.register_blueprint(archiving_bp)
     app.register_blueprint(info_bp)
+    app.register_blueprint(scan_result_bp)
 
     try:
         if latest_scan_setting_id() is None:
@@ -135,7 +137,7 @@ def create_app():
         process_file('port_file', os.path.join(upload_dir, 'port.csv'), 'port_file_hash', parse_port_file)
         process_file('s3_file', os.path.join(upload_dir, 's3_bucket.csv'), 's3_file_hash', parse_s3_file)
 
-        return "✅ 파일 파싱 완료 및 DB 반영됨", 200
+        return jsonify({"status": "ok", "message": "파일 파싱 완료 및 DB 반영됨"}), 200
 
     @app.route('/set-schedule', methods=['POST'])
     def set_schedule():
