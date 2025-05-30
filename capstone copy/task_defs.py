@@ -317,3 +317,34 @@ def dummy_task():
     pass
 
 
+
+@celery.task(name='tasks.run_oneoff_full_scan')
+def run_oneoff_full_scan(resource_type):
+    """
+    버튼 클릭 시점에 한 번만 호출되는 태스크.
+    resource_type: 'ip' | 'domain' | 'keyword'
+    """
+    # 1) 최신 스캔 설정 ID
+    scan_setting_id = latest_scan_setting_id()
+
+    # 2) Redis에서 대상 값 가져오기
+    raw = None
+    if resource_type == 'ip':
+        raw = r.get('scheduled_ip')
+    elif resource_type == 'domain':
+        raw = r.get('scheduled_domain')
+    elif resource_type == 'keyword':
+        raw = r.get('scheduled_keyword')
+    if not raw:
+        # 없으면 바로 리턴
+        return
+
+    value = raw.decode()
+
+    # 3) schedule_scan 태스크 한 번만 호출
+    # 기존의 주기 스캔 로직(schedule_scan)을 재사용
+    schedule_scan.apply_async(args=(resource_type, value, scan_setting_id))
+
+>>>>>>> 37cc10784df4eecfcd35d869a86c877999411d9d
+
+
