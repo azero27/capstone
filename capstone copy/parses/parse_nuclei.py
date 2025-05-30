@@ -9,11 +9,10 @@ def extract_target_url(command):
     match = re.search(r"-u\s+(http[s]?://\S+)", command)
     return match.group(1) if match else None
 
-def extract_core_logs(log_text):
-    return "\n".join(
-        line for line in log_text.splitlines()
-        if line.startswith("[detect-dangling-s3")
-    )
+def extract_core_logs(log_text: str) -> str:
+    # "[detect-dangling-s3" 이 포함된 모든 라인을 한 번에 뽑아냅니다.
+    matches = re.findall(r".*\[detect\-dangling\-s3[^\]]*\].*", log_text)
+    return "\n".join(matches)
 
 def infer_match_count(log_text):
     matches = re.findall(r"Matched:\s*(\d+)", log_text)
