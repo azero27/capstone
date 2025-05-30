@@ -18,6 +18,7 @@ from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_
 from celery.schedules import crontab
 import redis
 import json 
+from tasks import schedule_scan_with_id
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
 from shadow_it_analysis.shadow_network import compare_nmap_with_target_reference
@@ -196,6 +197,9 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     from DB.save_nuclei import save_nuclei_result
                     save_nuclei_result(parsed, scan_result_id, current_step)
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
+                
+                cache_result_for_dashboard(scan_result_id, tool_id, parsed)
+            
             except Exception as e:
                 print(f"[ERROR] 도구 {tool_id} 결과 저장 실패: {e}")
 
