@@ -15,6 +15,9 @@ class DynamicScheduler(Scheduler):
         self.r.set('scan_status', 'idle')
         self.r.delete('last_scan_time')
 
+        self._store = {'__dummy__': self.Entry('tasks.dummy_task', schedule=60.0, args=())}
+
+
         super().__init__(*args, **kwargs)
 
     def load_interval(self):
@@ -84,20 +87,20 @@ class DynamicScheduler(Scheduler):
             self.r.set('last_scan_time', now)
 
             ip_address = self.r.get("scheduled_ip")
-            domain = self.r.get("scheduled_domain")
-            keyword = self.r.get("scheduled_keyword")
+            #domain = self.r.get("scheduled_domain")
+            #keyword = self.r.get("scheduled_keyword")
 
             if ip_address:
                 schedule_scan.delay('ip', ip_address.decode(), 'beat_job_ip')
             
             # if domain:
             #    schedule_scan.delay('domain', domain.decode(), 'beat_job_domain')
-            if keyword:
-                schedule_scan.delay('keyword', keyword.decode(), 'beat_job_keyword')
+            #if keyword:
+            #    schedule_scan.delay('keyword', keyword.decode(), 'beat_job_keyword')
 
             # self.r.set('has_user_input', 'false')
 
-            return self._interval  # 즉시 다음 tick 체크
+            return min(self._interval, 10.0)  # 즉시 다음 tick 체크
 
         else:
             remaining = self._interval - elapsed

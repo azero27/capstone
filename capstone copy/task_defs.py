@@ -104,14 +104,13 @@ def build_meta(tool_id, raw):
         return {"tool_id": tool_id, **raw}  # fallback
 
 @celery.task(name='tasks.schedule_scan')
-def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_id=None):
+def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=None):
     print(f"\n🚀 [SCHEDULE SCAN START] 주기적 스캔 시작됨")
     print(f"[{datetime.now()}] 🚀 [SCHEDULE SCAN START] type={resource_type}, value={value}, scan_setting_id={scan_setting_id}")
-    
+
     visited = set()
-    queue = [(resource_type, value, step)]
-    
-    
+    queue = [(resource_type, value, step, True)]  # is_initial=True
+
     if scan_result_id is None:
         step = 1
         ip_address, domain_name = None, None
@@ -123,7 +122,6 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
             domain_name = value
             ip_address = convert_domain_to_ip(value)
         elif resource_type == "keyword":
-            # ✅ Redis에서 최근 사용자 입력 꺼내기
             ip_address = r.get("scheduled_ip").decode() if r.get("scheduled_ip") else None
             domain_name = r.get("scheduled_domain").decode() if r.get("scheduled_domain") else None
 
@@ -133,7 +131,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
             scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
     while queue:
-        resource_type, value, job_name = queue.pop(0)
+        resource_type, value, job_name, is_initial = queue.pop(0)
 
         if (resource_type, value) in visited:
             continue
@@ -168,8 +166,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
 
             parsed = m["parser"](*parser_args)
             print("[DEBUG] Parsed Result:", parsed)
-            current_step = step + 1 if m.get("next_resource") else step
-
+            current_step = step if is_initial else step + 1
 
             try:
                 if tool_id == 1:
@@ -195,10 +192,8 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
             except Exception as e:
                 print(f"[ERROR] 도구 {tool_id} 결과 저장 실패: {e}")
 
-            # 튜플이면 두 리스트를 병합
             parsed_list = []
             if isinstance(parsed, tuple):
-                # parsed_list = []
                 for item in parsed:
                     if isinstance(item, list):
                         parsed_list.extend(item)
@@ -217,27 +212,25 @@ def schedule_scan(resource_type, value, scan_setting_id, step = 1, scan_result_i
                         next_values = [next_values]
 
                     for nxt_val in next_values:
-                        
                         nxt_val = custom_preprocess(nxt_val, nxt_key, m["tool"].__name__)
                         print(f"[DEBUG] next value after preprocess: {nxt_val}")
-    
-                        nxt_type = classify_resource(nxt_val)
-                        # print(f"[DEBUG] classified resource type: {nxt_type}")
 
+                        nxt_type = classify_resource(nxt_val)
                         if nxt_type and (nxt_type, nxt_val) not in visited:
                             print(f"[DEBUG] 다음 자원 발견 → type: {nxt_type}, value: {nxt_val}")
-                            queue.append((nxt_type, nxt_val, step + 1))
+                            queue.append((nxt_type, nxt_val, step + 1, False))
                             print("===========")
 
-        print("[DEBUG] 전체 스캔 흐름 종료. 더 이상 실행할 도구 없음.")
+    print("[DEBUG] 전체 스캔 흐름 종료. 더 이상 실행할 도구 없음.")
 
     if scan_result_id is not None:
         update_scan_result_end(scan_result_id)
         print(f"[+] 스캔 종료 시간 저장 완료 (ScanResult ID={scan_result_id})")
     else:
         print("[MOCK] scan_result_id 없음 - DB 저장 생략")
-        
-    return scan_result_id  
+
+    return scan_result_id
+
 
 
 @celery.task(name='tasks.analyze_shadow_components_mock')
@@ -319,6 +312,8 @@ def analyze_shadow_components_mock(scan_result_ids):
     show_violating_buckets_verbose(bucket_public_policy, scan_result)
 
 
-
+@celery.task(name="tasks.dummy_task")
+def dummy_task():
+    pass
 
 
