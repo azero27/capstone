@@ -8,7 +8,7 @@ from DB.save_scan_result import save_scan_result_start
 # Redis 연결 (기존에 쓰는 동일한 DB/키를 공유)
 r = redis.Redis(host='localhost', port=6379, db=0)
 
-# Celery 인스턴스 (기존 설정과 동일하게 맞춰 주세요)
+# Celery 인스턴스
 celery = Celery('capstone_tasks',
                 broker='redis://localhost:6379/0',
                 backend='redis://localhost:6379/0')
