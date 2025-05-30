@@ -6,7 +6,7 @@ print("sys.path =", sys.path)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for
-from task_defs import celery, make_celery, schedule_scan, analyze_shadow_components_mock  # ❗ make_celery 추가
+from task_defs import celery, make_celery, schedule_scan, analyze_shadow_components_mock, run_oneoff_full_scan  # ❗ make_celery 추가
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 import json
 import redis
@@ -355,6 +355,25 @@ def create_app():
 
 
     return app
+
+    @app.route('/api/oneoff_scan', methods=['POST'])
+    def oneoff_scan():
+    """
+    { "type": "ip"|"domain"|"keyword" } 를 JSON body로 받으면
+    run_oneoff_full_scan 태스크를 호출합니다.
+    """
+    data = request.get_json(silent=True) or {}
+    res_type = data.get('type')
+    if res_type not in ('ip', 'domain', 'keyword'):
+        return jsonify({"error": "invalid type"}), 400
+
+    # Celery 태스크를 단발성 호출
+    task = run_oneoff_full_scan.delay(res_type)
+    return jsonify({
+        "status": "ok",
+        "task_id": task.id,
+        "type": res_type
+    }), 202
 
 if __name__ == '__main__':
     app = create_app()
