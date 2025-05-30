@@ -16,8 +16,8 @@ from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
 from DB.scan_setting import save_scan_setting, latest_scan_setting_id, latest_scan_setting
 from celery import chord
-from api.snapshotList import archiving_bp
-from api.infoView import info_bp
+from api.snapshot.snapshotList import archiving_bp
+from api.snapshot.infoView import info_bp
 from api.snapshot.scan_result_api import scan_result_bp
 from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 from flask_cors import CORS
