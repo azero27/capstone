@@ -46,5 +46,6 @@ def run_full_scan_once():
 
 # 근데 이제 등록은 했는데 실제 스캔이 안돌아갈 가능성도? 오류 처리 필요
 
+# 버튼 연결하고 나면 지울 거 터미널에서 디버깅 실행용으로 둔거
 if __name__ == '__main__':
     run_full_scan_once()
