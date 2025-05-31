@@ -45,6 +45,7 @@ async function handleScan() {
   localStorage.setItem('resource_type', selectedType);
   localStorage.setItem('target_value', value);
 
+  
   // (선택) 리소스 파일 업로드 (셋 중 하나라도 있으면 요청)
   if (domainFile || portFile || s3File) {
     try {
@@ -55,6 +56,7 @@ async function handleScan() {
       return;
     }
   }
+  
 
   // 이후 추가 동작(예: 스캔 시작 API 등)이 있다면 여기에 이어서 작성
   // 예시: /submit 호출 등
@@ -72,6 +74,13 @@ async function handleScan() {
       const err = await res.text();
       throw new Error(err);
     }
+
+    const data = await res.json();
+
+    localStorage.setItem("scan_result_id", data.scan_result_id);
+    localStorage.setItem("resource_type", selectedType);
+    localStorage.setItem("target_value", value);
+    
     window.location.href = '/scan-page';
   } catch (error) {
     alert(error.message);

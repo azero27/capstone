@@ -5,108 +5,107 @@ let isscanning = true;
 let results = []; // 실제 scan 결과 배열
 let displayedToolIds = new Set(); // 중복 방지용 
 
+let shadowResults = []; // Shadow IT 분석 결과 저장용
+let displayedShadowParts = new Set(); // 중복 방지용 
+
+let renderResultHashes = new Set(); 
+
 document.addEventListener('DOMContentLoaded', scan_show);
 
 async function scan_show() {
   const type = localStorage.getItem('resource_type');
   const value = localStorage.getItem('target_value');
-  const scanId = localStorage.getItem('scan_result_id'); // 추가 (scan_id 저장 필요)
+  const scanId = localStorage.getItem('scan_result_id');
 
-  if (!type || !value || !scanId) {
+  /*
+  if (!type || !value) {
     alert("스캔 정보가 없습니다. 홈으로 돌아갑니다.");
     window.location.href = '/';
     return;
   }
 
+  */
+ 
   try {
-    const res = await fetch('/status');
+    const res = await fetch(`/status?scan_result_id=${scanId}`);
     if (res.ok) {
       const statusData = await res.json();
       // 여기서 statusData를 바탕으로 scan 현황 및 진행률 등을 표시
       // 예시: results = statusData.results; (구현에 따라 확장)
-      // 임시로 더미 사용:
-      results = [
-        { step: 1, tool: 'Nmap', tool_id: 101, status: 'success', log: 'Open ports: 22, 80, 443', summary: '22, 80, 443 open' },
-        { step: 2, tool: 'Nuclei', tool_id: 201, status: 'in_progress', log: '', summary: 'Scanning vulnerabilities...' }
-      ];
+      results = statusData.results || [];
     }
   } catch (e) {
-    // 실패 시 더미
-    results = [
-      { step: 1, tool: 'Nmap', tool_id: 101, status: 'success', log: 'Open ports: 22, 80, 443', summary: '22, 80, 443 open' },
-      { step: 2, tool: 'Nuclei', tool_id: 201, status: 'in_progress', log: '', summary: 'Scanning vulnerabilities...' }
-    ];
+      console.warn("[초기 상태 불러오기 실패]", e);
   }
 
   renderScanTree(results);
   renderResultTable(results);
 
-  // API에서 새 도구 결과 수신 시 중복 없이 반영
+  const shadowParts = ['nuclei', 'nmap', 's3'];
+
   setInterval(async () => {
-    const toolIds = [1, 2, 3, 4, 5, 6];
-    for (const toolId of toolIds) {
-      try {
-        const res = await fetch(`/api/snapshots/${scanId}/scan_result?tool_id=${toolId}`);
-        if (res.ok) {
-          const data = await res.json();
+    const scanId = localStorage.getItem('scan_result_id');
+    if (!scanId) return;
 
-          const receivedToolId = data.tool_id || toolId;
+    // 1. Redis 등 캐시된 도구 실행 결과 먼저 가져옴
+    try {
+      const res = await fetch(`/status?scan_result_id=${scanId}`);
+      if (res.ok) {
+        const data = await res.json();
 
-          if (!displayedToolIds.has(receivedToolId)) {
-            results.push({
-              step: data.step || 1,
-              tool: data.tool || `Tool ${receivedToolId}`,
-              tool_id: receivedToolId,
-              status: data.status || 'success',
-              log: data.log || '',
-              summary: data.summary || 'No summary'
+        if (Array.isArray(data.results)) {
+          for (const r of data.results) {
+            const hash = `${r.tool_id}-${r.step}-${r.summary}`;
+            if (!renderResultHashes.has(hash)) {
+              renderResultHashes.add(hash);
+              results.push(r);
+            }
+          }
+
+          console.log('[✅ TOOL CACHE FETCHED]');
+          results.forEach((r, i) => {
+            console.log(`▶️ [${i}] Tool=${r.tool}, Status=${r.status}, Step=${r.step}`);
+          });
+
+          renderScanTree(results);
+          renderResultTable(results);
+        }
+      }
+    } catch (err) {
+      console.warn('[❌ 도구 결과 fetch 실패]', err);
+    }
+
+    // 2. shadow 분석 결과를 Redis 기반 API로 동적 요청
+    try {
+      const res = await fetch(`/status`);
+      if (res.ok) {
+        const data = await res.json(); // { nmap: {...}, nuclei: {...}, s3: {...} }
+
+        for (const part of shadowParts) {
+          const shadowId = `shadow-${part}`;
+
+          if (!displayedShadowParts.has(shadowId) && data[part]) {
+            shadowResults.push({
+              component: part,
+              status: 'success',
+              summary: `[${part}] Shadow 분석 완료`,
+              detail: JSON.stringify(data[part], null, 2)
             });
-            displayedToolIds.add(receivedToolId);
-
-            renderScanTree(results);
-            renderResultTable(results);
+            displayedShadowParts.add(shadowId);
+            renderShadowResultTable(shadowResults);
           }
         }
-      } catch (err) {
-        console.warn(`[ERROR] 도구 ${toolId} 결과 조회 실패`, err);
       }
+    } catch (err) {
+      console.warn('[ERROR] shadow 분석 결과 fetch 실패', err);
     }
-  }, 10000); // 🔁 10초마다
+  }, 10000);
+
 
   const intervalId = setInterval(() => {
     renderScanTree(results);
     renderResultTable(results);
   }, 1000);
-
-  // 7초 후 상태 업데이트
-  setTimeout(() => {
-    const s3 = results.find(r => r.tool === 'S3scanner');
-    if (s3) {
-      s3.status = 'success';
-      s3.log = 'Found open bucket: company-public-data';
-      s3.summary = 'company-public-data open';
-    }
-  }, 7000);
-
-  // 3초 후 새 도구 추가
-  setTimeout(() => {
-    const newResult = {
-      step: 2,
-      tool: 'Nuclei',
-      tool_id: 401,
-      status: 'in_progress',
-      log: '',
-      summary: 'Running template scans...'
-    };
-    results.push(newResult);
-
-    // 2초 후 상태 업데이트
-    setTimeout(() => {
-      newResult.status = 'success';
-      newResult.log = 'Found: CVE-2021-1234, CVE-2022-5678';
-      newResult.summary = '2 vulnerabilities detected';
-    }, 2000);
-  }, 3000);
 }
 
 // UI 렌더 함수는 동일

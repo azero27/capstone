@@ -18,7 +18,6 @@ from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_
 from celery.schedules import crontab
 import redis
 import json 
-from tasks import schedule_scan_with_id
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
 from shadow_it_analysis.shadow_network import compare_nmap_with_target_reference
@@ -31,7 +30,25 @@ def cache_result_for_dashboard(scan_result_id, tool_id, parsed_result):
     도구 실행 결과를 Redis에 캐시 (대시보드에서 주기적으로 읽어갈 수 있도록)
     """
     key = f"scan_result:{scan_result_id}:tool:{tool_id}"
-    r.setex(key, 60, json.dumps(parsed_result))  # TTL: 60초 유지
+    
+    try:
+        serialized = json.dumps(parsed_result, default=str)
+        r.setex(key, 60, serialized)  # TTL: 60초 유지
+
+        # 로그 출력
+        print(f"[CACHE] 저장 완료 → key: {key}")
+        print(f"[CACHE] 저장된 데이터 일부: {serialized[:200]}")  # 너무 길면 앞부분만 보기
+    except Exception as e:
+        print(f"[CACHE] 저장 실패 → key: {key}, 에러: {e}")
+
+
+# 수정 중 
+def cache_shadow_component(scan_result_id, component_name, result):
+    """
+    Shadow 분석의 각 결과(nuclei/nmap/s3 등)를 별도 키로 Redis에 저장
+    """
+    key = f"shadow_component:{scan_result_id}:{component_name}"
+    r.setex(key, 60, json.dumps(result))
 
 # Celery 인스턴스 정의
 celery = Celery('capstone_tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
@@ -111,6 +128,25 @@ def build_meta(tool_id, raw):
     else:
         return {"tool_id": tool_id, **raw}  # fallback
 
+def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
+    if not isinstance(parsed, list):
+        parsed = [parsed]
+
+    normalized = []
+    for item in parsed:
+        if not isinstance(item, dict):
+            continue
+        normalized.append({
+            "step": step,
+            "tool": tool_name or f"Tool{tool_id}",
+            "tool_id": tool_id,
+            "status": item.get("status", "success"),  # 기본값
+            "summary": item.get("summary", "No summary available"),
+            "log": item.get("log", "")
+        })
+    return normalized
+
+
 @celery.task(name='tasks.schedule_scan')
 def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=None):
     print(f"\n🚀 [SCHEDULE SCAN START] 주기적 스캔 시작됨")
@@ -148,6 +184,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
         mappings = RESOURCE_TOOL_MAP.get(resource_type, [])
         for m in mappings:
             tool_id = m.get("tool_id", -1)
+            tool_name = m.get("tool_name", m["tool"].__name__)
 
             input_values = []
             for arg in m.get("input_args", []):
@@ -180,26 +217,59 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 if tool_id == 1:
                     from DB.save_nmap import save_nmap_result
                     save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
+
+                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+
                 elif tool_id == 2:
                     from DB.save_cloud_enum import save_cloud_enum_result
                     buckets, files = parsed
                     save_cloud_enum_result(buckets, files, scan_result_id, current_step)
+
+                    combined = {
+                        "buckets": buckets,
+                        "files": files
+                    }
+                    normalized = normalize_parsed_result(combined, tool_id, current_step, tool_name)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
                     save_amass_result(parsed, scan_result_id, current_step)
+
+                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+
+
                 elif tool_id == 4:
                     from DB.save_s3scanner import save_s3scanner_result
                     save_s3scanner_result(parsed, scan_result_id, current_step)
+                
+                    entries, sensitive_file_entries = parsed
+
+                    combined = {
+                        "buckets": entries,
+                        "sensitive_files": sensitive_file_entries
+                    }
+
+                    normalized = normalize_parsed_result(combined, tool_id, current_step, tool_name)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+
                 elif tool_id == 5:
                     from DB.save_enumerate_iam import save_enumerate_iam_result
                     save_enumerate_iam_result(parsed, scan_result_id, current_step)
+                
+                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+
                 elif tool_id == 6:
                     from DB.save_nuclei import save_nuclei_result
                     save_nuclei_result(parsed, scan_result_id, current_step)
-                print(f"[+] 도구 {tool_id} 결과 저장 완료")
                 
-                cache_result_for_dashboard(scan_result_id, tool_id, parsed)
-            
+                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+
+                print(f"[+] 도구 {tool_id} 결과 저장 완료")
             except Exception as e:
                 print(f"[ERROR] 도구 {tool_id} 결과 저장 실패: {e}")
 
@@ -258,12 +328,15 @@ def analyze_shadow_components_mock(scan_result_ids):
     user_resources = {"my-owned-bucket"}
 
     print("\n===== 1. analyze_nuclei_shadow_domains() 결과 =====")
-    print(json.dumps(analyze_nuclei_shadow_domains(parsed_nuclei_results, user_resources), indent=2, ensure_ascii=False))
+    nuclei_result = analyze_nuclei_shadow_domains(parsed_nuclei_results, user_resources)
+    print(json.dumps(nuclei_result, indent=2, ensure_ascii=False))
+
+    cache_shadow_component(scan_result_ids, "nuclei", nuclei_result)
 
     # ========== MOCK 2. Nmap 결과 및 허용 포트 ==========
 
-    compare_nmap_with_target_reference()
-
+    nmap_result = compare_nmap_with_target_reference()
+    cache_shadow_component(scan_result_ids, "nmap", nmap_result)
 
     # ========== MOCK 3. S3scanner + 공개정책 ==========
     bucket_public_policy = {
@@ -305,7 +378,8 @@ def analyze_shadow_components_mock(scan_result_ids):
     }
 
     print("\n===== 3. show_violating_buckets_verbose() 결과 =====")
-    show_violating_buckets_verbose(bucket_public_policy, scan_result)
+    s3_result = show_violating_buckets_verbose(bucket_public_policy, scan_result)
+    cache_shadow_component(scan_result_ids, "s3", s3_result)
 
 
 @celery.task(name="tasks.dummy_task")
@@ -339,5 +413,3 @@ def run_oneoff_full_scan(resource_type):
     # 3) schedule_scan 태스크 한 번만 호출
     # 기존의 주기 스캔 로직(schedule_scan)을 재사용
     schedule_scan.apply_async(args=(resource_type, value, scan_setting_id))
-
-

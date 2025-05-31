@@ -36,8 +36,8 @@ def parse_s3scanner_output(log_text, tool_id, command, start_time, end_time):
                     "sensitive_files": "",
                     "file_type": "",
                     "logs": line,
-                    "start_time": start_time,
-                    "end_time": end_time
+                    "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S")
                 })
 
         # not_exist 처리
@@ -58,8 +58,8 @@ def parse_s3scanner_output(log_text, tool_id, command, start_time, end_time):
                     "sensitive_files": "",
                     "file_type": "",
                     "logs": line,
-                    "start_time": start_time,
-                    "end_time": end_time
+                    "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S")
                 })
 
         # 객체 정보 파싱

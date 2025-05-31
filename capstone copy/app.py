@@ -87,10 +87,13 @@ def create_app():
             if not ip_address:
                 return "❌ 도메인으로부터 IP를 찾을 수 없습니다.", 400
 
-        # cloud_info 및 scan_result_id 미리 생성
+        cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = latest_scan_setting_id()
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+        r.set("latest_scan_result_id", scan_result_id)
+        # scan_result_id = "mock-001"
+        # r.set("latest_scan_result_id", scan_result_id)
 
         r.set("scheduled_ip", ip_address)
         r.set("scheduled_domain", domain)
@@ -100,6 +103,7 @@ def create_app():
         r.set('last_scan_time', time.time())       # datetime.now().timestamp()도 가능
         r.set('has_user_input', 'true')
 
+        # scan_setting_id = "mock-setting-id"
         # 병렬 스캔 태스크 (Signature 형태로)
         scan_tasks = [
             schedule_scan.s('ip', ip_address, scan_setting_id, 1, scan_result_id),
@@ -116,7 +120,8 @@ def create_app():
             'status': 'scheduled',
             'ip': ip_address,
             'domain': domain,
-            'keyword': keyword
+            'keyword': keyword,
+            'result_scan_id': scan_result_id
         }), 202
 
     @app.route('/upload-data', methods=['POST'])
@@ -131,6 +136,7 @@ def create_app():
                 if not old_hash or old_hash.decode() != new_hash:
                     # 데이터 재삽입을 위해 기존 데이터 삭제는 parser 내부에서 처리
                     parser_func(path)
+                    
                     r.set(redis_key, new_hash)
 
         process_file('domain_file', os.path.join(upload_dir, 'domain.csv'), 'domain_file_hash', parse_domain_file)
@@ -205,10 +211,38 @@ def create_app():
         seconds_since_last = int(now - last_scan)
         seconds_remaining = max(0, int(interval - seconds_since_last))
 
+        # 최근 scan_result_id 가져오기
+        scan_result_id = r.get("latest_scan_result_id")
+        scan_result_id = scan_result_id.decode() if scan_result_id else None
+
+        tool_results = {}
+        shadow_results = {}
+
+        if scan_result_id:
+            print(f"✅ [STATUS] scan_result_id: {scan_result_id}")  # ✅
+            # 도구 결과 수집
+            for tool_id in range(1, 7):  # 1~6번 도구
+                key = f"scan_result:{scan_result_id}:tool:{tool_id}"
+                val = r.get(key)
+                if val:
+                    print(f"✅ [TOOL CACHE FOUND] key={key}, value={val[:200]}...")
+                    tool_results[str(tool_id)] = json.loads(val)
+
+            # Shadow 분석 결과 수집
+            for part in ["nmap", "nuclei", "s3"]:
+                key = f"shadow_component:{scan_result_id}:{part}"
+                val = r.get(key)
+                if val:
+                    print(f"✅ [TOOL CACHE FOUND] key={key}, value={val[:200]}...")  # ✅ value 일부만 출력
+                    shadow_results[part] = json.loads(val)
+
         return jsonify({
             'scan_status': scan_status,
             'last_scan_time': last_scan,
-            'seconds_remaining': seconds_remaining
+            'seconds_remaining': seconds_remaining,
+            'tools': tool_results,
+            'shadow': shadow_results,
+            'results': [item for tool_id in tool_results for item in tool_results[tool_id]]
         })
 
     @app.route('/test-scan')
@@ -358,9 +392,6 @@ def create_app():
         # 예: celery_report_generate.delay(start_date, end_date, resources)
         return jsonify({'status': 'ok', 'pdf_url': pdf_url})
 
-
-    return app
-
     @app.route('/api/oneoff_scan', methods=['POST'])
     def oneoff_scan():
         """
@@ -379,6 +410,8 @@ def create_app():
             "task_id": task.id,
             "type": res_type
         }), 202
+
+    return app
 
 if __name__ == '__main__':
     app = create_app()
@@ -401,4 +434,5 @@ if __name__ == '__main__':
     if os.path.exists(s3_path):
         s3_file_id = parse_s3_file(s3_path)
         r.set("s3_file_id", s3_file_id)
+
     app.run(debug=True)
