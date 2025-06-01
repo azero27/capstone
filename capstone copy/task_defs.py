@@ -20,8 +20,8 @@ import redis
 import json 
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
-from shadow_it_analysis.shadow_network import compare_nmap_with_target_reference
-from shadow_it_analysis.shadow_resource import show_violating_buckets_verbose
+from shadow_it_analysis.shadow_network import analyze_shadow_network
+from shadow_it_analysis.shadow_resource import analyze_shadow_resources
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -335,50 +335,13 @@ def analyze_shadow_components_mock(scan_result_ids):
 
     # ========== MOCK 2. Nmap 결과 및 허용 포트 ==========
 
-    nmap_result = compare_nmap_with_target_reference()
+    nmap_result = analyze_shadow_network()
     cache_shadow_component(scan_result_ids, "nmap", nmap_result)
 
     # ========== MOCK 3. S3scanner + 공개정책 ==========
-    bucket_public_policy = {
-        "sskyroute-userdata": False,
-        "sskyroute": True,
-        "skyroute7": True,
-        "sskyroute-private": True,
-        "sskyroute-test": False
-    }
-
-    scan_result = {
-        "parsed_s3scanner_result": [
-            {
-                "bucket_name": "sskyroute-userdata",
-                "allusers_permission": "[FULL_CONTROL]",
-                "authusers_permission": "[READ_ACP]"
-            },
-            {
-                "bucket_name": "sskyroute",
-                "allusers_permission": "[READ, READ_ACP]",
-                "authusers_permission": "[]"
-            },
-            {
-                "bucket_name": "skyroute7",
-                "allusers_permission": "[READ, READ_ACP]",
-                "authusers_permission": "[READ, READ_ACP]"
-            },
-            {
-                "bucket_name": "sskyroute-private",
-                "allusers_permission": "[READ, READ_ACP]",
-                "authusers_permission": "[]"
-            },
-            {
-                "bucket_name": "sskyroute-test",
-                "allusers_permission": "[READ, READ_ACP]",
-                "authusers_permission": "[]"
-            }
-        ]
-    }
 
     print("\n===== 3. show_violating_buckets_verbose() 결과 =====")
-    s3_result = show_violating_buckets_verbose(bucket_public_policy, scan_result)
+    s3_result = analyze_shadow_resources()
     cache_shadow_component(scan_result_ids, "s3", s3_result)
 
 
