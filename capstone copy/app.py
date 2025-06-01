@@ -74,7 +74,6 @@ def create_app():
 
         print("[DOMAIN KEYWORD ANALYSIS]", keyword)
 
-
         # IP → 도메인 변환
         if ip_address and not domain:
             domain = convert_ip_to_domain(ip_address)
@@ -86,6 +85,25 @@ def create_app():
             ip_address = convert_domain_to_ip(domain)
             if not ip_address:
                 return "❌ 도메인으로부터 IP를 찾을 수 없습니다.", 400
+                
+        domain_path = os.path.join(upload_dir, 'domain.csv')
+        port_path = os.path.join(upload_dir, 'port.csv')
+        s3_path = os.path.join(upload_dir, 's3.csv')
+
+        if os.path.exists(domain_path):
+            print("[SUBMIT] domain.csv 파싱 시작")
+            domain_file_id = parse_domain_file(domain_path)
+            r.set("domain_file_id", domain_file_id)
+
+        if os.path.exists(port_path):
+            print("[SUBMIT] port.csv 파싱 시작")
+            port_file_id = parse_port_file(port_path)
+            r.set("port_file_id", port_file_id)
+
+        if os.path.exists(s3_path):
+            print("[SUBMIT] s3.csv 파싱 시작")
+            s3_file_id = parse_s3_file(s3_path)
+            r.set("s3_file_id", s3_file_id)
 
         #cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
@@ -141,7 +159,7 @@ def create_app():
 
         process_file('domain_file', os.path.join(upload_dir, 'domain.csv'), 'domain_file_hash', parse_domain_file)
         process_file('port_file', os.path.join(upload_dir, 'port.csv'), 'port_file_hash', parse_port_file)
-        process_file('s3_file', os.path.join(upload_dir, 's3_bucket.csv'), 's3_file_hash', parse_s3_file)
+        process_file('s3_file', os.path.join(upload_dir, 's3.csv'), 's3_file_hash', parse_s3_file)
 
         return jsonify({"status": "ok", "message": "파일 파싱 완료 및 DB 반영됨"}), 200
 
@@ -430,7 +448,7 @@ if __name__ == '__main__':
         port_file_id = parse_port_file(port_path)
         r.set("port_file_id", port_file_id)
 
-    s3_path = os.path.join(upload_dir, 's3_bucket.csv')
+    s3_path = os.path.join(upload_dir, 's3.csv')
     if os.path.exists(s3_path):
         s3_file_id = parse_s3_file(s3_path)
         r.set("s3_file_id", s3_file_id)
