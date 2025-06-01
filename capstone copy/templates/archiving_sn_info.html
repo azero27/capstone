@@ -67,26 +67,33 @@
     </div>
   </div>
 
-<!-- 메인 컨텐츠 -->
-<div class="resource-info-container">
-  <div class="resource-info-layout">
-    
-    <!-- 좌측: 리소스 필터 -->
-    <div class="resource-info-filter-box">
-      <h3>Select Resource</h3>
-      <div id="resourceCheckboxes"></div>
-    </div>
+  <!-- 메인 컨텐츠 -->
+  <div class="resource-info-container">
+    <div class="resource-info-layout">
 
-    <!-- 우측: 리소스 디스플레이 -->
-    <div class="resource-info-display-box">
-      <h3>Shadow IT</h3>
-      <div id="selectedResources">아직 선택된 리소스가 없습니다.</div>
-      <hr />
-      <div id="resourceDetails">리소스 세부 정보 표시 영역</div>
-    </div>
+      <!-- 좌측: 리소스 필터 -->
+      <div class="resource-info-filter-box">
+        <h3>Select Resource</h3>
+        <!-- [NEW] Shadow IT 전용 체크박스 -->
+        <div style="margin-bottom:12px;">
+          <label>
+            <input type="checkbox" id="shadowOnlyCheckbox" onchange="filterResourceList()">
+            Shadow IT 만 표시
+          </label>
+        </div>
+        <div id="resourceCheckboxes"></div>
+      </div>
 
+      <!-- 우측: 리소스 디스플레이 -->
+      <div class="resource-info-display-box">
+        <h3>Shadow IT</h3>
+        <div id="selectedResources">아직 선택된 리소스가 없습니다.</div>
+        <hr />
+        <div id="resourceDetails">리소스 세부 정보 표시 영역</div>
+      </div>
+
+    </div>
   </div>
-</div>
 
   <script src="{{ url_for('static', filename='js/common.js') }}"></script>
   <script src="{{ url_for('static', filename='js/archiving.js') }}"></script>
