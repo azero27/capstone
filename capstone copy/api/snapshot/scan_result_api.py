@@ -47,15 +47,15 @@ def get_scan_result(scan_id):
                 ]
                 summary = ", ".join(open_ports) + " open" if open_ports else "No open ports"
             elif tool_name == "Amass":
-                domains = [r["domain"] for r in rows if r.get("success") == 1 and r.get("domain")]
-                summary = f"{len(domains)} subdomains found" if domains else "No subdomains"
+                count = sum(1 for r in rows if r.get("success") == 1)
+                summary = f"{count} subdomains found" if count else "No subdomains"
             elif tool_name == "Nuclei":
                 vulns = [r for r in rows if r.get("success") == 1]
                 summary = f"{len(vulns)} vulnerabilities" if vulns else "No vulnerabilities"
                 log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
             elif tool_name == "CloudEnum":
-                public_services = [r["service"] for r in rows if r.get("success") == 1 and r.get("service")]
-                summary = f"{len(public_services)} public services found" if public_services else "No public services"
+                count = sum(1 for r in rows if r.get("success") == 1)
+                summary = f"{count} public services found" if count else "No public services"
                 log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
             elif tool_name == "S3scanner":
                 buckets = [

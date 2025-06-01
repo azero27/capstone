@@ -309,10 +309,20 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                         print(f"[DEBUG] next value after preprocess: {nxt_val}")
 
                         nxt_type = classify_resource(nxt_val)
-                        if nxt_type and (nxt_type, nxt_val) not in visited:
-                            print(f"[DEBUG] 다음 자원 발견 → type: {nxt_type}, value: {nxt_val}")
-                            queue.append((nxt_type, nxt_val, step + 1, False))
-                            print("===========")
+                        if nxt_type is None:
+                            print(f"[SKIP] 자원 분류 불가: {nxt_val}")
+                            continue
+
+                        # ✅ 중복 자원 스킵
+                        if (nxt_type, nxt_val) in visited:
+                            print(f"[SKIP] 이미 처리된 자원: type={nxt_type}, value={nxt_val}")
+                            continue
+
+                        # ✅ 새 자원이면 방문 기록하고 큐에 추가
+                        visited.add((nxt_type, nxt_val))
+                        print(f"[DEBUG] 다음 자원 발견 → type: {nxt_type}, value: {nxt_val}")
+                        queue.append((nxt_type, nxt_val, step + 1, False))
+                        print("===========")
 
     print("[DEBUG] 전체 스캔 흐름 종료. 더 이상 실행할 도구 없음.")
 

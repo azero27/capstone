@@ -47,15 +47,15 @@ def latest_scan_setting() -> int:
     if result:
         period = result[0]  # ✅ 진짜 주기
     else:
-        # 기본 주기 60분으로 삽입
+        # 기본 주기 15분으로 삽입
         start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute("""
             INSERT INTO ScanSetting (period, start_time, stop_time)
             VALUES (%s, %s, NULL)
-        """, (60, start_time))
+        """, (15, start_time))
         conn.commit()
-        period = 60
-        print(f"[+] 기본 ScanSetting 저장됨 (period=60)")
+        period = 15
+        print(f"[+] 기본 ScanSetting 저장됨 (period=15)")
 
     cursor.close()
     conn.close()
@@ -76,15 +76,15 @@ def latest_scan_setting_id() -> int:
     if result:
         setting_id = result[0]
     else:
-        # 기본 주기 60분으로 삽입
+        # 기본 주기 15분으로 삽입
         start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute("""
             INSERT INTO ScanSetting (period, start_time, stop_time)
             VALUES (%s, %s, NULL)
-        """, (60, start_time))
+        """, (15, start_time))
         conn.commit()
         setting_id = cursor.lastrowid
-        print(f"[+] 기본 ScanSetting 저장됨 (id={setting_id}, period=60)")
+        print(f"[+] 기본 ScanSetting 저장됨 (id={setting_id}, period=15)")
 
     cursor.close()
     conn.close()
