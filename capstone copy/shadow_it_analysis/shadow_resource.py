@@ -1,57 +1,7 @@
-# 1. 공개 정책 정의 (DB에서 가져왔다고 가정)
-bucket_public_policy = {
-    "2025-skyroute": False,
-    "2025-skyroute7": True,
-    "capstone-skyroute": True,
-    "config-bucket-351818465660": False,
-    "public.sskyroute": True,
-    "public.sskyroute.com": True,
-    "skyroute-private": True,
-    "skyroute-test": True,
-    "skyroute-userdata": False,
-    "skyroute6": True,
-    "skyroute7": True,
-    "skyroute": True,
-    "sskyroute-private": True,
-    "sskyroute-test": False,
-    "sskyroute-userdata": False,
-    "sskyroute.com": True,
-    "tmzoslddydqjzlt": True,
-    "dataset.sskyroute.com": True
-}
+import mysql.connector
+from datetime import datetime
 
-# 2. s3scanner 결과 정의 (DB에서 불러온 JSON이라고 가정)
-scan_result = {
-  "parsed_s3scanner_result": [
-    {
-      "bucket_name": "sskyroute-userdata",
-      "allusers_permission": "[FULL_CONTROL]",
-      "authusers_permission": "[READ_ACP]"
-    },
-    {
-      "bucket_name": "sskyroute",
-      "allusers_permission": "[READ, READ_ACP]",
-      "authusers_permission": "[]"
-    },
-    {
-      "bucket_name": "skyroute7",
-      "allusers_permission": "[READ, READ_ACP]",
-      "authusers_permission": "[READ, READ_ACP]"
-    },
-    {
-      "bucket_name": "sskyroute-private",
-      "allusers_permission": "[READ, READ_ACP]",
-      "authusers_permission": "[]"
-    },
-    {
-      "bucket_name": "sskyroute-test",
-      "allusers_permission": "[READ, READ_ACP]",
-      "authusers_permission": "[]"
-    }
-  ]
-}
-
-# 3. 권한 설명 매핑
+# 권한 설명
 PERMISSION_EXPLANATIONS = {
     "READ": "Read – 버킷 내 파일 목록과 내용을 조회할 수 있음",
     "WRITE": "Write – 버킷에 파일을 업로드할 수 있음",
@@ -60,7 +10,6 @@ PERMISSION_EXPLANATIONS = {
     "FULL_CONTROL": "Full Control – 모든 권한 보유 (읽기, 쓰기, 정책 읽기/쓰기)"
 }
 
-# 4. 유틸 함수들
 def parse_permissions(perm_str):
     perm_str = perm_str.strip("[]\" ")
     if not perm_str:
@@ -68,53 +17,84 @@ def parse_permissions(perm_str):
     return [p.strip() for p in perm_str.split(",")]
 
 def describe_permissions(perm_list):
-    return [PERMISSION_EXPLANATIONS.get(p, f" Unknown: {p}") for p in perm_list]
+    return [PERMISSION_EXPLANATIONS.get(p, f"Unknown: {p}") for p in perm_list]
 
-def get_actual_public_buckets_with_permissions(scan_result):
-    public_buckets = {}
-    for item in scan_result.get("parsed_s3scanner_result", []):
-        allusers_perm = item.get("allusers_permission", "")
-        perm_list = parse_permissions(allusers_perm)
-        if perm_list:  # 하나라도 있으면
-            bucket_name = item["bucket_name"]
-            public_buckets[bucket_name] = {
-                "allusers_permission": item.get("allusers_permission", ""),
-                "authusers_permission": item.get("authusers_permission", "")
-            }
-    return public_buckets
+def analyze_shadow_resources():
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="DBA",
+        password="1234",
+        database="SKYROUTE"
+    )
+    cursor = conn.cursor(dictionary=True)
 
-# 5. 메인 검사 및 출력 함수
-def show_violating_buckets_verbose(bucket_public_policy, scan_result):
-    public_buckets = get_actual_public_buckets_with_permissions(scan_result)
-    violating = {
-        bucket: perms
-        for bucket, perms in public_buckets.items()
-        if bucket in bucket_public_policy and not bucket_public_policy[bucket]
-    }
+    # 최신 scan_result_id
+    cursor.execute("SELECT MAX(id) as latest_id FROM ScanResult")
+    latest_id = cursor.fetchone()["latest_id"]
 
-    if not violating:
+    # 1. 정책상 공개 여부: S3List (s3_bucket, public)
+    cursor.execute("SELECT s3_bucket, public FROM S3List")
+    policy_data = cursor.fetchall()
+    bucket_policy = {row["s3_bucket"]: bool(row["public"]) for row in policy_data}
+
+    # 2. 실제 권한 상태: S3scannerResult (해당 scan_result_id)
+    cursor.execute("""
+        SELECT bucket_name, allusers_permission, authusers_permission
+        FROM S3scannerResult
+        WHERE scan_result_id = %s
+    """, (latest_id,))
+    scan_data = cursor.fetchall()
+
+    # 3. 공개되면 안 되는 버킷만 필터링
+    violations = []
+    for item in scan_data:
+        bucket = item["bucket_name"]
+        alluser_perms = parse_permissions(item.get("allusers_permission", ""))
+        authuser_perms = parse_permissions(item.get("authusers_permission", ""))
+        is_actually_public = bool(alluser_perms)  # AllUsers 권한이 있으면 공개로 판단
+
+        if bucket in bucket_policy and not bucket_policy[bucket] and is_actually_public:
+            violations.append({
+                "bucket": bucket,
+                "allusers_permission": item["allusers_permission"],
+                "authusers_permission": item["authusers_permission"],
+                "scan_result_id": latest_id,
+                "reason": "정책상 비공개 버킷이 AllUsers에게 공개됨"
+            })
+
+    # 4. ShadowResource에 저장
+    for v in violations:
+        cursor.execute("""
+            INSERT INTO ShadowResource (bucket_name, allusers_permission, authusers_permission, reason, scan_result_id)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            v["bucket"],
+            v["allusers_permission"],
+            v["authusers_permission"],
+            v["reason"],
+            v["scan_result_id"]
+        ))
+
+    conn.commit()
+
+    # 5. 로그 출력
+    if not violations:
         print("모든 공개된 버킷은 정책상 허용된 상태입니다.")
-        return
-
-    print("공개되면 안 되는 상태인데 실제로 공개된 버킷")
-    for bucket, perms in violating.items():
-        print(f"\n- {bucket}")
-        alluser_perms = parse_permissions(perms["allusers_permission"])
-        authuser_perms = parse_permissions(perms["authusers_permission"])
-
-        if alluser_perms:
+    else:
+        print("공개되면 안 되는 상태인데 실제로 공개된 버킷")
+        for v in violations:
+            print(f"\n- {v['bucket']}")
+            alluser_desc = describe_permissions(parse_permissions(v["allusers_permission"]))
+            authuser_desc = describe_permissions(parse_permissions(v["authusers_permission"]))
             print("  AllUsers 권한")
-            for p in describe_permissions(alluser_perms):
+            for p in alluser_desc:
                 print(f"    - {p}")
-        else:
-            print("  AllUsers 권한 없음")
-
-        if authuser_perms:
             print("  AuthUsers 권한")
-            for p in describe_permissions(authuser_perms):
-                print(f"    - {p}")
-        else:
-            print("  AuthUsers 권한 없음")
+            if authuser_desc:
+                for p in authuser_desc:
+                    print(f"    - {p}")
+            else:
+                print("    없음")
 
-# 6. 실행
-# show_violating_buckets_verbose(bucket_public_policy, scan_result)
+    cursor.close()
+    conn.close()
