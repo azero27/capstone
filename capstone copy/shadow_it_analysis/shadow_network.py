@@ -13,6 +13,7 @@ def compare_nmap_with_target_reference():
     # 1. 최신 ScanResult ID 가져오기
     cursor.execute("SELECT MAX(id) as latest_id FROM ScanResult")
     latest_result_id = cursor.fetchone()["latest_id"]
+    print("[DEBUG] Latest scan_result_id:", latest_result_id)
 
     # 2. NmapResult (해당 scan_result_id만)
     cursor.execute("""
@@ -49,7 +50,6 @@ def compare_nmap_with_target_reference():
     for entry in nmap_entries:
         port = entry["port_number"]
         service = entry["service_name"].lower()
-        target = entry["target"]
         if port not in portlist_ports:
             findings.append({
                 "port": port,
