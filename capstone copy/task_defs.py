@@ -20,8 +20,8 @@ import redis
 import json 
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
-from shadow_it_analysis.shadow_network import analyze_shadow_network()
-from shadow_it_analysis.shadow_resource import analyze_shadow_resources()
+from shadow_it_analysis.shadow_network import analyze_shadow_network
+from shadow_it_analysis.shadow_resource import analyze_shadow_resources
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
