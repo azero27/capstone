@@ -18,17 +18,17 @@
       data-close-src="{{ url_for('static', filename='icon/icon_menu_toggle-active.svg') }}"
       src="{{ url_for('static', filename='icon/icon_menu_toggle.svg') }}" id="toggleIcon" onclick="toggleSidebar()" />
     
-    <div class="menu-inactive sidebar-text">
+    <div class="menu-inactive sidebar-text" onclick="movetoSet()">
       <div class="settings2">Settings</div>
     </div>
     <img class="icon-menu-settings" src="{{ url_for('static', filename='icon/icon_menu_settings.svg') }}" />
     
-    <div class="menu-inactive sidebar-text">
+    <div class="menu-inactive sidebar-text" onclick="movetoRe()">
       <div class="email2">Report</div>
     </div>
     <img class="icon-menu-email" src="{{ url_for('static', filename='icon/icon_menu_email.svg') }}" />
     
-    <div class="menu-inactive sidebar-text">
+    <div class="menu-inactive sidebar-text" onclick="movetoAr()">
       <div class="tasks2">Archiving</div>
     </div>
     <img class="icon-menu-tasks" src="{{ url_for('static', filename='icon/icon_menu_tasks.svg') }}" />
@@ -95,4 +95,3 @@
 
 </body>
 </html>
-
