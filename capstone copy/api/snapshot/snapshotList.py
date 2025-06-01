@@ -8,9 +8,9 @@ def get_snapshot_list():
 
     # 실제 DB 대신 테스트용 데이터 반환 
     conn = [
-        {"id": 1, "date": "01-JAN-2025", "start_time": "12:00"},
-        {"id": 2, "date": "02-JAN-2025", "start_time": "13:30"},
-        {"id": 3, "date": "03-JAN-2025", "start_time": "15:45"},
+        { "id": 1, "start_time": "2025-01-01T12:00:00" },
+        { "id": 2, "start_time": "2025-01-02T13:30:00" },
+        { "id": 3, "start_time": "2025-01-03T15:45:00" }
     ]
 
     
