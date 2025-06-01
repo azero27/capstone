@@ -194,12 +194,23 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             raw = m["tool"](*input_values)
             meta = build_meta(tool_id, raw)
 
-            parser_args = [
-                raw if arg == "raw"
-                else meta if arg == "meta"
-                else meta.get(arg)
-                for arg in m.get("parser_args", [])
-            ]
+            if tool_id == 6 and isinstance(raw.get("results"), list):
+                parsed = []
+                for r in raw["results"]:
+                    parser_args = [
+                        eval(arg, {}, {"raw": r, "meta": r})
+                        for arg in m.get("parser_args", [])
+                    ]
+                    parsed_result = m["parser"](*parser_args)
+                    parsed.extend(parsed_result if isinstance(parsed_result, list) else [parsed_result])
+            else:
+                parser_args = [
+                    raw if arg == "raw"
+                    else meta if arg == "meta"
+                    else meta.get(arg)
+                    for arg in m.get("parser_args", [])
+                ]
+                parsed = m["parser"](*parser_args)
 
             print(f"[SCAN] 실행 도구: {m['tool'].__name__}")
             print("==[DEBUG]==")
@@ -209,7 +220,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             print("Meta:", meta)
             print("====================")
 
-            parsed = m["parser"](*parser_args)
+  
             print("[DEBUG] Parsed Result:", parsed)
             current_step = step if is_initial else step + 1
 
@@ -264,10 +275,11 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
                 elif tool_id == 6:
                     from DB.save_nuclei import save_nuclei_result
-                    save_nuclei_result(parsed, scan_result_id, current_step)
-                
-                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
-                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                    for result in parsed:  # parsed는 list of dict
+                        save_nuclei_result(result, scan_result_id, current_step)
+
+                        normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
+                        cache_result_for_dashboard(scan_result_id, tool_id, normalized)
 
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
             except Exception as e:
