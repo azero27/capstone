@@ -55,17 +55,25 @@ async function scan_show() {
 
         if (Array.isArray(data.results)) {
           for (const r of data.results) {
-            const hash = `${r.tool_id}-${r.step}-${r.summary}`;
-            if (!renderResultHashes.has(hash)) {
-              renderResultHashes.add(hash);
-              results.push(r);
+            // tool 이름에서 run_ 제거
+            if (typeof r.tool === 'string' && r.tool.startsWith('run_')) {
+              r.tool = r.tool.replace(/^run_/, '');
+            }
+
+            if (r.tool.startWith('nmap_')){
+              r.tool = 'nmap';
+            }
+            
+            const existingIndex = results.findIndex(
+              item => item.tool_id === r.tool_id && item.step === r.step
+            );
+
+            if (existingIndex !== -1) {
+              results[existingIndex] = r;  // 같은 도구/스텝이면 교체 (ex. in_progress → success)
+            } else {
+              results.push(r);  // 없으면 추가
             }
           }
-
-          console.log('[✅ TOOL CACHE FETCHED]');
-          results.forEach((r, i) => {
-            console.log(`▶️ [${i}] Tool=${r.tool}, Status=${r.status}, Step=${r.step}`);
-          });
 
           renderScanTree(results);
           renderResultTable(results);
