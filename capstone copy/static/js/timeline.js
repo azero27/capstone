@@ -3,18 +3,47 @@ let viewstart = null;
 let viewend = null;
 let diffstart = null;
 let diffend = null;
+let filteredTimelineData = [];
 
-const timelineData = [
-  { date: "2025-05-01T10:00", rsc: "server1", dif: "port 80 opened" },
-  { date: "2025-05-02T12:30", rsc: "server2", dif: "new user added" },
-  { date: "2025-05-04T09:15", rsc: "server1", dif: "config change" },
-  { date: "2025-05-05T14:00", rsc: "server3", dif: "SSH disabled" },
-  { date: "2025-05-05T16:00", rsc: "server1", dif: "SSH disabled" },
-];
+// ========== API 호출 함수 ==========
+async function loadTimelineNodes(start, end) {
+  const res = await fetch('/api/timeline_nodes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ start, end })
+  });
+  return res.json();
+}
 
-function renderTimeline() {
+async function loadTimelineDiff(start, end) {
+  const res = await fetch('/api/timeline_diff', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ start, end })
+  });
+  return res.json();
+}
+
+async function loadResourceDiff(resource, start, end) {
+  const res = await fetch('/api/resource_diff', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ resource, start, end })
+  });
+  return res.json();
+}
+
+// ========== 렌더링 함수 ==========
+async function renderTimeline() {
   const container = document.getElementById("timelineList");
   container.innerHTML = "";
+
+  // 기간값 없으면 전체 범위 지정 (또는 기본값)
+  let start = viewstart || "1900-01-01T00:00";
+  let end = viewend || "2999-12-31T23:59";
+
+  // 데이터 API로 받아오기
+  filteredTimelineData = await loadTimelineNodes(start, end);
 
   filteredTimelineData.forEach((entry, index) => {
     const item = document.createElement("div");
@@ -22,6 +51,8 @@ function renderTimeline() {
 
     const dot = document.createElement("div");
     dot.className = "timeline-dot";
+    // 선택된 경우 표시
+    if (selectedDates.includes(entry.date)) dot.classList.add("selected");
     dot.onclick = () => toggleSelectDot(entry.date, dot);
 
     const line = document.createElement("div");
@@ -45,66 +76,75 @@ function formatDate(dtStr) {
   return `${date} ${time}`;
 }
 
-function toggleSelectDot(date, dotEl) {
+// ========== Dot 선택 및 Diff 렌더 ==========
+async function toggleSelectDot(date, dotEl) {
+  // 두 개 선택 시 초기화
   if (selectedDates.length === 2) {
     selectedDates = [];
     document.querySelectorAll('.timeline-dot').forEach(dot => dot.classList.remove('selected'));
   }
+  // 이미 선택된 경우 무시
+  if (selectedDates.includes(date)) return;
 
   selectedDates.push(date);
   dotEl.classList.add("selected");
 
   if (selectedDates.length === 2) {
-    selectedDates.sort();
+    selectedDates.sort(); // 시간순
     diffstart = selectedDates[0];
     diffend = selectedDates[1];
-    renderDiffs();
+    await renderDiffs();
   }
 }
 
-function renderDiffs() {
+async function renderDiffs() {
   const diffContainer = document.getElementById("diffList");
   diffContainer.innerHTML = "";
 
-  const filtered = timelineData.filter(entry => entry.date >= diffstart && entry.date <= diffend);
-  filtered.forEach(entry => {
+  // diff는 반드시 API 통해
+  const diffEntries = await loadTimelineDiff(diffstart, diffend);
+
+  diffEntries.forEach(entry => {
     const div = document.createElement("div");
     div.className = "diff-entry";
-    div.innerHTML = `Diff(<span class="resource" onclick="showPopup('${entry.rsc}')">${entry.rsc}</span>, ${entry.dif})`;
+    div.innerHTML =
+      `Diff(<span class="resource" onclick="showPopup('${entry.rsc}')">${entry.rsc}</span>, ${entry.dif})`;
     diffContainer.appendChild(div);
   });
 }
 
-function showPopup(rsc) {
+// ========== 리소스 변화 상세 팝업 ==========
+async function showPopup(rsc) {
   const popup = document.getElementById("popup");
   const popupContent = document.getElementById("popupContent");
   popup.classList.remove("hidden");
 
-  const filtered = timelineData.filter(e => e.rsc === rsc && e.date >= diffstart && e.date <= diffend);
-  popupContent.innerHTML = filtered.map(e => `<div>${formatDate(e.date)} - ${e.dif}</div>`).join("");
+  // 리소스별 변화 API 호출
+  const resourceDiffs = await loadResourceDiff(rsc, diffstart, diffend);
+  popupContent.innerHTML = resourceDiffs
+    .map(e => `<div>${formatDate(e.date)} - ${e.dif}</div>`)
+    .join("");
 }
 
 function closePopup() {
   document.getElementById("popup").classList.add("hidden");
 }
 
-function applyViewFilter() {
+// ========== 기간 필터 적용 ==========
+async function applyViewFilter() {
   viewstart = document.getElementById("viewStart").value;
   viewend = document.getElementById("viewEnd").value;
 
-  if (!viewstart || !viewend) {
-    filteredTimelineData = [...timelineData];
-  } else {
-    filteredTimelineData = timelineData.filter(entry => {
-      return entry.date >= viewstart && entry.date <= viewend;
-    });
-  }
-
-  selectedDates = []; // 선택 초기화
+  // 선택/차이 초기화
+  selectedDates = [];
   diffstart = null;
   diffend = null;
-  renderTimeline(); // 필터된 데이터로 다시 렌더링
-  document.getElementById("diffList").innerHTML = ""; // Diff View 초기화
+
+  await renderTimeline();
+  document.getElementById("diffList").innerHTML = "";
 }
 
-document.addEventListener("DOMContentLoaded", renderTimeline);
+// ========== 초기화 ==========
+document.addEventListener("DOMContentLoaded", () => {
+  renderTimeline();
+});
