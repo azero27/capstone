@@ -96,6 +96,34 @@
   </select>
   <button class="save-button-inline" onclick="saveScanPeriod()">저장</button>
 </div>
+
+<!-- 파일 업로드 섹션 -->
+    <div class="file-upload-section">
+      <h3>리소스 파일 업로드</h3>
+      <div class="file-upload-container">
+        <div class="file-upload-row">
+          <label>Domain 파일:</label>
+          <div class="file-input-group">
+            <input type="file" id="domainFileInput" accept=".csv" />
+            <small class="file-hint">domain.csv 파일을 업로드하세요</small>
+          </div>
+        </div>
+        <div class="file-upload-row">
+          <label>Port 파일:</label>
+          <div class="file-input-group">
+            <input type="file" id="portFileInput" accept=".csv" />
+            <small class="file-hint">port.csv 파일을 업로드하세요</small>
+          </div>
+        </div>
+        <div class="file-upload-row">
+          <label>S3 파일:</label>
+          <div class="file-input-group">
+            <input type="file" id="s3FileInput" accept=".csv" />
+            <small class="file-hint">s3.csv 파일을 업로드하세요</small>
+          </div>
+        </div>
+        <button class="upload-button" onclick="handleFileUpload()">파일 업로드</button>
+      </div>
     </div>
   </div>
 
