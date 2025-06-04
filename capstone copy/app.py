@@ -1,6 +1,7 @@
 import sys
 import os
 import csv
+import shutil
 print("sys.path =", sys.path)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -24,9 +25,24 @@ from flask_cors import CORS
 from waitress import serve
 import hashlib
 
+# capstone 디렉토리를 파이썬 경로에 추가
+sys.path.append(os.path.join(os.path.dirname(__file__), 'capstone'))
+from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
+
 r = redis.Redis(host='localhost', port=6379, db=0)
+
+def clear_scan_cache(scan_result_id):
+    for tool_id in range(1, 10):  # 필요한 도구 개수만큼 조정
+        key = f"scan_result:{scan_result_id}:tool:{tool_id}"
+        r.delete(key)
+    for part in ["nmap", "nuclei", "s3"]:
+        key = f"shadow_component:{scan_result_id}:{part}"
+        r.delete(key)
+
 upload_dir = 'csv_files'
+backup_dir = 'csv_files_backup'
 os.makedirs(upload_dir, exist_ok=True)
+os.makedirs(backup_dir, exist_ok=True)  # 백업 디렉토리 생성
 
 def get_file_hash(file_path):
     with open(file_path, 'rb') as f:
@@ -105,13 +121,15 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        #cloud_info 및 scan_result_id 미리 생성
+        cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = latest_scan_setting_id()
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
         r.set("latest_scan_result_id", scan_result_id)
         # scan_result_id = "mock-001"
         # r.set("latest_scan_result_id", scan_result_id)
+
+        clear_scan_cache(scan_result_id)
 
         r.set("scheduled_ip", ip_address)
         r.set("scheduled_domain", domain)
@@ -121,7 +139,7 @@ def create_app():
         r.set('last_scan_time', time.time())       # datetime.now().timestamp()도 가능
         r.set('has_user_input', 'true')
 
-        # scan_setting_id = "mock-setting-id"
+        scan_setting_id = "mock-setting-id"
         # 병렬 스캔 태스크 (Signature 형태로)
         scan_tasks = [
             schedule_scan.s('ip', ip_address, scan_setting_id, 1, scan_result_id),
@@ -145,23 +163,51 @@ def create_app():
     @app.route('/upload-data', methods=['POST'])
     def upload_data():
         def process_file(name, path, redis_key, parser_func):
+            global backup_dir  # 전역 변수 선언 추가
             uploaded_file = request.files.get(name)
             if uploaded_file:
-                uploaded_file.save(path)
-                new_hash = get_file_hash(path)
-                old_hash = r.get(redis_key)
 
-                if not old_hash or old_hash.decode() != new_hash:
-                    # 데이터 재삽입을 위해 기존 데이터 삭제는 parser 내부에서 처리
-                    parser_func(path)
+                # 파일 업로드 전에 기존 파일 백업
+                if os.path.exists(path):
+                    try:
+                        timestamp = datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
+                        backup_filename = f"{os.path.splitext(os.path.basename(path))[0]}.{timestamp}.csv"
+                        backup_path = os.path.join(backup_dir, backup_filename)
+                        shutil.copy2(path, backup_path)
+                        print(f"[BACKUP] {path} -> {backup_path}")
+                    except Exception as e:
+                        print(f"[ERROR] 파일 백업 실패: {str(e)}")
+
+                try:
+                    # 새 파일 저장
+                    uploaded_file.save(path)
+                    print(f"[SAVE] 새 파일 저장됨: {path}")
                     
-                    r.set(redis_key, new_hash)
+                    # 항상 파싱 수행
+                    print(f"[PARSE] {name} 파싱 시작")
+                    result = parser_func(path)
+                    print(f"[PARSE] {name} 파싱 완료, 결과: {result}")
+                    
+                except Exception as e:
+                    print(f"[ERROR] 파일 처리 실패: {str(e)}")
+                    raise
 
-        process_file('domain_file', os.path.join(upload_dir, 'domain.csv'), 'domain_file_hash', parse_domain_file)
-        process_file('port_file', os.path.join(upload_dir, 'port.csv'), 'port_file_hash', parse_port_file)
-        process_file('s3_file', os.path.join(upload_dir, 's3.csv'), 's3_file_hash', parse_s3_file)
-
-        return jsonify({"status": "ok", "message": "파일 파싱 완료 및 DB 반영됨"}), 200
+        try:
+            process_file('domain_file', os.path.join(upload_dir, 'domain.csv'), 'domain_file_hash', parse_domain_file)
+            process_file('port_file', os.path.join(upload_dir, 'port.csv'), 'port_file_hash', parse_port_file)
+            process_file('s3_file', os.path.join(upload_dir, 's3.csv'), 's3_file_hash', parse_s3_file)
+            
+            return jsonify({
+                "status": "ok", 
+                "message": "파일 처리가 완료되었습니다."
+            }), 200
+            
+        except Exception as e:
+            print(f"[ERROR] 전체 처리 실패: {str(e)}")
+            return jsonify({
+                "status": "error",
+                "message": f"처리 중 오류가 발생했습니다: {str(e)}"
+            }), 500
 
     @app.route('/set-schedule', methods=['POST'])
     def set_schedule():
@@ -189,6 +235,8 @@ def create_app():
             # 설정 파일 저장
             with open("schedule_config.json", "w") as f:
                 json.dump({"interval_seconds": interval}, f)
+
+            save_scan_setting(int(interval))
 
             return jsonify({"status": "ok", "interval": interval}), 200
 
