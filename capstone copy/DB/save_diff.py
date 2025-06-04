@@ -2,22 +2,26 @@ import mysql.connector
 import difflib
 import mysql.connector
 
-def save_nuclei_diff(cloud_info_id, scan_result_id):
-    """
-    같은 대상 + 도구에 대해, 이전 스캔 결과가 존재하면 현재 결과와 비교해
-    NucleiDiff 테이블에 변화 내용을 저장한다.
-    """
+def save_nuclei_diff(scan_result_id):
     try:
-        # DB 연결
         conn = mysql.connector.connect(
-            host="localhost",
-            user="DBA",
-            password="1234",
-            database="SKYROUTE"
+            host="localhost", user="DBA", password="1234", database="SKYROUTE"
         )
         cursor = conn.cursor(dictionary=True)
 
-        # 이전 scan_result_id 조회
+        # 현재 cloud_info_id 조회
+        cursor.execute("""
+            SELECT cloud_info_id FROM ScanResult
+            WHERE id = %s
+        """, (scan_result_id,))
+        row = cursor.fetchone()
+        if row:
+            cloud_info_id = row["cloud_info_id"]
+        else:
+            print(f"[ERROR] scan_result_id={scan_result_id}에 해당하는 값 없음")
+            return
+
+        # 이전 스캔 ID 조회
         cursor.execute("""
             SELECT id FROM ScanResult
             WHERE cloud_info_id = %s AND id < %s
@@ -40,7 +44,7 @@ def save_nuclei_diff(cloud_info_id, scan_result_id):
 
         # 현재 결과 조회
         cursor.execute("""
-            SELECT arget, vulnerability, risk_level, url
+            SELECT target, vulnerability, risk_level, url
             FROM NucleiResult
             WHERE scan_result_id = %s
         """, (scan_result_id,))
@@ -61,7 +65,6 @@ def save_nuclei_diff(cloud_info_id, scan_result_id):
 
         # changed
         fields_to_check = ["vulnerability", "risk_level", "url"]
-
         for target in curr_map:
             if target in prev_map:
                 p = prev_map[target]
@@ -74,6 +77,7 @@ def save_nuclei_diff(cloud_info_id, scan_result_id):
                     desc = f"{target} 변경사항 → " + ", ".join(field_changes)
                     diffs.append(("changed", target, desc))
 
+        # 결과 저장
         if diffs:
             for diff_type, target, desc in diffs:
                 cursor.execute("""
@@ -92,7 +96,8 @@ def save_nuclei_diff(cloud_info_id, scan_result_id):
         conn.close()
 
 
-def save_nmap_diff(cloud_info_id, scan_result_id):
+
+def save_nmap_diff(scan_result_id):
 
     try:
         conn = mysql.connector.connect(
@@ -102,6 +107,18 @@ def save_nmap_diff(cloud_info_id, scan_result_id):
             database="SKYROUTE"
         )
         cursor = conn.cursor(dictionary=True)
+
+        # 현재 cloud_info_id 조회
+        cursor.execute("""
+            SELECT cloud_info_id FROM ScanResult
+            WHERE id = %s
+        """, (scan_result_id,))
+        row = cursor.fetchone()
+        if row:
+            cloud_info_id = row["cloud_info_id"]
+        else:
+            print(f"[ERROR] scan_result_id={scan_result_id}에 해당하는 값 없음")
+            return
 
         # 이전 scan_result_id 조회
         cursor.execute("""
@@ -184,7 +201,7 @@ def save_nmap_diff(cloud_info_id, scan_result_id):
         conn.close()
 
 
-def save_amass_diff(cloud_info_id, scan_result_id):
+def save_amass_diff(scan_result_id):
 
     try:
         conn = mysql.connector.connect(
@@ -194,6 +211,18 @@ def save_amass_diff(cloud_info_id, scan_result_id):
             database="SKYROUTE"
         )
         cursor = conn.cursor(dictionary=True)
+
+        # 현재 cloud_info_id 조회
+        cursor.execute("""
+            SELECT cloud_info_id FROM ScanResult
+            WHERE id = %s
+        """, (scan_result_id,))
+        row = cursor.fetchone()
+        if row:
+            cloud_info_id = row["cloud_info_id"]
+        else:
+            print(f"[ERROR] scan_result_id={scan_result_id}에 해당하는 값 없음")
+            return
 
         
         # 이전 scan_result_id 조회
@@ -257,13 +286,25 @@ def save_amass_diff(cloud_info_id, scan_result_id):
         conn.close()
 
 
-def save_cloudenum_diff(cloud_info_id, scan_result_id):
+def save_cloudenum_diff(scan_result_id):
     
     try:
         conn = mysql.connector.connect(
             host="localhost", user="DBA", password="1234", database="SKYROUTE"
         )
         cursor = conn.cursor(dictionary=True)
+
+        # 현재 cloud_info_id 조회
+        cursor.execute("""
+            SELECT cloud_info_id FROM ScanResult
+            WHERE id = %s
+        """, (scan_result_id,))
+        row = cursor.fetchone()
+        if row:
+            cloud_info_id = row["cloud_info_id"]
+        else:
+            print(f"[ERROR] scan_result_id={scan_result_id}에 해당하는 값 없음")
+            return
 
         # 이전 scan_result_id 조회
         cursor.execute("""
@@ -360,12 +401,24 @@ def save_cloudenum_diff(cloud_info_id, scan_result_id):
         conn.close()
 
 
-def save_s3scanner_diff(cloud_info_id, scan_result_id):
+def save_s3scanner_diff(scan_result_id):
     try:
         conn = mysql.connector.connect(
             host="localhost", user="DBA", password="1234", database="SKYROUTE"
         )
         cursor = conn.cursor(dictionary=True)
+
+        # 현재 cloud_info_id 조회
+        cursor.execute("""
+            SELECT cloud_info_id FROM ScanResult
+            WHERE id = %s
+        """, (scan_result_id,))
+        row = cursor.fetchone()
+        if row:
+            cloud_info_id = row["cloud_info_id"]
+        else:
+            print(f"[ERROR] scan_result_id={scan_result_id}에 해당하는 값 없음")
+            return
 
         # 이전 scan_result_id 조회
         cursor.execute("""

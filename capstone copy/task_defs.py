@@ -226,8 +226,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 if tool_id == 1:
                     from DB.save_nmap import save_nmap_result
                     save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
-                    cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-                    save_nmap_diff(cloud_info_id, scan_result_id)
+                    save_nmap_diff(scan_result_id)
 
                     normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized)
@@ -236,8 +235,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     from DB.save_cloud_enum import save_cloud_enum_result
                     buckets, files = parsed
                     save_cloud_enum_result(buckets, files, scan_result_id, current_step)
-                    cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-                    save_cloudenum_diff(cloud_info_id, scan_result_id)
+                    save_cloudenum_diff(scan_result_id)
 
                     combined = {
                         "buckets": buckets,
@@ -249,8 +247,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
                     save_amass_result(parsed, scan_result_id, current_step)
-                    cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-                    save_amass_diff(cloud_info_id, scan_result_id)
+                    save_amass_diff(scan_result_id)
 
                     normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized)
@@ -259,8 +256,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 elif tool_id == 4:
                     from DB.save_s3scanner import save_s3scanner_result
                     save_s3scanner_result(parsed, scan_result_id, current_step)
-                    cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-                    save_s3scanner_diff(cloud_info_id, scan_result_id)
+                    save_s3scanner_diff(scan_result_id)
                 
                     entries, sensitive_file_entries = parsed
 
@@ -282,8 +278,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 elif tool_id == 6:
                     for result in parsed:  # parsed는 list of dict
                         save_nuclei_result(result, scan_result_id, current_step)
-                        cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-                        save_nuclei_diff(cloud_info_id, scan_result_id)
+                        save_nuclei_diff(scan_result_id)
 
                         normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
                         cache_result_for_dashboard(scan_result_id, tool_id, normalized)
