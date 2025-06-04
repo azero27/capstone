@@ -14,28 +14,39 @@ async function scan_show() {
     await updateScanResults(scanId);
 
     // 모든 스캔이 끝났는지 확인
-    if (!shadowITChecked && isAllScanFinished(results)) {
-      shadowITState.status = 'in_progress';
-      renderScanTree(results);
+    // if (!shadowITChecked && isAllScanFinished(results)) {
+    //  shadowITState.status = 'in_progress';
+    //  renderScanTree(results);
 
       // Shadow IT 검사 단 한 번만 실행
-      await updateShadowITState(scanId);
-      shadowITChecked = true;
-    }
+    //  await updateShadowITState(scanId);
+    //  shadowITChecked = true;
+    //}
 
     renderScanTree(results);
     renderResultTable(results);
   }, 2000);
 }
 
-// 스캔 결과 업데이트
+// 중복 제거 함수 (step + tool_id 기준)
+function deduplicateResults(results) {
+  const seen = new Set();
+  return results.filter(result => {
+    const key = `${result.step}:${result.tool_id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+
 async function updateScanResults(scanId) {
   if (!scanId) return;
   try {
     const res = await fetch(`/status?scan_result_id=${scanId}`);
     if (res.ok) {
       const statusData = await res.json();
-      results = statusData.results || [];
+      results = deduplicateResults(statusData.results || []);  // ✅ 중복 제거 적용
     }
   } catch (e) {
     console.warn("[스캔 결과 fetch 실패]", e);

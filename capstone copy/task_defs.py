@@ -25,30 +25,20 @@ from shadow_it_analysis.shadow_resource import analyze_shadow_resources
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
-def cache_result_for_dashboard(scan_result_id, tool_id, parsed_result):
-    """
-    도구 실행 결과를 Redis에 캐시 (대시보드에서 주기적으로 읽어갈 수 있도록)
-    """
+def cache_result_for_dashboard(scan_result_id, tool_id, parsed_result, summary=None, ttl=600):
     key = f"scan_result:{scan_result_id}:tool:{tool_id}"
-    
     try:
         serialized = json.dumps(parsed_result, default=str)
-        r.setex(key, 60, serialized)  # TTL: 60초 유지
 
-        # 로그 출력
+        if ttl and ttl > 0:
+            r.setex(key, ttl, serialized)
+        else:
+            r.set(key, serialized)  # TTL이 0 이하일 경우 무기한 저장
+
         print(f"[CACHE] 저장 완료 → key: {key}")
-        print(f"[CACHE] 저장된 데이터 일부: {serialized[:200]}")  # 너무 길면 앞부분만 보기
     except Exception as e:
         print(f"[CACHE] 저장 실패 → key: {key}, 에러: {e}")
 
-
-# 수정 중 
-def cache_shadow_component(scan_result_id, component_name, result):
-    """
-    Shadow 분석의 각 결과(nuclei/nmap/s3 등)를 별도 키로 Redis에 저장
-    """
-    key = f"shadow_component:{scan_result_id}:{component_name}"
-    r.setex(key, 60, json.dumps(result))
 
 # Celery 인스턴스 정의
 celery = Celery('capstone_tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
@@ -142,7 +132,7 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
             "tool_id": tool_id,
             "status": item.get("status", "success"),  # 기본값
             "summary": item.get("summary", "No summary available"),
-            "log": item.get("log", "")
+            "log": item.get("logs", "")
         })
     return normalized
 
@@ -169,10 +159,12 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             ip_address = r.get("scheduled_ip").decode() if r.get("scheduled_ip") else None
             domain_name = r.get("scheduled_domain").decode() if r.get("scheduled_domain") else None
 
-        if ip_address and domain_name:
-            cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-            scan_setting_id = latest_scan_setting_id()
-            scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+        # if ip_address and domain_name:
+        #    cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
+        #    scan_setting_id = latest_scan_setting_id()
+        #    scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+
+        scan_result_id = "mock-scan-id"
 
     while queue:
         resource_type, value, job_name, is_initial = queue.pop(0)
@@ -191,8 +183,21 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 for k, v in arg.items():
                     input_values.append(value if v == "value" else v)
 
+            current_step = step if is_initial else step + 1
+
+            # 도구 실행 전 → 상태 캐시 (in_progress)
+            normalized = normalize_parsed_result(
+                {"status": "in_progress", "summary": f"{tool_name} running...", "log": ""},
+                tool_id,
+                current_step,
+                tool_name
+            )
+            cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=600)
+
+
             raw = m["tool"](*input_values)
             meta = build_meta(tool_id, raw)
+            
 
             if tool_id == 6 and isinstance(raw.get("results"), list):
                 parsed = []
@@ -212,6 +217,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 ]
                 parsed = m["parser"](*parser_args)
 
+
             print(f"[SCAN] 실행 도구: {m['tool'].__name__}")
             print("==[DEBUG]==")
             print("Tool:", m["tool"].__name__)
@@ -222,39 +228,37 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
   
             print("[DEBUG] Parsed Result:", parsed)
-            current_step = step if is_initial else step + 1
-
             try:
                 if tool_id == 1:
                     from DB.save_nmap import save_nmap_result
-                    save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
+                    # save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
 
                     normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
-                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 2:
                     from DB.save_cloud_enum import save_cloud_enum_result
                     buckets, files = parsed
-                    save_cloud_enum_result(buckets, files, scan_result_id, current_step)
+                    # save_cloud_enum_result(buckets, files, scan_result_id, current_step)
 
                     combined = {
                         "buckets": buckets,
                         "files": files
                     }
                     normalized = normalize_parsed_result(combined, tool_id, current_step, tool_name)
-                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
-                    save_amass_result(parsed, scan_result_id, current_step)
+                    # save_amass_result(parsed, scan_result_id, current_step)
 
                     normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
-                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
 
                 elif tool_id == 4:
                     from DB.save_s3scanner import save_s3scanner_result
-                    save_s3scanner_result(parsed, scan_result_id, current_step)
+                    # save_s3scanner_result(parsed, scan_result_id, current_step)
                 
                     entries, sensitive_file_entries = parsed
 
@@ -264,22 +268,22 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     }
 
                     normalized = normalize_parsed_result(combined, tool_id, current_step, tool_name)
-                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 5:
                     from DB.save_enumerate_iam import save_enumerate_iam_result
-                    save_enumerate_iam_result(parsed, scan_result_id, current_step)
+                    # save_enumerate_iam_result(parsed, scan_result_id, current_step)
                 
                     normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
-                    cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                    cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 6:
                     from DB.save_nuclei import save_nuclei_result
                     for result in parsed:  # parsed는 list of dict
-                        save_nuclei_result(result, scan_result_id, current_step)
+                        # save_nuclei_result(result, scan_result_id, current_step)
 
                         normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
-                        cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                        cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
             except Exception as e:
@@ -379,7 +383,8 @@ def run_oneoff_full_scan(resource_type):
     resource_type: 'ip' | 'domain' | 'keyword'
     """
     # 1) 최신 스캔 설정 ID
-    scan_setting_id = latest_scan_setting_id()
+    # scan_setting_id = latest_scan_setting_id()
+    scan_setting_id = "mock-setting-id"
 
     # 2) Redis에서 대상 값 가져오기
     raw = None
