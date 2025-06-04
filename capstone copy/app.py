@@ -121,7 +121,7 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        cloud_info 및 scan_result_id 미리 생성
+        #cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = latest_scan_setting_id()
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)

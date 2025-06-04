@@ -38,7 +38,7 @@ def save_nuclei_result(item, scan_result_id, step):
         item.get("vulnerability"),
         item.get("risk_level"),
         item.get("url"),
-        item.get("log"),
+        item.get("logs"),
         item.get("start_time"),
         item.get("end_time")
     ))
