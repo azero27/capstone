@@ -1,7 +1,7 @@
 from tools.nmap import run_nmap_port_scan
 from tools.s3scanner import run_s3scanner
 from tools.amass import run_amass
-from tools.nuclei import run_nuclei
+from tools.nuclei import run_nuclei_from_db
 from tools.enumerate_iam import run_enumerate_iam
 from tools.cloud_enum import run_cloud_enum
 
@@ -48,13 +48,10 @@ RESOURCE_TOOL_MAP = {
     "url": [
         {
             "tool_id": 6,
-            "tool": run_nuclei,
-            "input_args": [
-                {"url": "value"},
-                {"template_path": "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"}
-            ],
+            "tool": run_nuclei_from_db,
+            "input_args": [{"template_path": "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"}],
             "parser": parse_nuclei_output,
-            "parser_args": ["output", "meta"],
+            "parser_args": ['raw["output"]', "raw"],
             "next_resource": ["url_list"]  # dangling S3 CNAME 식별됨
         }
     ],
@@ -84,7 +81,11 @@ RESOURCE_TOOL_MAP = {
 }
 
 def classify_resource(value: str) -> str:
-    if value.startswith("http") and "s3" and ".amazonaws.com" in value:
+    
+    if value.startswith("CNAME"):
+        print(f"[SKIP] CNAME 자원 무시: {value}")
+        return None
+    elif value.startswith("http") and "s3" in value and ".amazonaws.com" in value:
         return "s3"
     elif value.startswith("http"):
         return "url"

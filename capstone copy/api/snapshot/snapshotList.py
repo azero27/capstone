@@ -1,17 +1,37 @@
-# capstone/api/snapshotList.py
 from flask import Blueprint, jsonify
+import mysql.connector
+from datetime import datetime
 
 archiving_bp = Blueprint('archiving', __name__)
 
 @archiving_bp.route('/api/snapshots', methods=['GET'])
 def get_snapshot_list():
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="DBA",
+            password="1234",
+            database="SKYROUTE"
+        )
+        cursor = conn.cursor(dictionary=True)
 
-    # 실제 DB 대신 테스트용 데이터 반환 
-    conn = [
-        { "id": 1, "start_time": "2025-01-01T12:00:00" },
-        { "id": 2, "start_time": "2025-01-02T13:30:00" },
-        { "id": 3, "start_time": "2025-01-03T15:45:00" }
-    ]
+        # ScanResult에서 ID, 시작 시간만 가져오기
+        cursor.execute("SELECT id, start_time FROM ScanResult ORDER BY start_time DESC")
+        rows = cursor.fetchall()
 
+        # 시간 ISO 형식 문자열로 변환
+        results = []
+        for row in rows:
+            results.append({
+                "id": row["id"],
+                "start_time": row["start_time"].isoformat()
+            })
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(results)
     
-    return jsonify(conn)
+    except Exception as e:
+        print(f"[ERROR] /api/snapshots: {e}")
+        return jsonify({"error": str(e)}), 500

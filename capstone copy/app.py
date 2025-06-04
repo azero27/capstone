@@ -11,7 +11,7 @@ from task_defs import celery, make_celery, schedule_scan, analyze_shadow_compone
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 import json
 import redis
-from datetime import datetime
+from datetime import datetime, timedelta
 import time 
 from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
@@ -476,6 +476,194 @@ def create_app():
             "task_id": task.id,
             "type": res_type
         }), 202
+
+    @app.route('/api/timeline_nodes', methods=['POST'])
+    def api_timeline_nodes():
+        data = request.json
+        start_date = data.get('start')
+        end_date = data.get('end')
+        
+        # Current time reference for recent data
+        current_time = datetime.now()
+        
+        # Generate timestamps for the last 24 hours with 1.5-hour intervals
+        timestamps = []
+        for i in range(15):
+            dt = current_time - timedelta(hours=i*1.5)
+            timestamps.append(dt.strftime("%Y-%m-%dT%H:%M:%S"))
+        
+        # Comprehensive recent sample data
+        nodes = [
+            # Most recent scans first
+            {
+                "date": timestamps[0],
+                "rsc": "EC2",
+                "dif": "i-0123456789abcdef0, unauthorized port 22 opened",
+                "type": "shadow"
+            },
+            {
+                "date": timestamps[1],
+                "rsc": "S3",
+                "dif": "data-backup-bucket, public access enabled",
+                "type": "shadow"
+            },
+            {
+                "date": timestamps[2],
+                "rsc": "IAM",
+                "dif": "admin-role, suspicious policy attached",
+                "type": "shadow"
+            },
+            {
+                "date": timestamps[3],
+                "rsc": "Lambda",
+                "dif": "data-processor-func, new function created",
+                "type": "added"
+            },
+            {
+                "date": timestamps[4],
+                "rsc": "RDS",
+                "dif": "prod-db-instance, public access detected",
+                "type": "shadow"
+            },
+            {
+                "date": timestamps[5],
+                "rsc": "SecurityGroup",
+                "dif": "sg-web-prod, all ports opened",
+                "type": "shadow"
+            },
+            {
+                "date": timestamps[6],
+                "rsc": "CloudFront",
+                "dif": "dist-prod, distribution modified",
+                "type": "added"
+            },
+            {
+                "date": timestamps[7],
+                "rsc": "EC2",
+                "dif": "i-9876543210fedcba, instance terminated",
+                "type": "removed"
+            },
+            {
+                "date": timestamps[8],
+                "rsc": "VPC",
+                "dif": "vpc-prod, new subnet added",
+                "type": "added"
+            },
+            {
+                "date": timestamps[9],
+                "rsc": "Route53",
+                "dif": "company.com, unauthorized DNS change",
+                "type": "shadow"
+            },
+            {
+                "date": timestamps[10],
+                "rsc": "S3",
+                "dif": "customer-data-bucket, versioning disabled",
+                "type": "removed"
+            },
+            {
+                "date": timestamps[11],
+                "rsc": "EC2",
+                "dif": "i-abcdef0123456789, unauthorized AMI",
+                "type": "shadow"
+            },
+            {
+                "date": timestamps[12],
+                "rsc": "Lambda",
+                "dif": "log-processor, function modified",
+                "type": "added"
+            },
+            {
+                "date": timestamps[13],
+                "rsc": "RDS",
+                "dif": "analytics-db, snapshot created",
+                "type": "added"
+            },
+            {
+                "date": timestamps[14],
+                "rsc": "SecurityGroup",
+                "dif": "sg-internal, rules modified",
+                "type": "shadow"
+            }
+        ]
+        
+        # If no date range is specified, return all 15 most recent scans
+        if not start_date and not end_date:
+            return jsonify(nodes)  # Already sorted by most recent first
+        else:
+            # Filter nodes based on date range if specified
+            filtered_nodes = [
+                node for node in nodes
+                if start_date <= node['date'] <= end_date
+            ]
+            return jsonify(filtered_nodes)
+
+    @app.route('/api/timeline_diff', methods=['POST'])
+    def api_timeline_diff():
+        data = request.json
+        start_date = data.get('start')
+        end_date = data.get('end')
+        
+        # Comprehensive sample diff data with detailed changes
+        diffs = [
+            {
+                "resource": "EC2",
+                "description": "Security vulnerabilities detected",
+                "detailedInfo": "Multiple unauthorized access points found",
+                "details": {
+                    "instance_id": "i-0123456789abcdef0",
+                    "changes": [
+                        {"type": "security_group", "old": "sg-prod-locked", "new": "sg-prod-open"},
+                        {"type": "port", "action": "opened", "number": 22, "source": "0.0.0.0/0"},
+                        {"type": "port", "action": "opened", "number": 3389, "source": "0.0.0.0/0"},
+                        {"type": "tag", "action": "modified", "key": "Environment", "old": "prod", "new": "dev"}
+                    ]
+                }
+            },
+            {
+                "resource": "S3",
+                "description": "Critical security misconfiguration",
+                "detailedInfo": "Public access enabled on sensitive data bucket",
+                "details": {
+                    "bucket_name": "data-backup-bucket",
+                    "changes": [
+                        {"type": "acl", "action": "modified", "old": "private", "new": "public-read"},
+                        {"type": "policy", "action": "added", "effect": "Allow", "principal": "*"},
+                        {"type": "versioning", "action": "disabled"},
+                        {"type": "encryption", "action": "disabled"}
+                    ]
+                }
+            },
+            {
+                "resource": "IAM",
+                "description": "Suspicious permission changes",
+                "detailedInfo": "Admin privileges granted to service role",
+                "details": {
+                    "role_name": "service-role",
+                    "changes": [
+                        {"type": "policy", "action": "attached", "name": "AdministratorAccess"},
+                        {"type": "trust", "action": "modified", "service": "*"},
+                        {"type": "user", "action": "added", "name": "unknown-user"}
+                    ]
+                }
+            },
+            {
+                "resource": "RDS",
+                "description": "Database security exposure",
+                "detailedInfo": "Public access enabled on production database",
+                "details": {
+                    "instance_id": "prod-db-instance",
+                    "changes": [
+                        {"type": "network", "action": "modified", "parameter": "publicly_accessible", "old": false, "new": true},
+                        {"type": "security_group", "action": "added", "group_id": "sg-db-public"},
+                        {"type": "parameter_group", "action": "modified", "old": "prod-pg", "new": "default"},
+                        {"type": "backup", "action": "disabled"}
+                    ]
+                }
+            }
+        ]
+        
+        return jsonify(diffs)
 
     return app
 

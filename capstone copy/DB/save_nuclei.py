@@ -1,7 +1,9 @@
 import mysql.connector
-from datetime import datetime
 
-def save_nuclei_result(parsed_result, scan_result_id, step):
+def save_nuclei_result(item, scan_result_id, step):
+    if not isinstance(item, dict):
+        raise ValueError(f"Expected dict, got {type(item)}")
+
     conn = mysql.connector.connect(
         host="localhost",
         user="DBA",
@@ -16,21 +18,21 @@ def save_nuclei_result(parsed_result, scan_result_id, step):
             vulnerability, risk_level, url, log, start_time, end_time
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
-        parsed_result["tool_id"],
+        item.get("tool_id", 6),
         scan_result_id,
         step,
-        parsed_result["target"],
-        parsed_result["command"],
-        parsed_result["success"],
-        parsed_result["vulnerability"],
-        parsed_result["risk_level"],
-        parsed_result["url"],
-        parsed_result["log"],
-        parsed_result["start_time"],
-        parsed_result["end_time"]
+        item.get("target"),
+        item.get("command"),
+        item.get("success"),
+        item.get("vulnerability"),
+        item.get("risk_level"),
+        item.get("url"),
+        item.get("log"),
+        item.get("start_time"),
+        item.get("end_time")
     ))
 
     conn.commit()
     cursor.close()
     conn.close()
-    print(f"[+] Nuclei 결과 저장 완료 (scan_result_id={scan_result_id}, step={step})")
+    print("[+] Nuclei 결과 1개 DB 저장 완료")

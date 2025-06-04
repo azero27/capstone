@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>Scanner UI</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
 
@@ -76,17 +78,17 @@
       <button onclick="applyViewFilter()">Apply Filter</button>
     </div>
 
-    <div class="timeline-diff-container">
+    <div class="content-container">
       <!-- Timeline View -->
-      <div class="timeline-view">
+      <div class="timeline-panel">
         <h2>Timeline View</h2>
         <div id="timelineList" class="timeline-list"></div>
       </div>
 
       <!-- Diff View -->
-      <div class="diff-view">
+      <div class="diff-panel">
         <h2>Diff View</h2>
-        <div id="diffList" class="diff-list"></div>
+        <canvas id="scatterChart"></canvas>
       </div>
     </div>
 
@@ -98,6 +100,9 @@
         <div id="popupContent"></div>
       </div>
     </div>
+
+    <!-- Resource Info Tooltip -->
+    <div id="resourceTooltip" class="resource-tooltip hidden"></div>
   </div>
 
   <script src="{{ url_for('static', filename='js/common.js') }}"></script>
