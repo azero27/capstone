@@ -11,25 +11,33 @@ def save_scan_setting(period: int):
     )
     cursor = conn.cursor()
 
-    # 이전 설정이 있다면 stop_time을 현재로 업데이트
+
+
+    #이전 설정이 있다면 stop_time을 현재로 업데이트
     cursor.execute("SELECT id FROM ScanSetting ORDER BY id DESC LIMIT 1")
     last_setting = cursor.fetchone()
     if last_setting:
         cursor.execute("""
             UPDATE ScanSetting SET stop_time = %s WHERE id = %s
         """, (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), last_setting[0]))
+    
 
     # 새 설정 삽입
     start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
     cursor.execute("""
         INSERT INTO ScanSetting (period, start_time, stop_time)
         VALUES (%s, %s, NULL)
     """, (period, start_time))
 
     conn.commit()
+    setting_id = cursor.lastrowid  # 방금 삽입한 row의 ID 가져오기
+
     cursor.close()
     conn.close()
-    print(f"[+] ScanSetting 저장 완료 (period={period})")
+
+    print(f"[+] ScanSetting 저장 완료 (id={setting_id}, period={period})")
+    return setting_id
 
 # 현재 사용 중인 주기 조회 (가장 최신 레코드의 id 기준)
 def latest_scan_setting() -> int:

@@ -173,7 +173,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
         if ip_address and domain_name:
             cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-            scan_setting_id = latest_scan_setting_id()
+            scan_setting_id = save_scan_setting(15)
             scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
     while queue:
