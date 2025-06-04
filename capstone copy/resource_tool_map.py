@@ -85,7 +85,7 @@ def classify_resource(value: str) -> str:
     if value.startswith("CNAME"):
         print(f"[SKIP] CNAME 자원 무시: {value}")
         return None
-    elif value.startswith("http") and "s3" and ".amazonaws.com" in value:
+    elif value.startswith("http") and "s3" in value and ".amazonaws.com" in value:
         return "s3"
     elif value.startswith("http"):
         return "url"
