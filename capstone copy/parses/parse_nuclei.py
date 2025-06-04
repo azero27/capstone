@@ -92,7 +92,7 @@ def parse_nuclei_output(stdout: str, meta: dict):
         "risk_level": risk,
         "url": "\n".join(cname_records),       # 문자열 (DB용)
         "url_list": cname_records,             # 리스트 (프론트용)
-        "log": extract_core_logs(clean_stdout),
+        "logs": clean_stdout,
         "start_time": meta.get("start_time"),
         "end_time": meta.get("end_time")
     }
