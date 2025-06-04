@@ -2,7 +2,8 @@
 
 import subprocess
 import datetime
-import mysql.connector 
+import mysql.connector
+from parses.parse_nuclei import parse_nuclei_output
 
 def run_nuclei(url: str, template_path: str):
     """
@@ -22,7 +23,7 @@ def run_nuclei(url: str, template_path: str):
 
     full_output = result.stdout.strip() + "\n" + result.stderr.strip()
     scan_success = "Templates loaded" in result.stderr or "Started scanning" in result.stderr
-    print(f"nuclei csv로 실행 성공?!")
+    print(f"nuclei csv로 실행 성공!")
     return {
         "tool": "nuclei",
         "target_url": url,
@@ -70,19 +71,34 @@ def run_nuclei_from_db(template_path: str) -> dict:
             conn.close()
 
     # Nuclei 실행
-    print(f"nuclei 스캔 시작")
+    print(f"[*] nuclei 스캔 시작 (총 {len(domains)}개 도메인)")
     results = []
-    for domain in domains:
-        res = run_nuclei(domain, template_path)
-        results.append(res)
 
+    for domain in domains:
+        raw = run_nuclei(domain, template_path)
+        stdout = raw.get("output", "")
+        start_time = raw.get("start_time")
+        end_time = raw.get("end_time")
+        command = raw.get("command")
+
+        meta = {
+            "target_url": domain,
+            "start_time": start_time,
+            "end_time": end_time,
+            "command": command
+        }
+
+        parsed = parse_nuclei_output(stdout, meta)
+        results.append(parsed)
+    flat_results = [item for sublist in results for item in sublist]
+
+    # 2. 반환
     return {
         "tool": "nuclei",
         "target_count": len(domains),
         "status": "success",
-        "results": results,  # 여기에 전체 list를 포함
-        "start_time": results[0]["start_time"] if results else None,
-        "end_time": results[-1]["end_time"] if results else None,
-        "output": "\n".join(r["output"] for r in results),  # 출력 모음
+        "results": flat_results,
+        "start_time": flat_results[0]["start_time"] if flat_results else None,
+        "end_time": flat_results[-1]["end_time"] if flat_results else None,
         "command": f"nuclei -u [multiple] -t {template_path}",
     }

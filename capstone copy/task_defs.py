@@ -15,6 +15,7 @@ from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
 from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_setting_id
+from DB.save_nuclei import save_nuclei_result
 from celery.schedules import crontab
 import redis
 import json 
@@ -119,6 +120,7 @@ def build_meta(tool_id, raw):
     elif tool_id == 6:  # nuclei
         return {
             "tool_id": tool_id,
+            "target_url": raw.get("target"),
             "output": raw.get("output"),
             "command": raw.get("command"),
             "target_url": raw.get("target_url"),
@@ -194,23 +196,18 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             raw = m["tool"](*input_values)
             meta = build_meta(tool_id, raw)
 
-            if tool_id == 6 and isinstance(raw.get("results"), list):
-                parsed = []
-                for r in raw["results"]:
-                    parser_args = [
-                        eval(arg, {}, {"raw": r, "meta": r})
-                        for arg in m.get("parser_args", [])
-                    ]
-                    parsed_result = m["parser"](*parser_args)
-                    parsed.extend(parsed_result if isinstance(parsed_result, list) else [parsed_result])
-            else:
-                parser_args = [
-                    raw if arg == "raw"
-                    else meta if arg == "meta"
-                    else meta.get(arg)
-                    for arg in m.get("parser_args", [])
-                ]
-                parsed = m["parser"](*parser_args)
+            parser_args = []
+            parsed = []
+
+            parser_args = [
+                eval(arg, {}, {"raw": raw, "meta": meta})
+                if isinstance(arg, str) and ("[" in arg or "." in arg)
+                else raw if arg == "raw"
+                else meta if arg == "meta"
+                else meta.get(arg)
+                for arg in m.get("parser_args", [])
+            ]
+            parsed = m["parser"](*parser_args)
 
             print(f"[SCAN] 실행 도구: {m['tool'].__name__}")
             print("==[DEBUG]==")
@@ -274,13 +271,11 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized)
 
                 elif tool_id == 6:
-                    from DB.save_nuclei import save_nuclei_result
                     for result in parsed:  # parsed는 list of dict
                         save_nuclei_result(result, scan_result_id, current_step)
 
                         normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
                         cache_result_for_dashboard(scan_result_id, tool_id, normalized)
-
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
             except Exception as e:
                 print(f"[ERROR] 도구 {tool_id} 결과 저장 실패: {e}")
@@ -323,6 +318,26 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                             visited.add((nxt_type, nxt_val, step + 1))
                             print("===========")
 
+    template_path = "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    
+
+    if tool_id == 6 and not is_initial and resource_type == "url":
+        # Redis에서 이미 nuclei 실행했는지 확인
+        nuclei_flag_key = f"nuclei_done:{scan_result_id}"
+        if not r.get(nuclei_flag_key):
+            print("[*] DB 기반 Nuclei 실행 시작")
+            from tools.nuclei import run_nuclei_from_db
+            all_result = run_nuclei_from_db(template_path)
+            results = all_result.get("results", [])
+            for result in results:
+                save_nuclei_result(result, scan_result_id, current_step)
+                normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
+                cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+            print("[+] DB 기반 Nuclei 저장 완료")
+            r.set(nuclei_flag_key, "1")  # 실행 완료 표시
+        else:
+            print(f"[!] nuclei already run for scan_result_id={scan_result_id}")
 
     print("[DEBUG] 전체 스캔 흐름 종료. 더 이상 실행할 도구 없음.")
 
