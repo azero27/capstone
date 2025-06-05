@@ -4,6 +4,49 @@ let shadowITChecked = false; // Shadow IT 검사를 이미 했는지
 
 document.addEventListener('DOMContentLoaded', scan_show);
 
+async function handleManualScan() {
+  // Get the current resource type from localStorage
+  const resourceType = localStorage.getItem('resource_type');
+  
+  if (!resourceType) {
+    alert('스캔 대상이 설정되지 않았습니다. 먼저 스캔 대상을 입력해주세요.');
+    window.location.href = '/';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/oneoff_scan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: resourceType
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('일회성 스캔 요청 실패');
+    }
+
+    const data = await response.json();
+    console.log('일회성 스캔 시작됨:', data);
+    
+    // Store the task ID for tracking
+    localStorage.setItem('scan_result_id', data.task_id);
+    
+    // Start monitoring the scan results
+    scan_show();
+    
+    alert('일회성 스캔이 시작되었습니다.');
+
+  } catch (error) {
+    console.error('일회성 스캔 요청 중 오류:', error);
+    alert('일회성 스캔 요청 중 오류가 발생했습니다: ' + error.message);
+  }
+}
+
+
 async function scan_show() {
   const scanId = localStorage.getItem('scan_result_id');
   shadowITState = { status: 'wait', found: [] };
