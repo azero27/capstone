@@ -1,7 +1,7 @@
 from tools.nmap import run_nmap_port_scan
 from tools.s3scanner import run_s3scanner
 from tools.amass import run_amass
-from tools.nuclei import run_nuclei_from_db
+from tools.nuclei import run_nuclei
 from tools.enumerate_iam import run_enumerate_iam
 from tools.cloud_enum import run_cloud_enum
 
@@ -48,11 +48,14 @@ RESOURCE_TOOL_MAP = {
     "url": [
         {
             "tool_id": 6,
-            "tool": run_nuclei_from_db,
-            "input_args": [{"template_path": "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"}],
+            "tool": lambda url: run_nuclei(
+                url,
+                template_path="/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"
+            ),
+            "input_args": [{"url": "value"}],  # ← 여기 추가
             "parser": parse_nuclei_output,
             "parser_args": ['raw["output"]', "raw"],
-            "next_resource": ["url_list"]  # dangling S3 CNAME 식별됨
+            "next_resource": ["url_list"]
         }
     ],
     "s3": [

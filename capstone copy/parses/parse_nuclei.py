@@ -83,7 +83,7 @@ def parse_nuclei_output(stdout: str, meta: dict):
     cname_records = extract_all_cname_records(clean_stdout, base_domain)
 
     # 5. 결과 구성
-    return {
+    return [{
         "tool_id": 6,
         "target": meta.get("target_url"),
         "command": meta.get("command"),
@@ -95,4 +95,4 @@ def parse_nuclei_output(stdout: str, meta: dict):
         "logs": clean_stdout,
         "start_time": meta.get("start_time"),
         "end_time": meta.get("end_time")
-    }
+    }]
