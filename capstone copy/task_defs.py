@@ -123,18 +123,25 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
         parsed = [parsed]
 
     normalized = []
+
+    logs = []
     for item in parsed:
         if not isinstance(item, dict):
             continue
-        normalized.append({
-            "step": step,
-            "tool": tool_name or f"Tool{tool_id}",
-            "tool_id": tool_id,
-            "status": item.get("status", "success"),  # 기본값
-            "summary": item.get("summary", "No summary available"),
-            "log": item.get("logs", "")
-        })
+        if "logs" in item:
+            logs.append(item["logs"])
+
+    normalized.append({
+        "step": step,
+        "tool": tool_name or f"Tool{tool_id}",
+        "tool_id": tool_id,
+        "status": parsed[0].get("status", "success"),
+        "summary": parsed[0].get("summary", f"{len(parsed)} results"),
+        "log": logs  # list로로
+    })
+
     return normalized
+
 
 
 @celery.task(name='tasks.schedule_scan')
@@ -187,7 +194,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
             # 도구 실행 전 → 상태 캐시 (in_progress)
             normalized = normalize_parsed_result(
-                {"status": "in_progress", "summary": f"{tool_name} running...", "log": ""},
+                {"status": "in_progress", "summary": f"{tool_name} running...", "logs": ""},
                 tool_id,
                 current_step,
                 tool_name
@@ -233,7 +240,15 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     from DB.save_nmap import save_nmap_result
                     # save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
 
-                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
+                    parsed_list = []
+                    if isinstance(parsed, tuple):
+                        for item in parsed:
+                            if isinstance(item, list):
+                                parsed_list.extend(item)
+                    else:
+                        parsed_list = parsed if isinstance(parsed, list) else [parsed]
+
+                    normalized = normalize_parsed_result(parsed_list, tool_id, current_step, tool_name)
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 2:
@@ -245,14 +260,29 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                         "buckets": buckets,
                         "files": files
                     }
-                    normalized = normalize_parsed_result(combined, tool_id, current_step, tool_name)
+
+                    combined_list = []
+                    if isinstance(buckets, list):
+                        combined_list.extend(buckets)
+                    if isinstance(files, list):
+                        combined_list.extend(files)
+
+                    normalized = normalize_parsed_result(combined_list, tool_id, current_step, tool_name)
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
                     # save_amass_result(parsed, scan_result_id, current_step)
 
-                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
+                    parsed_list = []
+                    if isinstance(parsed, tuple):
+                        for item in parsed:
+                            if isinstance(item, list):
+                                parsed_list.extend(item)
+                    else:
+                        parsed_list = parsed if isinstance(parsed, list) else [parsed]
+
+                    normalized = normalize_parsed_result(parsed_list, tool_id, current_step, tool_name)
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
 
@@ -267,14 +297,29 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                         "sensitive_files": sensitive_file_entries
                     }
 
-                    normalized = normalize_parsed_result(combined, tool_id, current_step, tool_name)
+                    combined_list = []
+                    if isinstance(entries, list):
+                        combined_list.extend(entries)
+                    if isinstance(sensitive_file_entries, list):
+                        combined_list.extend(sensitive_file_entries)
+
+                    normalized = normalize_parsed_result(combined_list, tool_id, current_step, tool_name)
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
+
 
                 elif tool_id == 5:
                     from DB.save_enumerate_iam import save_enumerate_iam_result
                     # save_enumerate_iam_result(parsed, scan_result_id, current_step)
                 
-                    normalized = normalize_parsed_result(parsed, tool_id, current_step, tool_name)
+                    parsed_list = []
+                    if isinstance(parsed, tuple):
+                        for item in parsed:
+                            if isinstance(item, list):
+                                parsed_list.extend(item)
+                    else:
+                        parsed_list = parsed if isinstance(parsed, list) else [parsed]
+
+                    normalized = normalize_parsed_result(parsed_list, tool_id, current_step, tool_name)
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 6:
@@ -282,7 +327,15 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     for result in parsed:  # parsed는 list of dict
                         # save_nuclei_result(result, scan_result_id, current_step)
 
-                        normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
+                        parsed_list = []
+                        if isinstance(parsed, tuple):
+                            for item in parsed:
+                                if isinstance(item, list):
+                                    parsed_list.extend(item)
+                        else:
+                            parsed_list = parsed if isinstance(parsed, list) else [parsed]
+
+                        normalized = normalize_parsed_result(parsed_list, tool_id, current_step, tool_name)
                         cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
