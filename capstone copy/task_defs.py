@@ -122,25 +122,43 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
     if not isinstance(parsed, list):
         parsed = [parsed]
 
-    normalized = []
-
     logs = []
-    for item in parsed:
-        if not isinstance(item, dict):
-            continue
-        if "logs" in item:
-            logs.append(item["logs"])
+    seen_lines = set()
 
-    normalized.append({
+    for item in parsed:
+        raw_log = item.get("logs", "")
+        
+        # cloud_enum은 쉼표로 split, 그 외는 줄바꿈 기준
+        if (tool_name == "cloud_enum" or tool_id == 6) and isinstance(raw_log, str):
+            lines = raw_log.split(",")  # 쉼표로 분리
+        elif isinstance(raw_log, list):
+            lines = raw_log
+        elif isinstance(raw_log, str):
+            lines = raw_log.strip().splitlines()
+        else:
+            lines = []
+
+        for line in lines:
+            line = line.strip()
+            if not line or line in seen_lines:
+                continue
+
+            # S3 버킷 구분: 버킷 시작 시 줄바꿈 삽입
+            if line.startswith("OPEN S3 BUCKET:") and logs:
+                logs.append("")  # 빈 줄 추가
+
+            logs.append(line)
+            seen_lines.add(line)
+
+    return [{
         "step": step,
         "tool": tool_name or f"Tool{tool_id}",
         "tool_id": tool_id,
         "status": parsed[0].get("status", "success"),
-        "summary": parsed[0].get("summary", f"{len(parsed)} results"),
-        "log": logs  # list로로
-    })
+        "summary": f"{len(logs)} unique log lines",
+        "log": "\n".join(logs)  # log는 문자열로 전달하여 <pre>에 줄바꿈 적용
+    }]
 
-    return normalized
 
 
 
