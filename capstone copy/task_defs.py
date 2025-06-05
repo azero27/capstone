@@ -123,14 +123,21 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
         parsed = [parsed]
 
     logs = []
-    seen_lines = set()
+
+    # 도구명 표시용 처리 (특수 이름 매핑 포함)
+    name_map = {
+        "run_nmap_port_scan": "nmap",
+        "run_nuclei_from_db": "nuclei"
+    }
+
+    raw_name = tool_name or f"Tool{tool_id}"
+    display_name = name_map.get(raw_name, raw_name.replace("run_", "", 1) if raw_name.startswith("run_") else raw_name)
 
     for item in parsed:
         raw_log = item.get("logs", "")
-        
-        # cloud_enum은 쉼표로 split, 그 외는 줄바꿈 기준
+
         if (tool_name == "cloud_enum" or tool_id == 6) and isinstance(raw_log, str):
-            lines = raw_log.split(",")  # 쉼표로 분리
+            lines = raw_log.split(",")  # cloud_enum은 쉼표로 구분
         elif isinstance(raw_log, list):
             lines = raw_log
         elif isinstance(raw_log, str):
@@ -140,25 +147,25 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
 
         for line in lines:
             line = line.strip()
-            if not line or line in seen_lines:
-                continue
-
-            # S3 버킷 구분: 버킷 시작 시 줄바꿈 삽입
-            if line.startswith("OPEN S3 BUCKET:") and logs:
-                logs.append("")  # 빈 줄 추가
-
-            logs.append(line)
-            seen_lines.add(line)
+            if line:  
+                logs.append(line)
+    
+    raw_status = parsed[0].get("status", "")
+    if raw_status == "in_progress":
+        status = "in_progress"
+        summary = "Running..."
+    else:
+        status = "success" if len(logs) > 0 else "fail"
+        summary = "Complete"
 
     return [{
         "step": step,
-        "tool": tool_name or f"Tool{tool_id}",
+        "tool": display_name,
         "tool_id": tool_id,
-        "status": parsed[0].get("status", "success"),
-        "summary": f"{len(logs)} unique log lines",
-        "log": "\n".join(logs)  # log는 문자열로 전달하여 <pre>에 줄바꿈 적용
+        "status": status,
+        "summary": summary,
+        "log": "\n".join(logs)
     }]
-
 
 
 
@@ -212,7 +219,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
             # 도구 실행 전 → 상태 캐시 (in_progress)
             normalized = normalize_parsed_result(
-                {"status": "in_progress", "summary": f"{tool_name} running...", "logs": ""},
+                {"status": "in_progress", "summary": f"Running...", "logs": ""},
                 tool_id,
                 current_step,
                 tool_name
