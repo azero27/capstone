@@ -119,25 +119,47 @@ def build_meta(tool_id, raw):
         return {"tool_id": tool_id, **raw}  # fallback
 
 def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
+    # 리스트가 아닐 경우 리스트로 변환
     if not isinstance(parsed, list):
         parsed = [parsed]
 
+    # 중복 로그 블록 제거용 세트
+    unique_log_blocks = set()
+    filtered_parsed = []
+
+    for item in parsed:
+        if isinstance(item, dict):
+            log_data = item.get("logs", "")
+            key = (item.get("tool_id"), log_data)
+        else:  # 문자열 등 다른 형식
+            log_data = str(item)
+            key = (tool_id, log_data)
+
+        if key not in unique_log_blocks:
+            unique_log_blocks.add(key)
+            filtered_parsed.append(item)
+
+    parsed = filtered_parsed
+
     logs = []
 
-    # 도구명 표시용 처리 (특수 이름 매핑 포함)
+    # 도구명 변환 처리
     name_map = {
         "run_nmap_port_scan": "nmap",
         "run_nuclei_from_db": "nuclei"
     }
-
     raw_name = tool_name or f"Tool{tool_id}"
     display_name = name_map.get(raw_name, raw_name.replace("run_", "", 1) if raw_name.startswith("run_") else raw_name)
 
     for item in parsed:
-        raw_log = item.get("logs", "")
+        if isinstance(item, dict):
+            raw_log = item.get("logs", "")
+        else:
+            raw_log = str(item)
 
-        if (tool_name == "cloud_enum" or tool_id == 6) and isinstance(raw_log, str):
-            lines = raw_log.split(",")  # cloud_enum은 쉼표로 구분
+        # 로그 라인 분리
+        if display_name == "cloud_enum" and isinstance(raw_log, str):
+            lines = raw_log.split(",")
         elif isinstance(raw_log, list):
             lines = raw_log
         elif isinstance(raw_log, str):
@@ -147,15 +169,24 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
 
         for line in lines:
             line = line.strip()
-            if line:  
-                logs.append(line)
-    
-    raw_status = parsed[0].get("status", "")
+            if not line:
+                continue
+            # cloud_enum 로그에서 S3 발견 시 구분용 줄바꿈
+            if display_name == "cloud_enum" and line.startswith("OPEN S3 BUCKET:") and logs:
+                logs.append("")
+            logs.append(line)
+
+    # 상태 및 요약 처리
+    if parsed and isinstance(parsed[0], dict):
+        raw_status = parsed[0].get("status", "")
+    else:
+        raw_status = ""
+
     if raw_status == "in_progress":
         status = "in_progress"
         summary = "Running..."
     else:
-        status = "success" if len(logs) > 0 else "fail"
+        status = "success" if logs else "fail"
         summary = "Complete"
 
     return [{
@@ -166,7 +197,6 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
         "summary": summary,
         "log": "\n".join(logs)
     }]
-
 
 
 @celery.task(name='tasks.schedule_scan')
