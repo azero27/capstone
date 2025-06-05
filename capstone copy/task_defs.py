@@ -221,12 +221,12 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             ip_address = r.get("scheduled_ip").decode() if r.get("scheduled_ip") else None
             domain_name = r.get("scheduled_domain").decode() if r.get("scheduled_domain") else None
 
-        # if ip_address and domain_name:
-        #    cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
-        #    scan_setting_id = latest_scan_setting_id()
-        #    scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+        if ip_address and domain_name:
+            cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
+            scan_setting_id = latest_scan_setting_id()
+            scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
-        scan_result_id = "mock-scan-id"
+        # scan_result_id = "mock-scan-id"
 
     while queue:
         resource_type, value, job_name, is_initial = queue.pop(0)
@@ -293,7 +293,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             try:
                 if tool_id == 1:
                     from DB.save_nmap import save_nmap_result
-                    # save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
+                    save_nmap_result(raw, value, tool_id, scan_result_id, current_step)
 
                     parsed_list = []
                     if isinstance(parsed, tuple):
@@ -309,7 +309,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 elif tool_id == 2:
                     from DB.save_cloud_enum import save_cloud_enum_result
                     buckets, files = parsed
-                    # save_cloud_enum_result(buckets, files, scan_result_id, current_step)
+                    save_cloud_enum_result(buckets, files, scan_result_id, current_step)
 
                     combined = {
                         "buckets": buckets,
@@ -327,7 +327,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
                 elif tool_id == 3:
                     from DB.save_amass import save_amass_result
-                    # save_amass_result(parsed, scan_result_id, current_step)
+                    save_amass_result(parsed, scan_result_id, current_step)
 
                     parsed_list = []
                     if isinstance(parsed, tuple):
@@ -343,7 +343,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
                 elif tool_id == 4:
                     from DB.save_s3scanner import save_s3scanner_result
-                    # save_s3scanner_result(parsed, scan_result_id, current_step)
+                    save_s3scanner_result(parsed, scan_result_id, current_step)
                 
                     entries, sensitive_file_entries = parsed
 
@@ -364,7 +364,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
                 elif tool_id == 5:
                     from DB.save_enumerate_iam import save_enumerate_iam_result
-                    # save_enumerate_iam_result(parsed, scan_result_id, current_step)
+                    save_enumerate_iam_result(parsed, scan_result_id, current_step)
                 
                     parsed_list = []
                     if isinstance(parsed, tuple):
@@ -380,7 +380,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                 elif tool_id == 6:
                     from DB.save_nuclei import save_nuclei_result
                     for result in parsed:  # parsed는 list of dict
-                        # save_nuclei_result(result, scan_result_id, current_step)
+                        save_nuclei_result(result, scan_result_id, current_step)
 
                         parsed_list = []
                         if isinstance(parsed, tuple):
@@ -423,12 +423,12 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 
                         nxt_type = classify_resource(nxt_val)
 
-                        # ✅ step 2까지만 허용
+                        # step 2까지만 허용
                         if step + 1 > 2:
                             print(f"[SKIP] step 2 초과: ({nxt_type}, {nxt_val}, step={step + 1})")
                             continue
 
-                        # ✅ (type, value, step) 기준으로 중복 방지
+                        # (type, value, step) 기준으로 중복 방지
                         if nxt_type and (nxt_type, nxt_val, step + 1) not in visited:
                             print(f"[DEBUG] 다음 자원 발견 → type: {nxt_type}, value: {nxt_val}, step: {step + 1}")
                             queue.append((nxt_type, nxt_val, step + 1, False))
@@ -491,8 +491,8 @@ def run_oneoff_full_scan(resource_type):
     resource_type: 'ip' | 'domain' | 'keyword'
     """
     # 1) 최신 스캔 설정 ID
-    # scan_setting_id = latest_scan_setting_id()
-    scan_setting_id = "mock-setting-id"
+    scan_setting_id = latest_scan_setting_id()
+    # scan_setting_id = "mock-setting-id"
 
     # 2) Redis에서 대상 값 가져오기
     raw = None

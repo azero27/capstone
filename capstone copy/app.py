@@ -61,11 +61,11 @@ def create_app():
     app.register_blueprint(info_bp)
     app.register_blueprint(scan_result_bp)
 
-    # try:
-    #    if latest_scan_setting_id() is None:
-    #        save_scan_setting(60)  # 기본 주기 60분
-    #except Exception as e:
-    #    print(f"[ERROR] 초기 ScanSetting 저장 실패: {e}")
+    try:
+        if latest_scan_setting_id() is None:
+            save_scan_setting(60)  # 기본 주기 60분
+    except Exception as e:
+        print(f"[ERROR] 초기 ScanSetting 저장 실패: {e}")
 
     r.set('has_user_input', 'false')  # 사용자 입력 없음으로 초기화
     r.set('scan_status', 'idle')      # 스캔 상태도 초기화
@@ -121,13 +121,13 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        #cloud_info 및 scan_result_id 미리 생성
-        # cloud_info_id = get_or_create_cloud_info(ip_address, domain)
-        # scan_setting_id = latest_scan_setting_id()
-        # scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
-        # r.set("latest_scan_result_id", scan_result_id)
-        scan_result_id = "mock-001"
+        cloud_info 및 scan_result_id 미리 생성
+        cloud_info_id = get_or_create_cloud_info(ip_address, domain)
+        scan_setting_id = latest_scan_setting_id()
+        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
         r.set("latest_scan_result_id", scan_result_id)
+        # scan_result_id = "mock-001"
+        # r.set("latest_scan_result_id", scan_result_id)
 
         clear_scan_cache(scan_result_id)
 
