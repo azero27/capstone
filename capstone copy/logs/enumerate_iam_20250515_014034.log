@@ -1,0 +1,76 @@
+2025-05-15 01:40:34,934 - 65687 - [INFO] Starting permission enumeration for access-key-id "AKIAVD2QDYF6AYOR4M3K"
+2025-05-15 01:41:08,164 - 65687 - [INFO] -- Account ARN : arn:aws:iam::351818465660:user/user-test
+2025-05-15 01:41:08,165 - 65687 - [INFO] -- Account Id  : 351818465660
+2025-05-15 01:41:08,165 - 65687 - [INFO] -- Account Path: user/user-test
+2025-05-15 01:41:08,366 - 65687 - [INFO] Attempting common-service describe / list brute force.
+2025-05-15 01:41:54,100 - 65687 - [INFO] -- ec2.describe_launch_templates() worked!
+2025-05-15 01:41:54,136 - 65687 - [INFO] -- ec2.describe_key_pairs() worked!
+2025-05-15 01:41:54,360 - 65687 - [INFO] -- ec2.describe_availability_zones() worked!
+2025-05-15 01:41:54,417 - 65687 - [INFO] -- ec2.describe_addresses() worked!
+2025-05-15 01:41:54,644 - 65687 - [INFO] -- ec2.describe_vpc_endpoint_service_configurations() worked!
+2025-05-15 01:41:54,675 - 65687 - [INFO] -- ec2.describe_instance_credit_specifications() worked!
+2025-05-15 01:41:54,916 - 65687 - [INFO] -- ec2.describe_vpn_connections() worked!
+2025-05-15 01:41:55,154 - 65687 - [INFO] -- ec2.describe_customer_gateways() worked!
+2025-05-15 01:41:55,408 - 65687 - [INFO] -- ec2.describe_placement_groups() worked!
+2025-05-15 01:41:55,652 - 65687 - [INFO] -- ec2.describe_transit_gateway_route_tables() worked!
+2025-05-15 01:41:55,886 - 65687 - [INFO] -- ec2.describe_flow_logs() worked!
+2025-05-15 01:41:56,170 - 65687 - [INFO] -- ec2.describe_dhcp_options() worked!
+2025-05-15 01:41:56,236 - 65687 - [INFO] -- ec2.describe_conversion_tasks() worked!
+2025-05-15 01:41:56,388 - 65687 - [INFO] -- ec2.describe_scheduled_instances() worked!
+2025-05-15 01:41:56,523 - 65687 - [INFO] -- ec2.describe_vpcs() worked!
+2025-05-15 01:41:56,650 - 65687 - [INFO] -- ec2.describe_transit_gateway_attachments() worked!
+2025-05-15 01:41:56,806 - 65687 - [INFO] -- ec2.describe_hosts() worked!
+2025-05-15 01:41:56,928 - 65687 - [INFO] -- ec2.describe_bundle_tasks() worked!
+2025-05-15 01:41:57,070 - 65687 - [INFO] -- ec2.describe_client_vpn_endpoints() worked!
+2025-05-15 01:41:57,192 - 65687 - [INFO] -- ec2.describe_vpc_classic_link() worked!
+2025-05-15 01:41:57,428 - 65687 - [INFO] -- ec2.describe_transit_gateway_vpc_attachments() worked!
+2025-05-15 01:41:57,499 - 65687 - [INFO] -- ec2.describe_network_interface_permissions() worked!
+2025-05-15 01:41:57,770 - 65687 - [INFO] -- ec2.describe_classic_link_instances() worked!
+2025-05-15 01:41:58,046 - 65687 - [INFO] -- ec2.describe_instances() worked!
+2025-05-15 01:41:58,221 - 65687 - [INFO] -- ec2.describe_prefix_lists() worked!
+2025-05-15 01:41:58,291 - 65687 - [INFO] -- ec2.describe_host_reservations() worked!
+2025-05-15 01:41:58,511 - 65687 - [INFO] -- ec2.describe_capacity_reservations() worked!
+2025-05-15 01:41:58,541 - 65687 - [INFO] -- ec2.describe_nat_gateways() worked!
+2025-05-15 01:41:58,751 - 65687 - [INFO] -- ec2.describe_spot_fleet_requests() worked!
+2025-05-15 01:41:58,929 - 65687 - [INFO] -- ec2.describe_account_attributes() worked!
+2025-05-15 01:41:59,029 - 65687 - [INFO] -- ec2.describe_network_acls() worked!
+2025-05-15 01:41:59,195 - 65687 - [INFO] -- ec2.describe_spot_price_history() worked!
+2025-05-15 01:41:59,355 - 65687 - [INFO] -- ec2.describe_reserved_instances() worked!
+2025-05-15 01:41:59,621 - 65687 - [INFO] -- ec2.describe_network_interfaces() worked!
+2025-05-15 01:42:01,694 - 65687 - [INFO] -- ec2.describe_reserved_instances_offerings() worked!
+2025-05-15 01:42:01,919 - 65687 - [INFO] -- ec2.describe_vpc_peering_connections() worked!
+2025-05-15 01:42:02,176 - 65687 - [INFO] -- ec2.describe_aggregate_id_format() worked!
+2025-05-15 01:42:02,418 - 65687 - [INFO] -- ec2.describe_vpn_gateways() worked!
+2025-05-15 01:42:02,669 - 65687 - [INFO] -- ec2.describe_volumes_modifications() worked!
+2025-05-15 01:42:04,459 - 65687 - [INFO] -- ec2.describe_tags() worked!
+2025-05-15 01:42:08,996 - 65687 - [INFO] -- ec2.describe_regions() worked!
+2025-05-15 01:42:09,275 - 65687 - [INFO] -- ec2.describe_volumes() worked!
+2025-05-15 01:42:09,562 - 65687 - [INFO] -- ec2.describe_reserved_instances_modifications() worked!
+2025-05-15 01:42:09,684 - 65687 - [INFO] -- ec2.describe_host_reservation_offerings() worked!
+2025-05-15 01:42:09,796 - 65687 - [INFO] -- ec2.describe_internet_gateways() worked!
+2025-05-15 01:42:09,926 - 65687 - [INFO] -- ec2.describe_spot_instance_requests() worked!
+2025-05-15 01:42:10,055 - 65687 - [INFO] -- ec2.describe_vpc_endpoints() worked!
+2025-05-15 01:42:10,320 - 65687 - [INFO] -- ec2.describe_volume_status() worked!
+2025-05-15 01:42:10,823 - 65687 - [INFO] -- ec2.describe_route_tables() worked!
+2025-05-15 01:42:10,891 - 65687 - [INFO] -- ec2.describe_public_ipv4_pools() worked!
+2025-05-15 01:42:11,049 - 65687 - [INFO] -- ec2.describe_vpc_endpoint_connection_notifications() worked!
+2025-05-15 01:42:11,126 - 65687 - [INFO] -- dynamodb.describe_endpoints() worked!
+2025-05-15 01:42:11,163 - 65687 - [INFO] -- ec2.describe_vpc_endpoint_connections() worked!
+2025-05-15 01:42:12,256 - 65687 - [INFO] -- ec2.describe_fpga_images() worked!
+2025-05-15 01:42:13,671 - 65687 - [INFO] -- ec2.describe_import_snapshot_tasks() worked!
+2025-05-15 01:42:13,922 - 65687 - [INFO] -- ec2.describe_principal_id_format() worked!
+2025-05-15 01:42:14,192 - 65687 - [INFO] -- ec2.describe_iam_instance_profile_associations() worked!
+2025-05-15 01:42:14,434 - 65687 - [INFO] -- ec2.describe_transit_gateways() worked!
+2025-05-15 01:42:28,981 - 65687 - [INFO] -- ec2.describe_instance_status() worked!
+2025-05-15 01:42:29,294 - 65687 - [INFO] -- ec2.describe_export_tasks() worked!
+2025-05-15 01:42:29,535 - 65687 - [INFO] -- ec2.describe_egress_only_internet_gateways() worked!
+2025-05-15 01:42:51,421 - 65687 - [INFO] -- ec2.describe_snapshots() worked!
+2025-05-15 01:42:51,792 - 65687 - [INFO] -- ec2.describe_security_groups() worked!
+2025-05-15 01:42:52,040 - 65687 - [INFO] -- ec2.describe_id_format() worked!
+2025-05-15 01:42:52,351 - 65687 - [INFO] -- ec2.describe_subnets() worked!
+2025-05-15 01:42:52,672 - 65687 - [INFO] -- ec2.describe_import_image_tasks() worked!
+2025-05-15 01:42:53,189 - 65687 - [INFO] -- s3.list_buckets() worked!
+2025-05-15 01:42:53,336 - 65687 - [INFO] -- ec2.describe_fleets() worked!
+2025-05-15 01:42:53,568 - 65687 - [INFO] -- ec2.describe_vpc_classic_link_dns_support() worked!
+ Let's Go: where
+call

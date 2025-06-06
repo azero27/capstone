@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanner UI</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="side-bar" id="sideBar">
+    <div class="side-nav-bg"></div>
+    <div class="text-medium-11-gray sidebar-text">
+      <div class="toggle-sidebar2" onclick="toggleSidebar()">Toggle sidebar</div>
+    </div>
+    <img class="icon-menu-toggle" src="icon/icon_menu_toggle.svg" id="toggleIcon" onclick="toggleSidebar()" />
+    
+    <div class="menu-inactive sidebar-text">
+      <div class="settings2">Settings</div>
+    </div>
+    <img class="icon-menu-settings" src="icon/icon_menu_settings.svg" />
+    
+    <div class="menu-inactive sidebar-text" onclick="movetoRe()"> 
+      <div class="email2">Report</div>
+    </div>
+    <img class="icon-menu-email" src="icon/icon_menu_email.svg" />
+    
+    <div class="menu-inactive sidebar-text" onclick="movetoAr()"> 
+      <div class="tasks2">Archiving</div>
+    </div>
+    <img class="icon-menu-tasks" src="icon/icon_menu_tasks.svg" />
+    
+    <div class="menu-active sidebar-text">
+      <div class="dashboard2">Scan</div>
+    </div>
+    <img class="icon-menu-dashboard-active" src="icon/icon_menu_dashboard-active.svg" />
+    
+    <div class="skyroute sidebar-text">Skyroute</div>
+    <div class="side-nav-devider"></div>
+    <img class="sr-1" src="icon/SR 1.svg" />
+
+    <div class="button-accent sidebar-text" onclick="handleStop()">
+      <div class="rectangle-3"></div>
+      <div class="accent-button">STOP</div>
+    </div>
+    <div class="button-secondary sidebar-text" onclick="handleExit()">
+      <div class="rectangle-32"></div>
+      <div class="secondary-button">EXIT</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Top Block: Visual Scan Tree -->
+    <div class="scan-visual-block">
+      <h2>SCAN</h2>
+      <div id="scanTree" class="scan-tree"></div>
+    </div>
+
+    <!-- Bottom Block: Scan Table + Log Viewer -->
+    <div class="scan-result-block">
+      <h2>SCAN RESULT</h2>
+      <div class="result-wrapper">
+        <!-- Table -->
+        <table class="scan-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Tool</th>
+              <th>Status</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="resultTableBody"></tbody>
+        </table>
+
+        <!-- Log Viewer -->
+        <div class="log-viewer" id="logViewer">
+          <h4>Scan Log</h4>
+          <pre id="logContent">(로그를 보려면 "View Log"를 클릭하세요)</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+<script src="common.js"></script>
+<script src="scan.js"></script>
+</body>
+</html>
+
