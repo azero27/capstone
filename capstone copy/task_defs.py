@@ -520,6 +520,7 @@ def analyze_shadow_components_mock(scan_result_ids):
     print(f"[SHADOW IT MOCK 분석 시작] ScanResult ID 목록: {scan_result_ids}")
 
     # ========== MOCK 1. nuclei + 사용자 소유 버킷 ==========
+    """
     parsed_nuclei_results = [
         {"target": "cdn.skyroute.com", "url_list": ["CNAME\tbucket1.s3.amazonaws.com"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
         {"target": "img.skyroute.com", "url_list": ["CNAME\tmy-owned-bucket.s3.amazonaws.com"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
@@ -533,17 +534,18 @@ def analyze_shadow_components_mock(scan_result_ids):
     print(json.dumps(nuclei_result, indent=2, ensure_ascii=False))
 
     cache_shadow_component(scan_result_ids, "nuclei", nuclei_result)
+    """
 
     # ========== MOCK 2. Nmap 결과 및 허용 포트 ==========
 
     nmap_result = analyze_shadow_network()
-    cache_shadow_component(scan_result_ids, "nmap", nmap_result)
+    #cache_shadow_component(scan_result_ids, "nmap", nmap_result)
 
     # ========== MOCK 3. S3scanner + 공개정책 ==========
 
     print("\n===== 3. show_violating_buckets_verbose() 결과 =====")
     s3_result = analyze_shadow_resources()
-<<<<<<< HEAD
+
     #cache_shadow_component(scan_result_ids, "s3", s3_result)
 
     conn = mysql.connector.connect(
@@ -559,9 +561,8 @@ def analyze_shadow_components_mock(scan_result_ids):
     latest_result_id = cursor.fetchone()["latest_id"]
 
     save_shadow_diff(latest_result_id)
-=======
-    cache_shadow_component(scan_result_ids, "s3", s3_result)
->>>>>>> 283c91fb598c6bacda948678bb327c5cbb736126
+
+
 
 
 @celery.task(name="tasks.dummy_task")
