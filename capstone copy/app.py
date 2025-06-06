@@ -21,6 +21,7 @@ from api.snapshot.snapshotList import archiving_bp
 from api.snapshot.infoView import info_bp
 from api.snapshot.scan_result_api import scan_result_bp
 from api.archive_timeline import timeline_bp
+from api.shadow_it import shadowit_bp
 from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 from flask_cors import CORS
 from waitress import serve
@@ -62,6 +63,7 @@ def create_app():
     app.register_blueprint(info_bp)
     app.register_blueprint(scan_result_bp)
     app.register_blueprint(timeline_bp)
+    app.register_blueprint(shadowit_bp)
 
     try:
         if latest_scan_setting_id() is None:
@@ -338,6 +340,7 @@ def create_app():
 
         return jsonify({
             'scan_status': scan_status,
+            'scan_result_id': scan_result_id,
             'last_scan_time': last_scan,
             'seconds_remaining': seconds_remaining,
             'tools': tool_results,

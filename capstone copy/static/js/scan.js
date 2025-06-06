@@ -2,6 +2,7 @@ let results = []; // 실제 scan 결과 배열
 let shadowITState = { status: 'wait', found: [] }; // Shadow IT 상태
 let shadowITChecked = false; // Shadow IT 검사를 이미 했는지
 let lastUpdateTimestamp = 0; // 마지막 업데이트 시간 추적
+let pollingIntervalId = null;
 
 document.addEventListener('DOMContentLoaded', scan_show);
 
@@ -48,19 +49,30 @@ async function handleManualScan() {
 }
 
 async function scan_show() {
-  const scanId = localStorage.getItem('scan_result_id');
+  // 먼저 status API에서 최신 상태와 scan_result_id를 가져옵니다
+  const res = await fetch('/status');  // ✅ fetch 추가
+  const statusData = await res.json(); // ✅ 이제 에러 안 남
+
+  const scanId = statusData.scan_result_id; // ✅ 최신 scan_result_id 가져오기
+  localStorage.setItem('scan_result_id', scanId);
+
   shadowITState = { status: 'wait', found: [] };
-  shadowITChecked = false;
   lastUpdateTimestamp = 0;
 
-  // 2초마다 스캔 결과 & Shadow IT 상태 관리
-  setInterval(async () => {
+  if (pollingIntervalId !== null) return;
+
+  pollingIntervalId = setInterval(async () => {
     const updated = await updateScanResults(scanId);
-    
-    // 결과가 업데이트된 경우에만 UI 갱신
+
     if (updated) {
       renderScanTree(results);
       renderResultTable(results);
+    }
+
+    if (isAllScanFinished(results) && !shadowITChecked) {
+      shadowITChecked = true;
+      await updateShadowITState(scanId);
+      renderScanTree(results);
     }
   }, 2000);
 }
