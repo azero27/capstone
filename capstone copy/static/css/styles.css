@@ -10,6 +10,7 @@ body {
   position: relative;
   margin-left: 256px;
   padding: 20px;
+  background: #F5F6F8;
   transition: margin-left 0.3s ease;
 }
 
@@ -396,111 +397,115 @@ pre {
 }
 
 .filter-bar {
-  margin-bottom: 20px;
-  padding: 15px;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  padding: 20px;
+  background: #ffffff;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
-.filter-bar input[type="datetime-local"] {
-  padding: 8px;
-  border: 1px solid #C2CFE0;
-  border-radius: 4px;
-}
-
-.filter-bar button {
-  padding: 8px 15px;
-  background: #109CF1;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.timeline-diff-container {
+.content-container {
   display: flex;
   gap: 20px;
+  height: calc(100vh - 120px);
+  flex-direction: row;
 }
 
 .timeline-panel {
   width: 25%;
+  height: 480px; 
   background: #ffffff;
   border-radius: 8px;
   padding: 20px;
-  border-radius: 6px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow-y: auto;
+}
+
+.diff-panel {
+  width: 75%;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow-y: auto;
 }
 
 .timeline-list {
   position: relative;
-  padding: 20px 0;
+  margin-top: 20px;
 }
 
 .timeline-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
   position: relative;
+  padding-left: 30px;
+  margin-bottom: 30px;
+  background: #ffffff;
 }
 
 .timeline-dot {
-  width: 12px;
-  height: 12px;
-  background: #109CF1;
+  position: absolute;
+  left: 0;
+  top: 0px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
   border-radius: 50%;
-  margin-right: 15px;
+  background-color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.timeline-dot:hover {
-  transform: scale(1.2);
+  z-index: 2;
 }
 
 .timeline-dot.selected {
-  background: #F7685B;
-  box-shadow: 0 0 0 4px rgba(247, 104, 91, 0.2);
+  background-color: #109CF1;
+  border-color: #109CF1;
 }
 
 .timeline-line {
   position: absolute;
-  left: 5px;
-  top: 12px;
+  left: 8px;
+  top: 18px;
   width: 2px;
-  height: calc(100% + 15px);
-  background: #C2CFE0;
+  height: calc(100% + 12px);
+  background-color: #ccc;
+  z-index: 1;
 }
 
-.diff-entry {
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #EBEFF2;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.diff-entry:hover {
-  background-color: #F5F6F8;
-}
-
-.diff-entry span.resource {
+h2 {
   color: #109CF1;
-  text-decoration: underline;
-  cursor: pointer;
+  font-size: 18px;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
 }
 
+#scatterChart {
+  width: 100%;
+  height: calc(100% - 60px) !important;
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.timeline-text {
+  font-size: 14px;
+  color: #334D6E;
+  padding: 8px;
+  border-radius: 4px;
+  background: #f8f9fa;
+  margin-top: 4px;
+}
+
+/* Popup and tooltip styles */
 .popup {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -508,14 +513,23 @@ pre {
 }
 
 .popup-content {
-  background: white;
+  background: #fff;
   padding: 20px;
-  border-radius: 6px;
-  width: 80%;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
-  position: relative;
+  width: 90%;
+}
+
+.resource-tooltip {
+  position: absolute;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 .hidden {
@@ -523,12 +537,36 @@ pre {
 }
 
 .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 24px;
+  float: right;
   cursor: pointer;
-  color: #90A0B7;
+  font-size: 18px;
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+/* Filter inputs styling */
+.filter-bar input[type="datetime-local"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.filter-bar button {
+  padding: 8px 16px;
+  background: #109CF1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.filter-bar button:hover {
+  background: #0d8ad9;
 }
 
 .settings-page {
