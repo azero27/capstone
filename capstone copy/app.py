@@ -105,13 +105,13 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        #cloud_info 및 scan_result_id 미리 생성
+        # cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = latest_scan_setting_id()
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
         r.set("latest_scan_result_id", scan_result_id)
-        # scan_result_id = "mock-001"
-        # r.set("latest_scan_result_id", scan_result_id)
+
+        clear_scan_cache(scan_result_id)
 
         r.set("scheduled_ip", ip_address)
         r.set("scheduled_domain", domain)
@@ -121,7 +121,6 @@ def create_app():
         r.set('last_scan_time', time.time())       # datetime.now().timestamp()도 가능
         r.set('has_user_input', 'true')
 
-        # scan_setting_id = "mock-setting-id"
         # 병렬 스캔 태스크 (Signature 형태로)
         scan_tasks = [
             schedule_scan.s('ip', ip_address, scan_setting_id, 1, scan_result_id),
@@ -235,24 +234,56 @@ def create_app():
 
         tool_results = {}
         shadow_results = {}
+        latest_update_time = 0
 
         if scan_result_id:
-            print(f"✅ [STATUS] scan_result_id: {scan_result_id}")  # ✅
+            print(f"✅ [STATUS] scan_result_id: {scan_result_id}")
+            
             # 도구 결과 수집
             for tool_id in range(1, 7):  # 1~6번 도구
                 key = f"scan_result:{scan_result_id}:tool:{tool_id}"
+                last_update_key = f"{key}:last_update"
+                
+                # 마지막 업데이트 시간 확인
+                last_update = r.get(last_update_key)
+                if last_update:
+                    last_update = float(last_update.decode())
+                    latest_update_time = max(latest_update_time, last_update)
+                
                 val = r.get(key)
                 if val:
-                    print(f"✅ [TOOL CACHE FOUND] key={key}, value={val[:200]}...")
-                    tool_results[str(tool_id)] = json.loads(val)
+                    try:
+                        results = json.loads(val)
+                        if not isinstance(results, list):
+                            results = [results]
+                        
+                        # 타임스탬프 추가
+                        for result in results:
+                            if isinstance(result, dict):
+                                result['timestamp'] = latest_update_time
+                        
+                        tool_results[str(tool_id)] = results
+                        print(f"✅ [TOOL CACHE] key={key}, last_update={last_update}")
+                    except json.JSONDecodeError:
+                        print(f"❌ [ERROR] Invalid JSON in Redis for key: {key}")
+                        continue
 
             # Shadow 분석 결과 수집
             for part in ["nmap", "nuclei", "s3"]:
                 key = f"shadow_component:{scan_result_id}:{part}"
                 val = r.get(key)
                 if val:
-                    print(f"✅ [TOOL CACHE FOUND] key={key}, value={val[:200]}...")  # ✅ value 일부만 출력
-                    shadow_results[part] = json.loads(val)
+                    try:
+                        shadow_results[part] = json.loads(val)
+                        print(f"✅ [SHADOW CACHE] key={key}")
+                    except json.JSONDecodeError:
+                        print(f"❌ [ERROR] Invalid JSON in Redis for key: {key}")
+                        continue
+
+        # 결과 정리 및 반환
+        flattened_results = []
+        for tool_id in tool_results:
+            flattened_results.extend(tool_results[tool_id])
 
         return jsonify({
             'scan_status': scan_status,
@@ -260,7 +291,7 @@ def create_app():
             'seconds_remaining': seconds_remaining,
             'tools': tool_results,
             'shadow': shadow_results,
-            'results': [item for tool_id in tool_results for item in tool_results[tool_id]]
+            'results': flattened_results
         })
 
     @app.route('/test-scan')

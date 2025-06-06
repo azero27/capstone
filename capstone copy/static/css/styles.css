@@ -426,9 +426,10 @@ pre {
   gap: 20px;
 }
 
-.timeline-view, .diff-view {
-  flex: 1;
-  background: white;
+.timeline-panel {
+  width: 25%;
+  background: #ffffff;
+  border-radius: 8px;
   padding: 20px;
   border-radius: 6px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);

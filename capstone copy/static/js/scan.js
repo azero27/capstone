@@ -1,6 +1,7 @@
 let results = []; // 실제 scan 결과 배열
 let shadowITState = { status: 'wait', found: [] }; // Shadow IT 상태
 let shadowITChecked = false; // Shadow IT 검사를 이미 했는지
+let lastUpdateTimestamp = 0; // 마지막 업데이트 시간 추적
 
 document.addEventListener('DOMContentLoaded', scan_show);
 
@@ -50,37 +51,82 @@ async function scan_show() {
   const scanId = localStorage.getItem('scan_result_id');
   shadowITState = { status: 'wait', found: [] };
   shadowITChecked = false;
+  lastUpdateTimestamp = 0;
 
   // 2초마다 스캔 결과 & Shadow IT 상태 관리
   setInterval(async () => {
-    await updateScanResults(scanId);
-
-    // 모든 스캔이 끝났는지 확인
-    if (!shadowITChecked && isAllScanFinished(results)) {
-      shadowITState.status = 'in_progress';
+    const updated = await updateScanResults(scanId);
+    
+    // 결과가 업데이트된 경우에만 UI 갱신
+    if (updated) {
       renderScanTree(results);
-
-      // Shadow IT 검사 단 한 번만 실행
-      await updateShadowITState(scanId);
-      shadowITChecked = true;
+      renderResultTable(results);
     }
-
-    renderScanTree(results);
-    renderResultTable(results);
   }, 2000);
 }
 
-// 스캔 결과 업데이트
 async function updateScanResults(scanId) {
-  if (!scanId) return;
+  if (!scanId) return false;
   try {
     const res = await fetch(`/status?scan_result_id=${scanId}`);
     if (res.ok) {
       const statusData = await res.json();
-      results = statusData.results || [];
+      
+      // 결과가 없으면 종료
+      if (!statusData.results || statusData.results.length === 0) {
+        return false;
+      }
+
+      // 타임스탬프 확인 (각 결과의 타임스탬프 중 가장 최신 값)
+      const latestTimestamp = Math.max(
+        ...statusData.results
+          .filter(r => r && typeof r === 'object')
+          .map(r => r.timestamp || 0)
+      );
+      
+      // 새로운 결과가 있는 경우에만 업데이트
+      if (latestTimestamp > lastUpdateTimestamp) {
+        const newResults = deduplicateResults(statusData.results);
+        
+        // 상태 업데이트
+        results = newResults;
+        lastUpdateTimestamp = latestTimestamp;
+        
+        // 스캔 상태 업데이트
+        updateScanStatus(statusData.scan_status);
+        
+        return true;
+      }
     }
   } catch (e) {
     console.warn("[스캔 결과 fetch 실패]", e);
+  }
+  return false;
+}
+
+// 중복 제거 함수 개선
+function deduplicateResults(newResults) {
+  const uniqueResults = {};
+  
+  // 타임스탬프 기준으로 최신 결과만 유지
+  for (const result of newResults) {
+    if (!result || typeof result !== 'object') continue;
+    
+    const key = `${result.tool_id}_${result.step}`;
+    if (!uniqueResults[key] || (result.timestamp || 0) > (uniqueResults[key].timestamp || 0)) {
+      uniqueResults[key] = result;
+    }
+  }
+  
+  return Object.values(uniqueResults);
+}
+
+// 스캔 상태 업데이트 함수
+function updateScanStatus(status) {
+  const statusElement = document.getElementById('scan-status');
+  if (statusElement) {
+    statusElement.textContent = status;
+    statusElement.className = `status ${status}`;
   }
 }
 

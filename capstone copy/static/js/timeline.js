@@ -5,7 +5,8 @@ let filteredTimelineData = [];
 let scatterChart = null;
 
 const RESOURCE_TYPES = [
-  'EC2', 'S3', 'PORT'
+  'EC2', 'S3', 'RDS', 'Lambda', 'VPC', 'SecurityGroup', 
+  'IAM', 'CloudFront', 'Route53', 'ECS'
 ];
 
 // ========== API Calls ==========
@@ -54,8 +55,8 @@ function updateChart(data) {
 
   const datasets = [
     {
-      label: 'Changed',
-      data: data.filter(d => d.type === 'changed'),
+      label: 'Shadow IT',
+      data: data.filter(d => d.type === 'shadow'),
       backgroundColor: '#000000',
       pointStyle: 'circle',
       radius: 8
@@ -74,53 +75,26 @@ function updateChart(data) {
       pointStyle: 'triangle',
       radius: 8
     }
-  ];
+  ].filter(dataset => dataset.data.length > 0);
 
   scatterChart.data.datasets = datasets;
+  
+  // Update y-axis labels based on available data
+  const uniqueResources = [...new Set(data.map(d => d.resource))];
+  scatterChart.options.scales.y.labels = uniqueResources;
 
-  scatterChart.options.scales = {
-    x: {
-      type: 'time',
-      time: {
-        tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
-        displayFormats: {
-          hour: 'HH:mm',
-          minute: 'HH:mm'
-        }
-      },
-      ticks: {
-        source: 'auto',
-        autoSkip: true,
-        maxRotation: 45,
-        minRotation: 0
-      },
-      adapters: {
-        date: {
-          zone: 'Asia/Seoul'
-        }
-      },
-      title: {
-        display: true,
-        text: 'Time',
-        font: { size: 14 }
-      }
-    },
-    y: {
-      type: 'category',
-      labels: ['PORT', 'S3', 'EC2'],
-      title: {
-        display: true,
-        text: 'Resource Type',
-        font: { size: 14 }
-      }
-    }
-  };
+  // Update time scale based on data range
+  if (data.length > 0) {
+    const dates = data.map(d => new Date(d.x));
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+    
+    scatterChart.options.scales.x.min = minDate;
+    scatterChart.options.scales.x.max = maxDate;
+  }
 
   scatterChart.update();
 }
-
-
-
 
 // ========== Timeline Functions ==========
 async function renderTimeline() {
@@ -176,41 +150,33 @@ async function renderTimeline() {
 
 function convertToChartData(timelineData) {
   return timelineData.flatMap(entry => {
-    let date;
-    try {
-      date = new Date(entry.date);
-      if (isNaN(date.getTime())) {
-        const [day, month, yearAndTime] = entry.date.split("-");
-        const [year, time] = yearAndTime.split(" ");
-        date = new Date(`${year}-${month}-${day}T${time}:00`);
-      }
-    } catch {
-      console.warn("Invalid date format:", entry.date);
-      return [];
+    const changes = [];
+    const date = new Date(entry.date);
+    
+    // Determine the type based on the diff text
+    let type = 'added';
+    if (entry.type === 'shadow' || 
+        entry.dif.includes('unauthorized') || 
+        entry.dif.includes('suspicious') || 
+        entry.dif.includes('public access')) {
+      type = 'shadow';
+    } else if (entry.dif.includes('removed') || 
+               entry.dif.includes('disabled') || 
+               entry.dif.includes('terminated')) {
+      type = 'removed';
     }
-
-    if (isNaN(date.getTime())) {
-      console.warn("Still invalid date:", entry.date);
-      return [];
-    }
-
-    const rsc = (entry.rsc || '').trim().toUpperCase();
-    const type = (entry.type || '').toLowerCase();
-
-    console.log("entry.date raw:", entry.date);
-    console.log("new Date(entry.date):", date);
-
-    return [{
+    
+    changes.push({
       x: date,
-      y: rsc,
+      y: entry.rsc,
       type: type,
-      resource: rsc,
+      resource: entry.rsc,
       description: entry.dif
-    }];
+    });
+    
+    return changes;
   });
 }
-
-
 
 // ========== Selection & Diff Functions ==========
 async function toggleSelectDot(date, dot) {
@@ -461,8 +427,6 @@ function initializeChart() {
           borderColor: '#ddd',
           borderWidth: 1,
           padding: 10,
-          intersect: false,  // ✅ EC2 hover 인식 향상
-          mode: 'nearest',   // ✅ 인접한 점에도 반응
           callbacks: {
             title: function(tooltipItems) {
               const item = tooltipItems[0];
@@ -471,18 +435,14 @@ function initializeChart() {
             },
             label: function(context) {
               const point = context.raw;
-              const typeLabel = 
-                point.type === 'changed' ? 'Changed' :
-                point.type === 'added' ? 'Addition' :
-                point.type === 'removed' ? 'Removed': 'Unknown' ;
-
-              const wrapText = (text, limit = 70) => {
-                const lines = [];
-                for (let i = 0; i < text.length; i += limit) {
-                  lines.push(text.slice(i, i + limit));
-                }
-                return lines;
-              };
+              const typeLabel = point.type === 'shadow' ? 'Shadow IT' : 
+                              point.type === 'added' ? 'Addition' : 
+                              'Removal';
+              return [
+                `Type: ${typeLabel}`,
+                `Resource: ${point.resource}`,
+                `Description: ${point.description}`
+              ];
             }
           }
         },

@@ -45,13 +45,13 @@ def get_scan_result(scan_id):
                     for r in rows
                     if r.get("port_status") == "open" and r.get("port_number") is not None
                 ]
-                summary = ", ".join(open_ports) + " open" if open_ports else "No open port"
+                summary = ", ".join(open_ports) + " open" if open_ports else "No open ports"
             elif tool_name == "Amass":
                 count = sum(1 for r in rows if r.get("success") == 1)
                 summary = f"{count} subdomains found" if count else "No subdomains"
             elif tool_name == "Nuclei":
                 vulns = [r for r in rows if r.get("success") == 1]
-                summary = f"{len(vulns)} CNAME records found" if vulns else "No CNAME record"
+                summary = f"{len(vulns)} vulnerabilities" if vulns else "No vulnerabilities"
                 log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
             elif tool_name == "CloudEnum":
                 count = sum(1 for r in rows if r.get("success") == 1)
