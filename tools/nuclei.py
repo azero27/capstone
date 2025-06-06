@@ -46,35 +46,29 @@ def run_nuclei_from_db(template_path: str) -> dict:
     Returns:
     - dict: 전체 실행 요약 및 결과 리스트 포함
     """
-    # try:
-    #    conn = mysql.connector.connect(
-    #        host="localhost",
-    #        user="DBA",
-    #        password="1234",
-    #        database="SKYROUTE",
-    #        port=3306
-    #    )
-    #    cursor = conn.cursor()
-    #    cursor.execute("SELECT domain FROM DomainList")
-    #    domains = [row[0] for row in cursor.fetchall()]
-    #except mysql.connector.Error as e:
-    #    print(f"[ERROR] 도메인 목록 조회 실패: {e}")
-    #    return {
-    #        "status": "error",
-    #        "message": str(e),
-    #        "results": []
-    #    }
-    #finally:
-    #    if cursor:
-    #        cursor.close()
-    #    if conn:
-    #        conn.close()
-
-    # [MOCK] 도메인 리스트를 하드코딩 (DB 대신)
-    domains = [
-        "http://dataset.sskyroute.come",
-        "http://yourdata.sskyroute.com"
-    ]
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="DBA",
+            password="1234",
+            database="SKYROUTE",
+            port=3306
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT domain FROM DomainList")
+        domains = [row[0] for row in cursor.fetchall()]
+    except mysql.connector.Error as e:
+        print(f"[ERROR] 도메인 목록 조회 실패: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "results": []
+        }
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
     # Nuclei 실행
     print(f"[*] nuclei 스캔 시작 (총 {len(domains)}개 도메인)")

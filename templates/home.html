@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanner UI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="side-bar" id="sideBar">
+    <div class="side-nav-bg"></div>
+    <div class="text-medium-11-gray sidebar-text">
+      <div class="toggle-sidebar2" onclick="toggleSidebar()">Toggle sidebar</div>
+    </div>
+    <img class="icon-menu-toggle" 
+      data-open-src="{{ url_for('static', filename='icon/icon_menu_toggle.svg') }}"
+      data-close-src="{{ url_for('static', filename='icon/icon_menu_toggle-active.svg') }}"
+      src="{{ url_for('static', filename='icon/icon_menu_toggle.svg') }}" id="toggleIcon" onclick="toggleSidebar()" />
+    
+    <div class="menu-inactive sidebar-text">
+      <div class="settings2">Settings</div>
+    </div>
+    <img class="icon-menu-settings" src="{{ url_for('static', filename='icon/icon_menu_settings.svg') }}" />
+    
+    <div class="menu-inactive sidebar-text">
+      <div class="email2">Report</div>
+    </div>
+    <img class="icon-menu-email" src="{{ url_for('static', filename='icon/icon_menu_email.svg') }}" />
+    
+    <div class="menu-inactive sidebar-text">
+      <div class="tasks2">Archiving</div>
+    </div>
+    <img class="icon-menu-tasks" src="{{ url_for('static', filename='icon/icon_menu_tasks.svg') }}" />
+    
+    <div class="menu-active sidebar-text">
+      <div class="dashboard2">Scan</div>
+    </div>
+    <img class="icon-menu-dashboard-active" src="{{ url_for('static', filename='icon/icon_menu_dashboard-active.svg') }}" />
+    
+    <div class="skyroute sidebar-text">Skyroute</div>
+    <div class="side-nav-devider"></div>
+    <img class="sr-1" src="{{ url_for('static', filename='icon/SR 1.svg') }}" />
+    
+    <div class="button-accent sidebar-text" onclick="handleManualScan()">
+      <div class="rectangle-33"></div>
+      <div class="top-button">SCAN</div>
+    </div>
+    <div class="button-accent sidebar-text" onclick="handleStop()">
+      <div class="rectangle-3"></div>
+      <div class="accent-button">STOP</div>
+    </div>
+    <div class="button-secondary sidebar-text" onclick="handleExit()">
+      <div class="rectangle-32"></div>
+      <div class="secondary-button">EXIT</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="system-description">
+      <h2>시스템 개요</h2>
+      <p>
+        본 시스템은 도메인 또는 IP 주소를 입력받아 자동으로 보안 스캔을 수행하고, 
+        그 결과를 시각화하여 사용자에게 제공합니다. 사용자는 스캔 결과를 저장하거나,
+        타임라인 및 리포트 형태로 아카이빙할 수 있으며, 필요 시 스캔을 중단하거나
+        시스템을 종료할 수 있습니다.
+      </p>
+      <ul>
+        <li>정기 스캔: 설정한 주기에 따라 자동으로 클라우드 자산을 주기적으로 스캔합니다.</li>
+        <li>수동 스캔: 사용자가 원하는 시점에 직접 IP 또는 도메인을 입력하여 즉시 스캔을 수행합니다.</li>
+        <li>Scan 뷰: 스캔 현황과 결과를 대시보드 형태로 시각화하여 실시간 상태를 확인할 수 있습니다.</li>
+        <li>Archiving 뷰: 스캔 결과를 타임라인, 스냅샷, 리포트 형태로 저장하여 시간 흐름에 따른 변화를 추적합니다.</li>
+        <li>Reporting 뷰: 자동 생성된 보안 리포트를 조회하고 다운로드할 수 있어 관리 및 대응에 활용 가능합니다.</li>
+      </ul>
+    </div>
+
+    <!-- 입력 폼 영역 -->
+    <div class="input-section">
+      <div class="radio-group">
+        <label><input type="radio" name="targetType" value="domain" checked onchange="toggleTargetInput()"> 도메인</label>
+        <label><input type="radio" name="targetType" value="ip" onchange="toggleTargetInput()"> IP</label>
+      </div>
+
+      <div class="target-input">
+        <input id="domainInput" class="input-box" type="text" placeholder="도메인을 입력하세요" />
+        <input id="ipInput" class="input-box" type="text" placeholder="IP를 입력하세요" style="display: none;" />
+      </div>
+
+<!-- 파일 업로드 영역 (3개 파일 각각) -->
+<div class="upload-section">
+  <label class="label-title">리소스 목록 파일 업로드</label>
+  <div class="file-upload-row">
+    <label>Domain 파일 (domain.csv):
+      <input type="file" id="domainFileInput" accept=".csv" />
+    </label>
+    <label>Port 파일 (port.csv):
+      <input type="file" id="portFileInput" accept=".csv" />
+    </label>
+    <label>S3 파일 (s3.csv):
+      <input type="file" id="s3FileInput" accept=".csv" />
+    </label>
+  </div>
+  <p class="upload-note">※ 각 항목에 해당하는 CSV 파일을 업로드하세요.<br>
+     파일명은 각각 <b>domain.csv</b>, <b>port.csv</b>, <b>s3.csv</b>로 업로드 바랍니다.</p>
+</div>
+
+
+
+      <button class="scan-button" onclick="handleScan()">SCAN</button>
+    </div>
+
+  </div>
+
+  <!-- JS 파일 -->
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+
+  <script>
+    function toggleTargetInput() {
+      const selected = document.querySelector('input[name="targetType"]:checked').value;
+      document.getElementById('domainInput').style.display = selected === 'domain' ? 'block' : 'none';
+      document.getElementById('ipInput').style.display = selected === 'ip' ? 'block' : 'none';
+    }
+  </script>
+
+</body>
+</html>

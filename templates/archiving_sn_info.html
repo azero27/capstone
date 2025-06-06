@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scan Result View</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="side-bar" id="sideBar">
+    <div class="side-nav-bg"></div>
+    <div class="text-medium-11-gray sidebar-text">
+      <div class="toggle-sidebar2" onclick="toggleSidebar()">Toggle sidebar</div>
+    </div>
+    <img class="icon-menu-toggle"
+         src="{{ url_for('static', filename='icon/icon_menu_toggle.svg') }}"
+         id="toggleIcon" onclick="toggleSidebar()" />
+
+    <div class="menu-inactive sidebar-text" onclick="movetoSet()">
+      <div class="settings2">Settings</div>
+    </div>
+    <img class="icon-menu-settings" src="{{ url_for('static', filename='icon/icon_menu_settings.svg') }}" />
+
+    <div class="menu-inactive sidebar-text" onclick="movetoRe()"> 
+      <div class="email2">Report</div>
+    </div>
+    <img class="icon-menu-email" src="{{ url_for('static', filename='icon/icon_menu_email.svg') }}" />
+
+    <div class="menu-active sidebar-text" onclick="toggleArchivingSubmenu()">
+      <div class="tasks2">Archiving</div>
+    </div>
+    <img class="icon-menu-tasks" src="{{ url_for('static', filename='icon/icon_menu_tasks-active.svg') }}" />
+
+    <!-- Archiving Submenu -->
+    <div id="archivingSubmenu" class="archivingSubmenu" style="display: none;">
+      <div class="submenu-item">
+        <div class="circle yellow"></div>
+        <div class="submenu-label" onclick="movetoAr()">Timeline</div>
+      </div>
+      <div class="submenu-item">
+        <div class="circle green"></div>
+        <div class="submenu-label current">Snapshot</div>
+      </div>
+    </div>
+
+    <div class="menu-inactive sidebar-text" onclick="movetoSc()">
+      <div class="dashboard2">Scan</div>
+    </div>
+    <img class="icon-menu-dashboard-active" src="{{ url_for('static', filename='icon/icon_menu_dashboard.svg') }}" />
+
+    <div class="skyroute sidebar-text">Skyroute</div>
+    <div class="side-nav-devider"></div>
+    <img class="sr-1" src="{{ url_for('static', filename='icon/SR 1.svg') }}" />
+
+    <div class="button-accent sidebar-text" onclick="handleManualScan()">
+      <div class="rectangle-33"></div>
+      <div class="top-button">SCAN</div>
+    </div>
+    <div class="button-accent sidebar-text" onclick="handleStop()">
+      <div class="rectangle-3"></div>
+      <div class="accent-button">STOP</div>
+    </div>
+    <div class="button-secondary sidebar-text" onclick="handleExit()">
+      <div class="rectangle-32"></div>
+      <div class="secondary-button">EXIT</div>
+    </div>
+  </div>
+
+  <!-- 메인 컨텐츠 -->
+  <div class="resource-info-container">
+    <div class="resource-info-layout">
+
+      <!-- 좌측: 리소스 필터 -->
+      <div class="resource-info-filter-box">
+        <h3>Select Resource</h3>
+        <!-- [NEW] Shadow IT 전용 체크박스 -->
+        <div style="margin-bottom:12px;">
+          <label>
+            <input type="checkbox" id="shadowOnlyCheckbox" onchange="filterResourceList()">
+            Shadow IT 만 표시
+          </label>
+        </div>
+        <div id="resourceCheckboxes"></div>
+      </div>
+
+      <!-- 우측: 리소스 디스플레이 -->
+      <div class="resource-info-display-box">
+        <h3>Shadow IT</h3>
+        <div id="selectedResources">아직 선택된 리소스가 없습니다.</div>
+        <hr />
+        <div id="resourceDetails">리소스 세부 정보 표시 영역</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/archiving.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/archiving_sn_info.js') }}"></script>
+</body>
+</html>
