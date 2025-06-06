@@ -530,22 +530,70 @@ def run_oneoff_full_scan(resource_type):
     """
     # 1) 최신 스캔 설정 ID
     scan_setting_id = latest_scan_setting_id()
-    # scan_setting_id = "mock-setting-id"
 
     # 2) Redis에서 대상 값 가져오기
-    raw = None
-    if resource_type == 'ip':
-        raw = r.get('scheduled_ip')
-    elif resource_type == 'domain':
-        raw = r.get('scheduled_domain')
-    elif resource_type == 'keyword':
-        raw = r.get('scheduled_keyword')
-    if not raw:
-        # 없으면 바로 리턴
+    ip = r.get('scheduled_ip')
+    domain = r.get('scheduled_domain')
+    keyword = None
+
+    # 키워드가 없으면 domain.csv에서 추출
+    if not r.get('scheduled_keyword'):
+        from shadow_it_analysis.extract_keyword import extract_keyword
+        try:
+            keyword = extract_keyword('csv_files/domain.csv')
+            if keyword:
+                r.set('scheduled_keyword', keyword)
+        except Exception as e:
+            print(f"[ERROR] Failed to extract keyword: {e}")
+    else:
+        keyword = r.get('scheduled_keyword').decode()
+
+    # 필수 값 체크
+    if resource_type == 'ip' and not ip:
+        print("[ERROR] IP scan requested but no IP address found")
+        return
+    elif resource_type == 'domain' and not domain:
+        print("[ERROR] Domain scan requested but no domain found")
+        return
+    elif resource_type == 'keyword' and not keyword:
+        print("[ERROR] Keyword scan requested but no keyword found")
         return
 
-    value = raw.decode()
+    # 3) 값 디코딩
+    value = None
+    if resource_type == 'ip':
+        value = ip.decode()
+    elif resource_type == 'domain':
+        value = domain.decode()
+    elif resource_type == 'keyword':
+        value = keyword
 
-    # 3) schedule_scan 태스크 한 번만 호출
-    # 기존의 주기 스캔 로직(schedule_scan)을 재사용
-    schedule_scan.apply_async(args=(resource_type, value, scan_setting_id))
+    # 4) Cloud Info 및 Scan Result ID 생성
+    ip_address = None
+    domain_name = None
+
+    if resource_type == "ip":
+        ip_address = value
+        domain_name = convert_ip_to_domain(value)
+    elif resource_type == "domain":
+        domain_name = value
+        ip_address = convert_domain_to_ip(value)
+    elif resource_type == "keyword":
+        ip_address = ip.decode() if ip else None
+        domain_name = domain.decode() if domain else None
+
+    if ip_address and domain_name:
+        cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
+        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+    else:
+        scan_result_id = None
+
+    # 5) schedule_scan 태스크 한 번만 호출
+    # 기존의 스캔 로직(schedule_scan)을 재사용하여 도구 체이닝 활용
+    schedule_scan.apply_async(args=(resource_type, value, scan_setting_id, 1, scan_result_id))
+
+    # 6) 일회성 모드로 설정 (주기적 실행 방지)
+    r.set('has_user_input', 'false')
+    print("[ONEOFF] 일회성 전체 스캔 태스크 등록 완료")
+
+    return scan_result_id
