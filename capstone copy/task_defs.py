@@ -510,7 +510,7 @@ def analyze_shadow_components_mock(scan_result_ids):
     )
     cursor = conn.cursor(dictionary=True)
 
-    # 1. 최신 ScanResult ID 가져오기
+    # 1. 최신 ScanResult ID 가져오기 
     cursor.execute("SELECT MAX(id) as latest_id FROM ScanResult")
     latest_result_id = cursor.fetchone()["latest_id"]
 
