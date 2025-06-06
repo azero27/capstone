@@ -1,6 +1,5 @@
 import mysql.connector
 import difflib
-import mysql.connector
 
 def save_nuclei_diff(scan_result_id):
     try:
