@@ -247,7 +247,6 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
         "log": "\n".join(logs)
     }]
 
-
 @celery.task(name='tasks.schedule_scan')
 def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=None):
     print(f"\n🚀 [SCHEDULE SCAN START] 주기적 스캔 시작됨")
