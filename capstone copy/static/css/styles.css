@@ -416,6 +416,7 @@ pre {
 
 .timeline-panel {
   width: 25%;
+  height: 480px; 
   background: #ffffff;
   border-radius: 8px;
   padding: 20px;

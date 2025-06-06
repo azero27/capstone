@@ -16,7 +16,7 @@ from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
 from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_setting_id
 from DB.save_nuclei import save_nuclei_result
-from DB.save_diff import save_nmap_diff, save_amass_diff, save_cloudenum_diff, save_nuclei_diff, save_s3scanner_diff
+from DB.save_diff import save_nmap_diff, save_amass_diff, save_cloudenum_diff, save_nuclei_diff, save_s3scanner_diff, save_shadow_diff
 from celery.schedules import crontab
 import redis
 import json 
@@ -501,6 +501,20 @@ def analyze_shadow_components_mock(scan_result_ids):
     print("\n===== 3. show_violating_buckets_verbose() 결과 =====")
     s3_result = analyze_shadow_resources()
     #cache_shadow_component(scan_result_ids, "s3", s3_result)
+
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="DBA",
+        password="1234",
+        database="SKYROUTE"
+    )
+    cursor = conn.cursor(dictionary=True)
+
+    # 1. 최신 ScanResult ID 가져오기
+    cursor.execute("SELECT MAX(id) as latest_id FROM ScanResult")
+    latest_result_id = cursor.fetchone()["latest_id"]
+
+    save_shadow_diff(latest_result_id)
 
 
 @celery.task(name="tasks.dummy_task")

@@ -20,6 +20,7 @@ from celery import chord
 from api.snapshot.snapshotList import archiving_bp
 from api.snapshot.infoView import info_bp
 from api.snapshot.scan_result_api import scan_result_bp
+from api.archive_timeline import timeline_bp
 from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 from flask_cors import CORS
 from waitress import serve
@@ -60,6 +61,7 @@ def create_app():
     app.register_blueprint(archiving_bp)
     app.register_blueprint(info_bp)
     app.register_blueprint(scan_result_bp)
+    app.register_blueprint(timeline_bp)
 
     try:
         if latest_scan_setting_id() is None:
@@ -357,6 +359,7 @@ def create_app():
     def archiving_sn_info(id):
         return render_template('archiving_sn_info.html', scan_id=id)
 
+    """
     @app.route('/api/snapshots', methods=['GET'])
     def api_snapshots():
         # 실제 구현 시 DB에서 전체 스냅샷(스캔) 목록을 조회
@@ -435,6 +438,7 @@ def create_app():
             { "date": "2025-05-05T16:00", "rsc": "server1", "dif": "SSH disabled" }
         ]
         return jsonify(timelineData)
+    """
 
     @app.route('/api/resources', methods=['GET'])
     def api_resources():
@@ -443,6 +447,7 @@ def create_app():
             "CloudFront", "ECS", "EBS", "Route53"
         ]
         return jsonify(resources)
+    
 
     @app.route('/api/generate_report', methods=['POST'])
     def api_generate_report():
