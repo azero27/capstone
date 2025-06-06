@@ -16,7 +16,7 @@ from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
 from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_setting_id
 from DB.save_nuclei import save_nuclei_result
-from DB.save_diff import save_nmap_diff, save_amass_diff, save_cloudenum_diff, save_nuclei_diff, save_s3scanner_diff
+from DB.save_diff import save_nmap_diff, save_amass_diff, save_cloudenum_diff, save_nuclei_diff, save_s3scanner_diff, save_shadow_diff
 from celery.schedules import crontab
 import redis
 import json 
