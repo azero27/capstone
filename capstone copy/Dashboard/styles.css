@@ -1,0 +1,395 @@
+body {
+  margin: 0;
+  background: #F5F6F8;
+  font-family: 'Poppins', sans-serif;
+}
+
+.container {
+  width: 1440px;
+  height: 100vh;
+  position: relative;
+  margin-left: 256px;
+  transition: margin-left 0.3s ease;
+}
+
+.input-box {
+  position: relative;
+  left: 74px;
+  top: 700px;
+  width: 777px;
+  height: 40px;
+  background: #F5F8FA;
+  border-radius: 4px;
+  padding-left: 48px;
+  font-size: 14px;
+  border: 1px solid #C2CFE0;
+}
+
+.scan-button {
+  position: absolute;
+  left: 1000px;
+  top: 700px;
+  width: 160px;
+  height: 42px;
+  background: #109CF1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Sidebar Styles */
+.side-bar {
+  width: 256px;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: white;
+  box-shadow: 6px 0px 18px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  transition: width 0.3s ease;
+}
+
+.side-nav-bg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.skyroute {
+  position: absolute;
+  top: 19px;
+  left: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: 'Open Sans', sans-serif;
+  color: #109CF1;
+}
+
+.side-nav-devider {
+  position: absolute;
+  width: 256px;
+  height: 1px;
+  top: 415px;
+  left: 0;
+  background: #EBEFF2;
+}
+
+.menu-inactive,
+.menu-active {
+  position: absolute;
+  font-size: 13px;
+  font-family: Poppins, sans-serif;
+  font-weight: 500;
+  color: #334D6E;
+  letter-spacing: 0.13px;
+}
+
+.menu-active {
+  color: #109CF1;
+}
+
+.settings2 { top: 440px; left: 58px; position: absolute; }
+.email2 { top: 149px; left: 61px; position: absolute; }
+.tasks2 { top: 109px; left: 61px; position: absolute; }
+.dashboard2 { top: 69px; left: 61px; position: absolute; }
+
+.icon-menu-settings,
+.icon-menu-email,
+.icon-menu-tasks,
+.icon-menu-dashboard-active,
+.icon-menu-toggle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+}
+
+.icon-menu-settings { top: 440px; left: 24px; }
+.icon-menu-email { top: 149px; left: 27px; }
+.icon-menu-tasks { top: 109px; left: 27px; }
+.icon-menu-dashboard-active { top: 69px; left: 26px; }
+.icon-menu-toggle { top: 95vh; left: 27px; width: 14px; height: 14px; cursor: pointer; }
+
+
+.text-medium-11-gray {
+  position: absolute;
+  top: 95%;
+  left: 55px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #90A0B7;
+}
+
+.sr-1 {
+  position: absolute;
+  top: 19px;
+  left: 19px;
+  width: 30px;
+  height: 30px;
+}
+
+.button-accent,
+.button-secondary {
+  width: 120px;
+  height: 30px;
+  position: absolute;
+  left: 68px;
+  cursor: pointer;
+}
+
+.button-accent {
+  top: 82%;
+}
+
+.rectangle-3 {
+  width: 100%;
+  height: 100%;
+  background: #F7685B;
+  border-radius: 4px;
+  box-shadow: 0px 4px 10px rgba(16, 156, 241, 0.24);
+}
+
+.accent-button {
+  position: absolute;
+  top: 5px;
+  left: -6px;
+  width: 132px;
+  text-align: center;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.button-secondary {
+  top: 88%;
+}
+
+.rectangle-32 {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  border: 1px solid #F7685B;
+}
+
+.secondary-button {
+  position: absolute;
+  top: 4px;
+  left: -10px;
+  width: 140px;
+  text-align: center;
+  color: #F7685B;
+  font-size: 13px;
+  font-weight: 600;
+}
+.system-description {
+  position: absolute;
+  top: 40px;
+  left: 74px;
+  width: 960px;
+  height: 560px;
+  background-color: #ffffff;
+  border: 1px solid #C2CFE0;
+  border-radius: 6px;
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 14px;
+  color: #334D6E;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.system-description h2 {
+  font-size: 18px;
+  color: #109CF1;
+  margin-bottom: 10px;
+}
+
+.system-description ul {
+  padding-left: 20px;
+  margin-top: 10px;
+}
+
+.system-description li {
+  margin-bottom: 6px;
+}
+
+.container {
+  margin-left: 256px;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+.scan-visual-block {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+#scanTree {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.scan-step-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 180px;
+}
+
+.scan-node {
+  margin-bottom: 20px;
+}
+
+.scan-row {
+  display: flex;
+  align-items: center;
+}
+
+.scan-dot {
+  width: 16px;
+  height: 16px;
+  background-color: green;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.scan-dot.failed-dot {
+  background-color: red;
+}
+
+.scan-dot.loading-dot {
+  border: 2px solid #ccc;
+  border-top: 2px solid #00cc00;
+  background-color: transparent;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+.success-dot {
+  background-color: green;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.scan-line {
+  height: 2px;
+  width: 80px;
+  background-color: green;
+  margin-right: 8px;
+}
+
+.scan-line.failed {
+  background-color: red;
+}
+
+.scan-line.completed {
+  background-color: black;
+}
+
+.scan-summary {
+  font-size: 14px;
+  color: #333;
+}
+
+.scan-tool {
+  font-size: 10px;
+  color: #666;
+  margin-top: 4px;
+  margin-left: 2px;
+}
+
+.scan-info {
+  font-size: 10px;
+  color: #333;
+  text-align: center;
+}
+
+.scan-result-block {
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.result-wrapper {
+  display: flex;
+  gap: 20px;
+}
+
+.scan-table {
+  width: 60%;
+  border-collapse: collapse;
+}
+
+.scan-table th, .scan-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.log-viewer {
+  width: 40%;
+  border-left: 1px solid #ddd;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #333;
+}
+
+pre {
+  background: #f1f1f1;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* 서브메뉴를 추가할 수 있는 스타일 */
+.archivingSubmenu {
+  display: none;  /* 기본적으로 숨겨짐 */
+  position: relative;
+  margin-top: 139px;
+  background-color: #f9f9f9;
+  padding: 10px;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  padding-left: 40px;
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+.circle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.yellow {
+  background-color: #f7c325;
+}
+
+.green {
+  background-color: #4CAF50;
+}
+
+.submenu-label {
+  font-size: 13px;
+}
+
+.current {
+  color: #109CF1;
+}

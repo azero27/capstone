@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanner UI</title>
+  <!-- Flask 방식 CSS 연결 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="side-bar" id="sideBar">
+    <div class="side-nav-bg"></div>
+    <div class="text-medium-11-gray sidebar-text">
+      <div class="toggle-sidebar2" onclick="toggleSidebar()">Toggle sidebar</div>
+    </div>
+    <img class="icon-menu-toggle"
+         src="{{ url_for('static', filename='icon/icon_menu_toggle.svg') }}"
+         id="toggleIcon"
+         data-open-src="{{ url_for('static', filename='icon/icon_menu_toggle.svg') }}"
+         data-close-src="{{ url_for('static', filename='icon/icon_menu_toggle-active.svg') }}"
+         onclick="toggleSidebar()" />
+
+    <div class="menu-active sidebar-text" onclick="movetoSet()">
+      <div class="settings2">Settings</div>
+    </div>
+    <img class="icon-menu-settings" src="{{ url_for('static', filename='icon/icon_menu_settings.svg') }}" />
+
+    <div class="menu-inactive sidebar-text" onclick="movetoRe()"> 
+      <div class="email2">Report</div>
+    </div>
+    <img class="icon-menu-email" src="{{ url_for('static', filename='icon/icon_menu_email.svg') }}" />
+
+    <div class="menu-inactive sidebar-text" onclick="movetoAr()">
+      <div class="tasks2">Archiving</div>
+    </div>
+    <img class="icon-menu-tasks" src="{{ url_for('static', filename='icon/icon_menu_tasks.svg') }}" />
+
+    <!-- Archiving Submenu -->
+    <div id="archivingSubmenu" class="archivingSubmenu" style="display: none;">
+      <div class="submenu-item">
+        <div class="circle yellow"></div>
+        <div class="submenu-label current">Timeline</div>
+      </div>
+      <div class="submenu-item">
+        <div class="circle green"></div>
+        <div class="submenu-label" onclick="movetoSn()">Snapshot</div>
+      </div>
+    </div>
+
+    <div class="menu-inactive sidebar-text" onclick="movetoSc()">
+      <div class="dashboard2">Scan</div>
+    </div>
+    <img class="icon-menu-dashboard-active" src="{{ url_for('static', filename='icon/icon_menu_dashboard.svg') }}" />
+
+    <div class="skyroute sidebar-text">Skyroute</div>
+    <div class="side-nav-devider"></div>
+    <img class="sr-1" src="{{ url_for('static', filename='icon/SR 1.svg') }}" />
+
+    <div class="button-accent sidebar-text" onclick="handleManualScan()">
+      <div class="rectangle-33"></div>
+      <div class="top-button">SCAN</div>
+    </div>
+    <div class="button-accent sidebar-text" onclick="handleStop()">
+      <div class="rectangle-3"></div>
+      <div class="accent-button">STOP</div>
+    </div>
+    <div class="button-secondary sidebar-text" onclick="handleExit()">
+      <div class="rectangle-32"></div>
+      <div class="secondary-button">EXIT</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <div class="settings-page">
+      <h2>스캔 설정</h2>
+
+      <!-- 현재 클라우드 정보 표시 -->
+<div class="cloud-info">
+  <strong>선택된 클라우드:</strong><br />
+  <span id="cloudInfoText">로딩 중...</span>
+</div>
+
+      <!-- 스캔 주기 입력 -->
+<!-- 스캔 주기 선택 -->
+<div class="scan-period-row">
+  <label for="scanPeriod">스캔 주기 (시간):</label>
+  <select id="scanPeriod" class="input-box-inline">
+    <option value="1">1시간</option>
+    <option value="2" selected>2시간</option>
+    <option value="3">3시간</option>
+    <option value="6">6시간</option>
+    <option value="12">12시간</option>
+    <option value="24">24시간</option>
+  </select>
+  <button class="save-button-inline" onclick="saveScanPeriod()">저장</button>
+</div>
+
+<!-- 파일 업로드 섹션 -->
+    <div class="file-upload-section">
+      <h3>리소스 파일 업로드</h3>
+      <div class="file-upload-container">
+        <div class="file-upload-row">
+          <label>Domain 파일:</label>
+          <div class="file-input-group">
+            <input type="file" id="domainFileInput" accept=".csv" />
+            <small class="file-hint">domain.csv 파일을 업로드하세요</small>
+          </div>
+        </div>
+        <div class="file-upload-row">
+          <label>Port 파일:</label>
+          <div class="file-input-group">
+            <input type="file" id="portFileInput" accept=".csv" />
+            <small class="file-hint">port.csv 파일을 업로드하세요</small>
+          </div>
+        </div>
+        <div class="file-upload-row">
+          <label>S3 파일:</label>
+          <div class="file-input-group">
+            <input type="file" id="s3FileInput" accept=".csv" />
+            <small class="file-hint">s3.csv 파일을 업로드하세요</small>
+          </div>
+        </div>
+        <button class="upload-button" onclick="handleFileUpload()">파일 업로드</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript 연결 -->
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+
+</body>
+</html>
