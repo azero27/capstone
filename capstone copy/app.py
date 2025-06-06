@@ -1,7 +1,6 @@
 import sys
 import os
 import csv
-import shutil
 print("sys.path =", sys.path)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -11,7 +10,7 @@ from task_defs import celery, make_celery, schedule_scan, analyze_shadow_compone
 from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 import json
 import redis
-from datetime import datetime, timedelta
+from datetime import datetime
 import time 
 from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
@@ -20,30 +19,14 @@ from celery import chord
 from api.snapshot.snapshotList import archiving_bp
 from api.snapshot.infoView import info_bp
 from api.snapshot.scan_result_api import scan_result_bp
-from api.archive_timeline import timeline_bp
 from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 from flask_cors import CORS
 from waitress import serve
 import hashlib
 
-# capstone 디렉토리를 파이썬 경로에 추가
-sys.path.append(os.path.join(os.path.dirname(__file__), 'capstone'))
-from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
-
 r = redis.Redis(host='localhost', port=6379, db=0)
-
-def clear_scan_cache(scan_result_id):
-    for tool_id in range(1, 10):  # 필요한 도구 개수만큼 조정
-        key = f"scan_result:{scan_result_id}:tool:{tool_id}"
-        r.delete(key)
-    for part in ["nmap", "nuclei", "s3"]:
-        key = f"shadow_component:{scan_result_id}:{part}"
-        r.delete(key)
-
 upload_dir = 'csv_files'
-backup_dir = 'csv_files_backup'
 os.makedirs(upload_dir, exist_ok=True)
-os.makedirs(backup_dir, exist_ok=True)  # 백업 디렉토리 생성
 
 def get_file_hash(file_path):
     with open(file_path, 'rb') as f:
@@ -61,11 +44,10 @@ def create_app():
     app.register_blueprint(archiving_bp)
     app.register_blueprint(info_bp)
     app.register_blueprint(scan_result_bp)
-    app.register_blueprint(timeline_bp)
 
     try:
         if latest_scan_setting_id() is None:
-            save_scan_setting(15)  # 기본 주기 60분
+            save_scan_setting(60)  # 기본 주기 60분
     except Exception as e:
         print(f"[ERROR] 초기 ScanSetting 저장 실패: {e}")
 
@@ -123,13 +105,11 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        #cloud_info 및 scan_result_id 미리 생성
+        # cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
-        scan_setting_id = save_scan_setting(15)
+        scan_setting_id = latest_scan_setting_id()
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
         r.set("latest_scan_result_id", scan_result_id)
-        # scan_result_id = "mock-001"
-        # r.set("latest_scan_result_id", scan_result_id)
 
         clear_scan_cache(scan_result_id)
 
@@ -141,7 +121,6 @@ def create_app():
         r.set('last_scan_time', time.time())       # datetime.now().timestamp()도 가능
         r.set('has_user_input', 'true')
 
-        scan_setting_id = "mock-setting-id"
         # 병렬 스캔 태스크 (Signature 형태로)
         scan_tasks = [
             schedule_scan.s('ip', ip_address, scan_setting_id, 1, scan_result_id),
@@ -165,51 +144,23 @@ def create_app():
     @app.route('/upload-data', methods=['POST'])
     def upload_data():
         def process_file(name, path, redis_key, parser_func):
-            global backup_dir  # 전역 변수 선언 추가
             uploaded_file = request.files.get(name)
             if uploaded_file:
+                uploaded_file.save(path)
+                new_hash = get_file_hash(path)
+                old_hash = r.get(redis_key)
 
-                # 파일 업로드 전에 기존 파일 백업
-                if os.path.exists(path):
-                    try:
-                        timestamp = datetime.now().strftime('%Y-%m-%dT%H-%M-%S')
-                        backup_filename = f"{os.path.splitext(os.path.basename(path))[0]}.{timestamp}.csv"
-                        backup_path = os.path.join(backup_dir, backup_filename)
-                        shutil.copy2(path, backup_path)
-                        print(f"[BACKUP] {path} -> {backup_path}")
-                    except Exception as e:
-                        print(f"[ERROR] 파일 백업 실패: {str(e)}")
-
-                try:
-                    # 새 파일 저장
-                    uploaded_file.save(path)
-                    print(f"[SAVE] 새 파일 저장됨: {path}")
+                if not old_hash or old_hash.decode() != new_hash:
+                    # 데이터 재삽입을 위해 기존 데이터 삭제는 parser 내부에서 처리
+                    parser_func(path)
                     
-                    # 항상 파싱 수행
-                    print(f"[PARSE] {name} 파싱 시작")
-                    result = parser_func(path)
-                    print(f"[PARSE] {name} 파싱 완료, 결과: {result}")
-                    
-                except Exception as e:
-                    print(f"[ERROR] 파일 처리 실패: {str(e)}")
-                    raise
+                    r.set(redis_key, new_hash)
 
-        try:
-            process_file('domain_file', os.path.join(upload_dir, 'domain.csv'), 'domain_file_hash', parse_domain_file)
-            process_file('port_file', os.path.join(upload_dir, 'port.csv'), 'port_file_hash', parse_port_file)
-            process_file('s3_file', os.path.join(upload_dir, 's3.csv'), 's3_file_hash', parse_s3_file)
-            
-            return jsonify({
-                "status": "ok", 
-                "message": "파일 처리가 완료되었습니다."
-            }), 200
-            
-        except Exception as e:
-            print(f"[ERROR] 전체 처리 실패: {str(e)}")
-            return jsonify({
-                "status": "error",
-                "message": f"처리 중 오류가 발생했습니다: {str(e)}"
-            }), 500
+        process_file('domain_file', os.path.join(upload_dir, 'domain.csv'), 'domain_file_hash', parse_domain_file)
+        process_file('port_file', os.path.join(upload_dir, 'port.csv'), 'port_file_hash', parse_port_file)
+        process_file('s3_file', os.path.join(upload_dir, 's3.csv'), 's3_file_hash', parse_s3_file)
+
+        return jsonify({"status": "ok", "message": "파일 파싱 완료 및 DB 반영됨"}), 200
 
     @app.route('/set-schedule', methods=['POST'])
     def set_schedule():
@@ -237,8 +188,6 @@ def create_app():
             # 설정 파일 저장
             with open("schedule_config.json", "w") as f:
                 json.dump({"interval_seconds": interval}, f)
-
-            save_scan_setting(int(interval))
 
             return jsonify({"status": "ok", "interval": interval}), 200
 
@@ -285,24 +234,56 @@ def create_app():
 
         tool_results = {}
         shadow_results = {}
+        latest_update_time = 0
 
         if scan_result_id:
-            print(f"✅ [STATUS] scan_result_id: {scan_result_id}")  # ✅
+            print(f"✅ [STATUS] scan_result_id: {scan_result_id}")
+            
             # 도구 결과 수집
             for tool_id in range(1, 7):  # 1~6번 도구
                 key = f"scan_result:{scan_result_id}:tool:{tool_id}"
+                last_update_key = f"{key}:last_update"
+                
+                # 마지막 업데이트 시간 확인
+                last_update = r.get(last_update_key)
+                if last_update:
+                    last_update = float(last_update.decode())
+                    latest_update_time = max(latest_update_time, last_update)
+                
                 val = r.get(key)
                 if val:
-                    print(f"✅ [TOOL CACHE FOUND] key={key}, value={val[:200]}...")
-                    tool_results[str(tool_id)] = json.loads(val)
+                    try:
+                        results = json.loads(val)
+                        if not isinstance(results, list):
+                            results = [results]
+                        
+                        # 타임스탬프 추가
+                        for result in results:
+                            if isinstance(result, dict):
+                                result['timestamp'] = latest_update_time
+                        
+                        tool_results[str(tool_id)] = results
+                        print(f"✅ [TOOL CACHE] key={key}, last_update={last_update}")
+                    except json.JSONDecodeError:
+                        print(f"❌ [ERROR] Invalid JSON in Redis for key: {key}")
+                        continue
 
             # Shadow 분석 결과 수집
             for part in ["nmap", "nuclei", "s3"]:
                 key = f"shadow_component:{scan_result_id}:{part}"
                 val = r.get(key)
                 if val:
-                    print(f"✅ [TOOL CACHE FOUND] key={key}, value={val[:200]}...")  # ✅ value 일부만 출력
-                    shadow_results[part] = json.loads(val)
+                    try:
+                        shadow_results[part] = json.loads(val)
+                        print(f"✅ [SHADOW CACHE] key={key}")
+                    except json.JSONDecodeError:
+                        print(f"❌ [ERROR] Invalid JSON in Redis for key: {key}")
+                        continue
+
+        # 결과 정리 및 반환
+        flattened_results = []
+        for tool_id in tool_results:
+            flattened_results.extend(tool_results[tool_id])
 
         return jsonify({
             'scan_status': scan_status,
@@ -310,7 +291,7 @@ def create_app():
             'seconds_remaining': seconds_remaining,
             'tools': tool_results,
             'shadow': shadow_results,
-            'results': [item for tool_id in tool_results for item in tool_results[tool_id]]
+            'results': flattened_results
         })
 
     @app.route('/test-scan')
@@ -359,7 +340,6 @@ def create_app():
     def archiving_sn_info(id):
         return render_template('archiving_sn_info.html', scan_id=id)
 
-    """
     @app.route('/api/snapshots', methods=['GET'])
     def api_snapshots():
         # 실제 구현 시 DB에서 전체 스냅샷(스캔) 목록을 조회
@@ -438,7 +418,6 @@ def create_app():
             { "date": "2025-05-05T16:00", "rsc": "server1", "dif": "SSH disabled" }
         ]
         return jsonify(timelineData)
-    """
 
     @app.route('/api/resources', methods=['GET'])
     def api_resources():
@@ -447,7 +426,6 @@ def create_app():
             "CloudFront", "ECS", "EBS", "Route53"
         ]
         return jsonify(resources)
-    
 
     @app.route('/api/generate_report', methods=['POST'])
     def api_generate_report():
@@ -483,192 +461,73 @@ def create_app():
         }), 202
 
     @app.route('/api/timeline_nodes', methods=['POST'])
-    def api_timeline_nodes():
-        data = request.json
-        start_date = data.get('start')
-        end_date = data.get('end')
-        
-        # Current time reference for recent data
-        current_time = datetime.now()
-        
-        # Generate timestamps for the last 24 hours with 1.5-hour intervals
-        timestamps = []
-        for i in range(15):
-            dt = current_time - timedelta(hours=i*1.5)
-            timestamps.append(dt.strftime("%Y-%m-%dT%H:%M:%S"))
-        
-        # Comprehensive recent sample data
+    def timeline_nodes():
+        """Get timeline nodes within a date range"""
+        data = request.get_json()
+        start = data.get('start')
+        end = data.get('end')
+
+        # TODO: Replace with actual DB query
+        # For now, return mock data
         nodes = [
-            # Most recent scans first
-            {
-                "date": timestamps[0],
-                "rsc": "EC2",
-                "dif": "i-0123456789abcdef0, unauthorized port 22 opened",
-                "type": "shadow"
-            },
-            {
-                "date": timestamps[1],
-                "rsc": "S3",
-                "dif": "data-backup-bucket, public access enabled",
-                "type": "shadow"
-            },
-            {
-                "date": timestamps[2],
-                "rsc": "IAM",
-                "dif": "admin-role, suspicious policy attached",
-                "type": "shadow"
-            },
-            {
-                "date": timestamps[3],
-                "rsc": "Lambda",
-                "dif": "data-processor-func, new function created",
-                "type": "added"
-            },
-            {
-                "date": timestamps[4],
-                "rsc": "RDS",
-                "dif": "prod-db-instance, public access detected",
-                "type": "shadow"
-            },
-            {
-                "date": timestamps[5],
-                "rsc": "SecurityGroup",
-                "dif": "sg-web-prod, all ports opened",
-                "type": "shadow"
-            },
-            {
-                "date": timestamps[6],
-                "rsc": "CloudFront",
-                "dif": "dist-prod, distribution modified",
-                "type": "added"
-            },
-            {
-                "date": timestamps[7],
-                "rsc": "EC2",
-                "dif": "i-9876543210fedcba, instance terminated",
-                "type": "removed"
-            },
-            {
-                "date": timestamps[8],
-                "rsc": "VPC",
-                "dif": "vpc-prod, new subnet added",
-                "type": "added"
-            },
-            {
-                "date": timestamps[9],
-                "rsc": "Route53",
-                "dif": "company.com, unauthorized DNS change",
-                "type": "shadow"
-            },
-            {
-                "date": timestamps[10],
-                "rsc": "S3",
-                "dif": "customer-data-bucket, versioning disabled",
-                "type": "removed"
-            },
-            {
-                "date": timestamps[11],
-                "rsc": "EC2",
-                "dif": "i-abcdef0123456789, unauthorized AMI",
-                "type": "shadow"
-            },
-            {
-                "date": timestamps[12],
-                "rsc": "Lambda",
-                "dif": "log-processor, function modified",
-                "type": "added"
-            },
-            {
-                "date": timestamps[13],
-                "rsc": "RDS",
-                "dif": "analytics-db, snapshot created",
-                "type": "added"
-            },
-            {
-                "date": timestamps[14],
-                "rsc": "SecurityGroup",
-                "dif": "sg-internal, rules modified",
-                "type": "shadow"
-            }
+            {"date": "2024-03-20T10:00", "rsc": "EC2-1", "dif": "Port 80 opened"},
+            {"date": "2024-03-20T11:30", "rsc": "S3-1", "dif": "New bucket policy"},
+            {"date": "2024-03-21T09:15", "rsc": "EC2-1", "dif": "Security group updated"},
+            {"date": "2024-03-21T14:00", "rsc": "RDS-1", "dif": "Backup enabled"},
+            {"date": "2024-03-22T16:00", "rsc": "EC2-2", "dif": "Instance type changed"}
         ]
         
-        # If no date range is specified, return all 15 most recent scans
-        if not start_date and not end_date:
-            return jsonify(nodes)  # Already sorted by most recent first
-        else:
-            # Filter nodes based on date range if specified
-            filtered_nodes = [
-                node for node in nodes
-                if start_date <= node['date'] <= end_date
-            ]
-            return jsonify(filtered_nodes)
+        return jsonify(nodes)
 
     @app.route('/api/timeline_diff', methods=['POST'])
-    def api_timeline_diff():
-        data = request.json
-        start_date = data.get('start')
-        end_date = data.get('end')
-        
-        # Comprehensive sample diff data with detailed changes
+    def timeline_diff():
+        """Get differences between two points in time"""
+        data = request.get_json()
+        start = data.get('start')
+        end = data.get('end')
+
+        # TODO: Replace with actual DB query
+        # For now, return mock data
         diffs = [
-            {
-                "resource": "EC2",
-                "description": "Security vulnerabilities detected",
-                "detailedInfo": "Multiple unauthorized access points found",
-                "details": {
-                    "instance_id": "i-0123456789abcdef0",
-                    "changes": [
-                        {"type": "security_group", "old": "sg-prod-locked", "new": "sg-prod-open"},
-                        {"type": "port", "action": "opened", "number": 22, "source": "0.0.0.0/0"},
-                        {"type": "port", "action": "opened", "number": 3389, "source": "0.0.0.0/0"},
-                        {"type": "tag", "action": "modified", "key": "Environment", "old": "prod", "new": "dev"}
-                    ]
-                }
-            },
-            {
-                "resource": "S3",
-                "description": "Critical security misconfiguration",
-                "detailedInfo": "Public access enabled on sensitive data bucket",
-                "details": {
-                    "bucket_name": "data-backup-bucket",
-                    "changes": [
-                        {"type": "acl", "action": "modified", "old": "private", "new": "public-read"},
-                        {"type": "policy", "action": "added", "effect": "Allow", "principal": "*"},
-                        {"type": "versioning", "action": "disabled"},
-                        {"type": "encryption", "action": "disabled"}
-                    ]
-                }
-            },
-            {
-                "resource": "IAM",
-                "description": "Suspicious permission changes",
-                "detailedInfo": "Admin privileges granted to service role",
-                "details": {
-                    "role_name": "service-role",
-                    "changes": [
-                        {"type": "policy", "action": "attached", "name": "AdministratorAccess"},
-                        {"type": "trust", "action": "modified", "service": "*"},
-                        {"type": "user", "action": "added", "name": "unknown-user"}
-                    ]
-                }
-            },
-            {
-                "resource": "RDS",
-                "description": "Database security exposure",
-                "detailedInfo": "Public access enabled on production database",
-                "details": {
-                    "instance_id": "prod-db-instance",
-                    "changes": [
-                        {"type": "network", "action": "modified", "parameter": "publicly_accessible", "old": false, "new": true},
-                        {"type": "security_group", "action": "added", "group_id": "sg-db-public"},
-                        {"type": "parameter_group", "action": "modified", "old": "prod-pg", "new": "default"},
-                        {"type": "backup", "action": "disabled"}
-                    ]
-                }
-            }
+            {"rsc": "EC2-1", "dif": "Security group rules changed"},
+            {"rsc": "S3-1", "dif": "2 new files added"},
+            {"rsc": "RDS-1", "dif": "Configuration updated"}
         ]
         
         return jsonify(diffs)
+
+    @app.route('/api/resource_diff', methods=['POST'])
+    def resource_diff():
+        """Get detailed changes for a specific resource"""
+        data = request.get_json()
+        resource = data.get('resource')
+        start = data.get('start')
+        end = data.get('end')
+
+        # TODO: Replace with actual DB query
+        # For now, return mock data based on resource type
+        details = []
+        
+        if resource.startswith('EC2'):
+            details = [
+                {"date": "2024-03-20T10:15", "dif": "Security group ingress rule added: port 80"},
+                {"date": "2024-03-21T09:15", "dif": "Instance type changed from t2.micro to t2.small"},
+                {"date": "2024-03-21T14:30", "dif": "New EBS volume attached"}
+            ]
+        elif resource.startswith('S3'):
+            details = [
+                {"date": "2024-03-20T11:30", "dif": "Bucket policy updated for public access"},
+                {"date": "2024-03-21T10:00", "dif": "Versioning enabled"},
+                {"date": "2024-03-22T09:00", "dif": "Lifecycle rule added"}
+            ]
+        elif resource.startswith('RDS'):
+            details = [
+                {"date": "2024-03-21T14:00", "dif": "Automated backups enabled"},
+                {"date": "2024-03-21T14:05", "dif": "Backup retention period set to 7 days"},
+                {"date": "2024-03-22T11:00", "dif": "Parameter group modified"}
+            ]
+            
+        return jsonify(details)
 
     return app
 

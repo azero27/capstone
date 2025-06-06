@@ -48,6 +48,7 @@ RESOURCE_TOOL_MAP = {
     "url": [
         {
             "tool_id": 6,
+            "tool_name": "nuclei",
             "tool": lambda url: run_nuclei(
                 url,
                 template_path="/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"

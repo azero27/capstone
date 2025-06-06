@@ -51,7 +51,6 @@ def save_nuclei_diff(scan_result_id):
         curr_rows = cursor.fetchall()
         curr_map = {r["target"]: r for r in curr_rows}
 
-
         diffs = []
 
         # removed
@@ -154,7 +153,6 @@ def save_nmap_diff(scan_result_id):
         curr_map = {
             (r["target"], r["port_number"], r["protocol"]): r for r in curr_rows
         }
-        
 
         diffs = []
 
@@ -257,7 +255,6 @@ def save_amass_diff(scan_result_id):
         curr_rows = cursor.fetchall()
         curr_map = {r["subdomain"]: r for r in curr_rows}
 
-
         diffs = []
 
         # removed
@@ -274,7 +271,7 @@ def save_amass_diff(scan_result_id):
         if diffs:
             for diff_type, subdomain, desc in diffs:
                 cursor.execute("""
-                    INSERT INTO AmassDiff (scan_result_id, prev_scan_result_id, target, diff_type, description)
+                    INSERT INTO AmassDiff (scan_result_id, prev_scan_result_id, subdomain, diff_type, description)
                     VALUES (%s, %s, %s, %s, %s)
                 """, (scan_result_id, prev_id, subdomain, diff_type, desc))
             conn.commit()
@@ -352,7 +349,6 @@ def save_cloudenum_diff(scan_result_id):
         # 파일 목록 추출
         prev_files = get_files_by_result_id([r["id"] for r in prev_rows])
         curr_files = get_files_by_result_id([r["id"] for r in curr_rows])
-
 
         diffs = []
 
@@ -462,7 +458,6 @@ def save_s3scanner_diff(scan_result_id):
         prev_obj_map = fetch_object_map(prev_ids)
         curr_obj_map = fetch_object_map(curr_ids)
 
-
         diffs = []
 
         # removed
@@ -532,109 +527,6 @@ def save_s3scanner_diff(scan_result_id):
 
     except Exception as e:
         print(f"[ERROR] S3scanner diff 비교 중 오류 발생: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def save_shadow_diff(scan_result_id):
-    try:
-        conn = mysql.connector.connect(
-            host="localhost", user="DBA", password="1234", database="SKYROUTE"
-        )
-        cursor = conn.cursor(dictionary=True)
-
-        # 현재 cloud_info_id 조회
-        cursor.execute("""
-            SELECT cloud_info_id FROM ScanResult
-            WHERE id = %s
-        """, (scan_result_id,))
-        row = cursor.fetchone()
-        if row:
-            cloud_info_id = row["cloud_info_id"]
-        else:
-            print(f"[ERROR] scan_result_id={scan_result_id}에 해당하는 값 없음")
-            return
-
-        # 이전 scan_result_id 조회
-        cursor.execute("""
-            SELECT id FROM ScanResult
-            WHERE cloud_info_id = %s AND id < %s
-            ORDER BY id DESC LIMIT 1
-        """, (cloud_info_id, scan_result_id))
-        row = cursor.fetchone()
-        if not row:
-            print("[INFO] 최초 실행이므로 비교 생략")
-            return
-        prev_id = row["id"]
-
-        # 이전 결과 조회
-        cursor.execute("""
-            SELECT port, actual_service, expected_service, reason
-            FROM ShadowNetwork
-            WHERE scan_result_id = %s
-        """, (prev_id,))
-        prev_net = {r["port"]: r for r in cursor.fetchall()}
-
-        cursor.execute("""
-            SELECT bucket_name, allusers_permission, authusers_permission, reason
-            FROM ShadowResource
-            WHERE scan_result_id = %s
-        """, (prev_id,))
-        prev_res = {r["bucket_name"]: r for r in cursor.fetchall()}
-
-        # 현재 결과 조회
-        cursor.execute("""
-            SELECT port, actual_service, expected_service, reason
-            FROM ShadowNetwork
-            WHERE scan_result_id = %s
-        """, (scan_result_id,))
-        curr_net = {r["port"]: r for r in cursor.fetchall()}
-
-        cursor.execute("""
-            SELECT bucket_name, allusers_permission, authusers_permission, reason
-            FROM ShadowResource
-            WHERE scan_result_id = %s
-        """, (scan_result_id,))
-        curr_res = {r["bucket_name"]: r for r in cursor.fetchall()}
-
-        diffs = []
-
-        # Network 비교
-        for port in prev_net:
-            if port not in curr_net:
-                diffs.append(("removed", "network", port, prev_net[port]["reason"]))
-        for port in curr_net:
-            if port not in prev_net:
-                diffs.append(("added", "network", port, curr_net[port]["reason"]))
-
-        # Resource 비교
-        for bname in prev_res:
-            if bname not in curr_res:
-                diffs.append(("removed", "resource", bname, prev_res[bname]["reason"]))
-        for bname in curr_res:
-            if bname not in prev_res:
-                diffs.append(("added", "resource", bname, curr_res[bname]["reason"]))
-
-        # 결과 저장
-        for diff_type, category, target, desc in diffs:
-            if category == "network":
-                cursor.execute("""
-                    INSERT INTO ShadowNetworkDiff (scan_result_id, prev_scan_result_id, target, diff_type, description)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (scan_result_id, prev_id, target, diff_type, desc))
-            else:
-                cursor.execute("""
-                    INSERT INTO ShadowResourceDiff (scan_result_id, prev_scan_result_id, target, diff_type, description)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (scan_result_id, prev_id, target, diff_type, desc))
-
-        conn.commit()
-        print(f"[+] Shadow Diff 저장 완료 ({len(diffs)}건)")
-
-    except Exception as e:
-        print(f"[ERROR] shadow diff 비교 중 오류 발생: {e}")
-
     finally:
         cursor.close()
         conn.close()

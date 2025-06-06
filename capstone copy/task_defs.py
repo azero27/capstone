@@ -16,10 +16,11 @@ from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start, update_scan_result_end
 from DB.scan_setting import save_scan_setting, latest_scan_setting, latest_scan_setting_id
 from DB.save_nuclei import save_nuclei_result
-from DB.save_diff import save_nmap_diff, save_amass_diff, save_cloudenum_diff, save_nuclei_diff, save_s3scanner_diff, save_shadow_diff
+from DB.save_diff import save_nmap_diff, save_amass_diff, save_cloudenum_diff, save_nuclei_diff, save_s3scanner_diff
 from celery.schedules import crontab
 import redis
 import json 
+import uuid
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
 from shadow_it_analysis.shadow_network import analyze_shadow_network
@@ -30,16 +31,60 @@ r = redis.Redis(host='localhost', port=6379, db=0)
 def cache_result_for_dashboard(scan_result_id, tool_id, parsed_result, summary=None, ttl=600):
     key = f"scan_result:{scan_result_id}:tool:{tool_id}"
     try:
-        serialized = json.dumps(parsed_result, default=str)
+        # [핵심 수정] nuclei일 때만 logs 앞에 [target] 붙이기
+        if tool_id == 6:
+            if isinstance(parsed_result, list):
+                for item in parsed_result:
+                    target = item.get("target", "")
+                    if "logs" in item and target:
+                        item["logs"] = f"[{target}]\n{item['logs']}"
+            elif isinstance(parsed_result, dict):
+                target = parsed_result.get("target", "")
+                if "logs" in parsed_result and target:
+                    parsed_result["logs"] = f"[{target}]\n{parsed_result['logs']}"
 
-        if ttl and ttl > 0:
-            r.setex(key, ttl, serialized)
+        # 저장할 결과를 정규화
+        if isinstance(parsed_result, list):
+            data_to_store = parsed_result
         else:
-            r.set(key, serialized)  # TTL이 0 이하일 경우 무기한 저장
+            data_to_store = [parsed_result]
+
+        # 타임스탬프와 상태 정보 추가
+        timestamp = datetime.now().timestamp()
+        for item in data_to_store:
+            if isinstance(item, dict):
+                item['timestamp'] = timestamp
+
+        serialized = json.dumps(data_to_store, default=str)
+
+        # Redis pipeline으로 atomic하게 처리
+        pipe = r.pipeline()
+        pipe.delete(key)  # 기존 캐시 삭제
+        if ttl and ttl > 0:
+            pipe.setex(key, ttl, serialized)  # 새로운 결과 저장 (TTL 설정)
+        else:
+            pipe.set(key, serialized)  # 새로운 결과 저장 (영구)
+            
+        # 마지막 업데이트 시간 저장
+        pipe.set(f"{key}:last_update", str(timestamp))
+        
+        # scan_result_id를 최신 ID로 설정
+        pipe.set("latest_scan_result_id", str(scan_result_id))
+        
+        # 스캔 상태를 'running'으로 설정
+        pipe.set("scan_status", "running")
+        
+        # 마지막 스캔 시간 업데이트
+        pipe.set("last_scan_time", str(timestamp))
+        
+        # 사용자 입력 상태를 true로 설정
+        pipe.set("has_user_input", "true")
+        
+        pipe.execute()  # atomic하게 실행
 
         print(f"[CACHE] 저장 완료 → key: {key}")
     except Exception as e:
-        print(f"[CACHE] 저장 실패 → key: {key}, 에러: {e}")
+        print(f"[CACHE] 저장 실패 → key: {key}, 에러: {e}") 
 
 
 # Celery 인스턴스 정의
@@ -149,7 +194,7 @@ def normalize_parsed_result(parsed, tool_id, step, tool_name=None):
     # 도구명 변환 처리
     name_map = {
         "run_nmap_port_scan": "nmap",
-        "run_nuclei_from_db": "nuclei"
+        "nuclei": "nuclei"
     }
     raw_name = tool_name or f"Tool{tool_id}"
     display_name = name_map.get(raw_name, raw_name.replace("run_", "", 1) if raw_name.startswith("run_") else raw_name)
@@ -228,9 +273,14 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
             scan_setting_id = save_scan_setting(15)
             scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+    
+    for tool in RESOURCE_TOOL_MAP.get(resource_type, []):
+        tool_id = tool.get("tool_id", -1)
+        key = f"scan_result:{scan_result_id}:tool:{tool_id}"
+        r.delete(key)
+        print(f"[CACHE CLEAR] 기존 캐시 삭제 → {key}")
 
-        # scan_result_id = "mock-scan-id"
-
+    all_parsed_for_nuclei = []
     while queue:
         resource_type, value, job_name, is_initial = queue.pop(0)
 
@@ -380,19 +430,11 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 6:
-                    for result in parsed:  # parsed는 list of dict
-                        save_nuclei_result(result, scan_result_id, current_step)
-
-                        parsed_list = []
-                        if isinstance(parsed, tuple):
-                            for item in parsed:
-                                if isinstance(item, list):
-                                    parsed_list.extend(item)
-                        else:
-                            parsed_list = parsed if isinstance(parsed, list) else [parsed]
-
-                        normalized = normalize_parsed_result(parsed_list, tool_id, current_step, tool_name)
-                        cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
+                    # 1. 도구 실행 결과 먼저 누적
+                    if isinstance(parsed, list):
+                        all_parsed_for_nuclei.extend(parsed)
+                    else:
+                        all_parsed_for_nuclei.append(parsed)
 
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
             except Exception as e:
@@ -437,8 +479,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                             print("===========")
 
     template_path = "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"
-    r = redis.Redis(host='localhost', port=6379, db=0)
-    
+    # r = redis.Redis(host='localhost', port=6379, db=0)
 
     if tool_id == 6 and not is_initial and resource_type == "url":
         # Redis에서 이미 nuclei 실행했는지 확인
@@ -448,15 +489,19 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             from tools.nuclei import run_nuclei_from_db
             all_result = run_nuclei_from_db(template_path)
             results = all_result.get("results", [])
+            
             for result in results:
                 save_nuclei_result(result, scan_result_id, current_step)
-                normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
-                cache_result_for_dashboard(scan_result_id, tool_id, normalized)
-            print("[+] DB 기반 Nuclei 저장 완료")
-            r.set(nuclei_flag_key, "1")  # 실행 완료 표시
-            save_nuclei_diff(scan_result_id)
+                
+                all_parsed_for_nuclei.extend(results)
+                print("[+] DB 기반 Nuclei 저장 완료")
+                r.set(nuclei_flag_key, "1")  # 실행 완료 표시
         else:
             print(f"[!] nuclei already run for scan_result_id={scan_result_id}")
+        
+        # 3. 도구 실행 + DB 결과 통합 후 캐시
+        normalized = normalize_parsed_result(all_parsed_for_nuclei, tool_id, current_step, tool_name)
+        cache_result_for_dashboard(scan_result_id, tool_id, normalized)
 
     print("[DEBUG] 전체 스캔 흐름 종료. 더 이상 실행할 도구 없음.")
 
@@ -474,7 +519,6 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 def analyze_shadow_components_mock(scan_result_ids):
     print(f"[SHADOW IT MOCK 분석 시작] ScanResult ID 목록: {scan_result_ids}")
 
-    """
     # ========== MOCK 1. nuclei + 사용자 소유 버킷 ==========
     parsed_nuclei_results = [
         {"target": "cdn.skyroute.com", "url_list": ["CNAME\tbucket1.s3.amazonaws.com"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
@@ -489,17 +533,17 @@ def analyze_shadow_components_mock(scan_result_ids):
     print(json.dumps(nuclei_result, indent=2, ensure_ascii=False))
 
     cache_shadow_component(scan_result_ids, "nuclei", nuclei_result)
-    """
 
     # ========== MOCK 2. Nmap 결과 및 허용 포트 ==========
 
     nmap_result = analyze_shadow_network()
-    #cache_shadow_component(scan_result_ids, "nmap", nmap_result)
+    cache_shadow_component(scan_result_ids, "nmap", nmap_result)
 
     # ========== MOCK 3. S3scanner + 공개정책 ==========
 
     print("\n===== 3. show_violating_buckets_verbose() 결과 =====")
     s3_result = analyze_shadow_resources()
+<<<<<<< HEAD
     #cache_shadow_component(scan_result_ids, "s3", s3_result)
 
     conn = mysql.connector.connect(
@@ -515,6 +559,9 @@ def analyze_shadow_components_mock(scan_result_ids):
     latest_result_id = cursor.fetchone()["latest_id"]
 
     save_shadow_diff(latest_result_id)
+=======
+    cache_shadow_component(scan_result_ids, "s3", s3_result)
+>>>>>>> 283c91fb598c6bacda948678bb327c5cbb736126
 
 
 @celery.task(name="tasks.dummy_task")
@@ -530,22 +577,70 @@ def run_oneoff_full_scan(resource_type):
     """
     # 1) 최신 스캔 설정 ID
     scan_setting_id = latest_scan_setting_id()
-    # scan_setting_id = "mock-setting-id"
 
     # 2) Redis에서 대상 값 가져오기
-    raw = None
-    if resource_type == 'ip':
-        raw = r.get('scheduled_ip')
-    elif resource_type == 'domain':
-        raw = r.get('scheduled_domain')
-    elif resource_type == 'keyword':
-        raw = r.get('scheduled_keyword')
-    if not raw:
-        # 없으면 바로 리턴
+    ip = r.get('scheduled_ip')
+    domain = r.get('scheduled_domain')
+    keyword = None
+
+    # 키워드가 없으면 domain.csv에서 추출
+    if not r.get('scheduled_keyword'):
+        from shadow_it_analysis.extract_keyword import extract_keyword
+        try:
+            keyword = extract_keyword('csv_files/domain.csv')
+            if keyword:
+                r.set('scheduled_keyword', keyword)
+        except Exception as e:
+            print(f"[ERROR] Failed to extract keyword: {e}")
+    else:
+        keyword = r.get('scheduled_keyword').decode()
+
+    # 필수 값 체크
+    if resource_type == 'ip' and not ip:
+        print("[ERROR] IP scan requested but no IP address found")
+        return
+    elif resource_type == 'domain' and not domain:
+        print("[ERROR] Domain scan requested but no domain found")
+        return
+    elif resource_type == 'keyword' and not keyword:
+        print("[ERROR] Keyword scan requested but no keyword found")
         return
 
-    value = raw.decode()
+    # 3) 값 디코딩
+    value = None
+    if resource_type == 'ip':
+        value = ip.decode()
+    elif resource_type == 'domain':
+        value = domain.decode()
+    elif resource_type == 'keyword':
+        value = keyword
 
-    # 3) schedule_scan 태스크 한 번만 호출
-    # 기존의 주기 스캔 로직(schedule_scan)을 재사용
-    schedule_scan.apply_async(args=(resource_type, value, scan_setting_id))
+    # 4) Cloud Info 및 Scan Result ID 생성
+    ip_address = None
+    domain_name = None
+
+    if resource_type == "ip":
+        ip_address = value
+        domain_name = convert_ip_to_domain(value)
+    elif resource_type == "domain":
+        domain_name = value
+        ip_address = convert_domain_to_ip(value)
+    elif resource_type == "keyword":
+        ip_address = ip.decode() if ip else None
+        domain_name = domain.decode() if domain else None
+
+    if ip_address and domain_name:
+        cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
+        scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
+    else:
+        scan_result_id = None
+
+    # 5) schedule_scan 태스크 한 번만 호출
+    # 기존의 스캔 로직(schedule_scan)을 재사용하여 도구 체이닝 활용
+    schedule_scan.apply_async(args=(resource_type, value, scan_setting_id, 1, scan_result_id))
+
+    # 6) 일회성 모드로 설정 (주기적 실행 방지)
+    r.set('has_user_input', 'false')
+    print("[ONEOFF] 일회성 전체 스캔 태스크 등록 완료")
+
+    return scan_result_id
