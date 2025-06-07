@@ -338,6 +338,9 @@ def save_cloudenum_diff(scan_result_id):
 
         # 파일 리스트 조회 함수
         def get_files_by_result_id(result_ids):
+            if not result_ids:
+                return {}  # 빈 딕셔너리 반환하여 이후 로직에서 안전하게 처리 가능
+
             format_ids = ",".join(map(str, result_ids))
             cursor.execute(f"""
                 SELECT cloud_enum_id, file FROM CloudEnumFile
@@ -446,6 +449,9 @@ def save_s3scanner_diff(scan_result_id):
 
         # 객체 조회 함수
         def fetch_object_map(ids):
+            if not ids:
+                return {}
+
             cursor.execute(f"""
                 SELECT * FROM S3scannerObject
                 WHERE s3scanner_id IN ({','.join(map(str, ids))})
@@ -453,8 +459,9 @@ def save_s3scanner_diff(scan_result_id):
             result = {}
             for row in cursor.fetchall():
                 sid = row["s3scanner_id"]
-                result.setdefault(sid, {})[row["object_name"]] = row
+                result.setdefault(sid, {})[row["object"]] = row
             return result
+
 
         prev_ids = [r["id"] for r in prev_rows]
         curr_ids = [r["id"] for r in curr_rows]

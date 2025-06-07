@@ -31,42 +31,44 @@ def get_scan_result(scan_id):
             if not rows:
                 continue
 
-            # 첫 행에서 공통 정보 추출
-            first = rows[0]
-            tool_id = first.get("tool_id")
-            step = first.get("step", 1)
-            status = "success" if first.get("success", 0) == 1 else "fail"
-            log = first.get("log", "(no log)")
+            tool_id = rows[0].get("tool_id")
+            step = rows[0].get("step", 1)
 
-            # summary 생성
+            # 도구별 처리
             if tool_name == "Nmap":
-                open_ports = [
-                    str(r["port_number"])
-                    for r in rows
-                    if r.get("port_status") == "open" and r.get("port_number") is not None
-                ]
+                status = "success" if rows[0].get("success", 0) == 1 else "fail"
+                open_ports = [str(r["port_number"]) for r in rows if r.get("port_status") == "open"]
                 summary = ", ".join(open_ports) + " open" if open_ports else "No open port"
+                log = rows[0].get("log", "(no log)")
+
             elif tool_name == "Amass":
                 count = sum(1 for r in rows if r.get("success") == 1)
+                status = "success" if count > 0 else "fail"
                 summary = f"{count} subdomains found" if count else "No subdomains"
-            elif tool_name == "Nuclei":
-                vulns = [r for r in rows if r.get("success") == 1]
-                summary = f"{len(vulns)} CNAME records found" if vulns else "No CNAME record"
                 log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
+
+            elif tool_name == "Nuclei":
+                count = sum(1 for r in rows if r.get("success") == 1)
+                status = "success" if count > 0 else "fail"
+                summary = f"{count} CNAME records found" if count else "No CNAME record"
+                log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
+
             elif tool_name == "CloudEnum":
                 count = sum(1 for r in rows if r.get("success") == 1)
+                status = "success" if count > 0 else "fail"
                 summary = f"{count} public services found" if count else "No public services"
                 log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
+
             elif tool_name == "S3scanner":
-                buckets = [
-                    r["bucket_name"]
-                    for r in rows
-                    if r.get("bucket_name") and r.get("allusers_permission") not in (None, "", "[]")
-                ]
+                buckets = [r["bucket_name"] for r in rows if r.get("bucket_name") and r.get("allusers_permission") not in (None, "", "[]")]
+                status = "success" if buckets else "fail"
                 summary = f"{len(buckets)} open buckets" if buckets else "No public buckets"
                 log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
+
             else:
+                status = "success"
                 summary = f"{tool_name} executed"
+                log = rows[0].get("log", "(no log)")
 
             results.append({
                 "step": step,
@@ -76,6 +78,7 @@ def get_scan_result(scan_id):
                 "log": log,
                 "summary": summary
             })
+
 
         cursor.close()
         conn.close()
