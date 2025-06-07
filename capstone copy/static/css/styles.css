@@ -416,7 +416,6 @@ pre {
 
 .timeline-panel {
   width: 25%;
-  height: 480px; 
   background: #ffffff;
   border-radius: 8px;
   padding: 20px;
@@ -861,9 +860,240 @@ h2 {
   user-select: none;
 }
 
+.scan-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  height: calc(100vh - 120px); /* 전체 높이 */
+}
+
+.left-column {
+  flex: 0 0 380px; /* 고정 너비 column (원하면 width 조절 가능) */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.scan-visual-block {
+  flex: 1; /* 남는 공간의 절반 사용 */
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.scan-result-block {
+  flex: 1; /* 나머지 절반 사용 */
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.scan-chart-block {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  height: 100%; /* 좌측과 동일한 높이 */
+}
+
+#sunburstChart {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+}
+
+#sunburstChart svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 유지비율로 꽉 채움 */
+}
+
+
+
+
 /* 버튼의 위치(사이드바 내 첫 번째 버튼, STOP/EXIT와 같은 높이, left는 동일) */
 .button-accent.sidebar-text .top-button,
 .button-accent.sidebar-text .rectangle-33 {
   /* SCAN 버튼을 위로, STOP/EXIT와 겹치지 않게 */
   top: -140%;
+}
+
+.resource-info-layout {
+  display: flex;
+  height: 82vh;            /* 충분한 높이 */
+  min-height: 550px;
+  gap: 36px;
+}
+
+/* 좌측 마인드맵 박스 */
+.network-container {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 16px 8px 16px;
+  min-width: 0;
+  min-height: 520px;
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+#networkVisualization {
+  flex: 1 1 0%;
+  width: 100%;
+  min-height: 430px;
+  height: 100%;
+  max-height: calc(82vh - 50px);
+  background: #fff;
+  border-radius: 8px;
+}
+
+/* 우측 상세(표+트리) 박스 */
+.resource-details-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+  min-height: 520px;
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.details-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.resource-summary {
+  margin-bottom: 14px;
+}
+
+.resource-content-tree {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: #fafbfc;
+  border-radius: 8px;
+  padding: 13px 10px 13px 18px;
+  min-height: 84px;
+  max-height: 340px;
+  box-sizing: border-box;
+}
+
+/* 표(상단) 스타일 */
+.details-content table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #f7f9fa;
+  border-radius: 8px;
+}
+.details-content th, .details-content td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #eee;
+}
+.details-content th {
+  text-align: left;
+  color: #888;
+  background: #f5f5f7;
+  width: 33%;
+}
+.resource-summary table tr:last-child td,
+.resource-summary table tr:last-child th {
+  border-bottom: none;
+}
+
+/* 트리(ul/li) 스타일 */
+.resource-content-tree ul {
+  margin-left: 12px;
+  margin-bottom: 0;
+  padding-left: 12px;
+}
+.resource-content-tree li {
+  line-height: 1.7;
+  margin-bottom: 3px;
+  font-size: 14px;
+  color: #444;
+}
+
+/* 안내문구 */
+.info-tip { color: #aaa; margin-top: 34px; text-align: center; font-size: 15px; }
+
+/* Shadow IT 효과(마인드맵 노드) */
+.vis-network .vis-node[shadow="true"], 
+.vis-network .vis-node:has([shadow="true"]) {
+  filter: drop-shadow(3px 3px 7px #e74c3c99);
+}
+
+/* 제목 스타일 강화 */
+.network-container > h3,
+.resource-details-container > h3 {
+  margin: 6px 0 18px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+/* 모바일/좁은 화면 대응 */
+@media (max-width: 1200px) {
+  .resource-info-layout { flex-direction: column; min-height: 300px; height: auto; gap: 20px;}
+  .network-container, .resource-details-container { min-height: 260px; }
+  #networkVisualization { min-height: 140px; max-height: 400px; }
+}
+
+.node-image {
+  cursor: pointer;
+  filter: drop-shadow(0 1px 8px rgba(30,30,30,0.10));
+  transition: filter 0.18s;
+}
+.node-image.shadow-it {
+  filter: drop-shadow(0 1px 16px #e74c3cbb);
+}
+.node:hover .node-image,
+.node.selected .node-image {
+  filter: drop-shadow(0 2px 14px #42a5f5cc) brightness(1.13);
+}
+
+.group-bg {
+  opacity: 0.19;
+  stroke: none;
+  pointer-events: none;
+}
+.group-label {
+  font-weight: 700;
+  font-size: 18px;
+  fill: #222;
+  text-anchor: middle;
+  opacity: 0.95;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 7px;
+}
+.node-image { cursor:pointer; }
+.node-image.shadow-it { filter: drop-shadow(0 2px 14px #e74c3c99); }
+.node-label {
+  font-size: 14px;
+  font-weight: 600;
+  fill: #333;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 2px;
 }
