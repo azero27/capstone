@@ -273,7 +273,9 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
             cloud_info_id = get_or_create_cloud_info(ip_address, domain_name)
             scan_setting_id = save_scan_setting(15)
             scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
-    
+            
+    # scan_setting_id = "mock-setting-id"
+
     for tool in RESOURCE_TOOL_MAP.get(resource_type, []):
         tool_id = tool.get("tool_id", -1)
         key = f"scan_result:{scan_result_id}:tool:{tool_id}"
@@ -561,6 +563,7 @@ def analyze_shadow_components_mock(scan_result_ids):
     latest_result_id = cursor.fetchone()["latest_id"]
 
     save_shadow_diff(latest_result_id)
+    # latest_result_id = "mock-shadow-id"
 
 
 

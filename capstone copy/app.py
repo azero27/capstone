@@ -1,3 +1,4 @@
+from utils.pdf_generator import generate_pdf_report  
 import sys
 import os
 import csv
@@ -25,6 +26,8 @@ from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 from flask_cors import CORS
 from waitress import serve
 import hashlib
+import random
+from dateutil.parser import parse as parse_dt
 
 # capstone 디렉토리를 파이썬 경로에 추가
 sys.path.append(os.path.join(os.path.dirname(__file__), 'capstone'))
@@ -123,7 +126,7 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        #cloud_info 및 scan_result_id 미리 생성
+        cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = save_scan_setting(15)
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
@@ -238,7 +241,7 @@ def create_app():
             with open("schedule_config.json", "w") as f:
                 json.dump({"interval_seconds": interval}, f)
 
-            save_scan_setting(int(interval))
+            # save_scan_setting(int(interval))
 
             return jsonify({"status": "ok", "interval": interval}), 200
 
@@ -474,12 +477,689 @@ def create_app():
 
     @app.route('/api/resources', methods=['GET'])
     def api_resources():
-        resources = [
-            "EC2", "S3", "Lambda", "IAM Role", "RDS", "VPC",
-            "CloudFront", "ECS", "EBS", "Route53"
-        ]
-        return jsonify(resources)
+        return jsonify(["port", "s3", "domain"])
     
+    # 리소스 타입별 관련 도구 매핑
+    RESOURCE_TOOL_MAPPING = {
+        "S3": ["S3Scanner", "CloudEnum", "shadow_resource"],
+        "Port": ["Nmap", "shadow_network"],
+        "Domain": ["Amass", "Nuclei", "shadow_domain"],
+        # "IAM": ["EnumerateIAM"]
+    }
+
+    def generate_mock_raw_data(start_date, end_date, resources):
+        mock_data = {
+            "s3": {
+                "s3scanner_results": [
+                    {
+                    "parsed_s3scanner_result": [
+                        {
+                            "allusers_permission": "[]\"",
+                            "authusers_permission": "[READ_ACP]",
+                            "bucket_name": "sskyroute-userdata",
+                            "bucket_status": "exist",
+                            "command": "/home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/s3scanner -bucket-file /home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/names.txt -enumerate",
+                            "end_time": "Mon, 19 May 2025 23:17:45 GMT",
+                            "file_type": "",
+                            "logs": "level=info msg=\"exists    | sskyroute-userdata | ap-northeast-2 | AuthUsers: [READ_ACP] | AllUsers: []\"",
+                            "sensitive_files": "",
+                            "start_time": "Mon, 19 May 2025 23:17:37 GMT",
+                            "success_failure": "success",
+                            "target": "sskyroute-userdata",
+                            "tool_id": 7
+                        },
+                        {
+                            "allusers_permission": "[READ, READ_ACP]",
+                            "authusers_permission": "[]",
+                            "bucket_name": "sskyroute",
+                            "bucket_status": "exist",
+                            "command": "/home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/s3scanner -bucket-file /home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/names.txt -enumerate",
+                            "end_time": "Mon, 19 May 2025 23:17:45 GMT",
+                            "file_type": "",
+                            "logs": "level=info msg=\"exists    | sskyroute | ap-northeast-2 | AuthUsers: [] | AllUsers: [READ, READ_ACP] | 0 objects (0 B)\"",
+                            "sensitive_files": "",
+                            "start_time": "Mon, 19 May 2025 23:17:37 GMT",
+                            "success_failure": "success",
+                            "target": "sskyroute",
+                            "tool_id": 7
+                        },
+                        {
+                            "allusers_permission": "[READ, READ_ACP]",
+                            "authusers_permission": "[READ, READ_ACP]",
+                            "bucket_name": "skyroute7",
+                            "bucket_status": "exist",
+                            "command": "/home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/s3scanner -bucket-file /home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/names.txt -enumerate",
+                            "end_time": "Mon, 19 May 2025 23:17:45 GMT",
+                            "file_type": "",
+                            "logs": "level=info msg=\"exists    | skyroute7 | ap-northeast-2 | AuthUsers: [READ, READ_ACP] | AllUsers: [READ, READ_ACP] | 1 objects (77 B)\"",
+                            "sensitive_files": "",
+                            "start_time": "Mon, 19 May 2025 23:17:37 GMT",
+                            "success_failure": "success",
+                            "target": "skyroute7",
+                            "tool_id": 7
+                        },
+                        {
+                            "allusers_permission": "[READ, READ_ACP]",
+                            "authusers_permission": "[]",
+                            "bucket_name": "sskyroute-private",
+                            "bucket_status": "exist",
+                            "command": "/home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/s3scanner -bucket-file /home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/names.txt -enumerate",
+                            "end_time": "Mon, 19 May 2025 23:17:45 GMT",
+                            "file_type": "",
+                            "logs": "level=info msg=\"exists    | sskyroute-private | ap-northeast-2 | AuthUsers: [] | AllUsers: [READ, READ_ACP] | 0 objects (0 B)\"",
+                            "sensitive_files": "",
+                            "start_time": "Mon, 19 May 2025 23:17:37 GMT",
+                            "success_failure": "success",
+                            "target": "sskyroute-private",
+                            "tool_id": 7
+                        },
+                        {
+                            "allusers_permission": "[READ, READ_ACP]",
+                            "authusers_permission": "[]",
+                            "bucket_name": "sskyroute-test",
+                            "bucket_status": "exist",
+                            "command": "/home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/s3scanner -bucket-file /home/skyroute/cloud-1/capstone/capstone/tools/S3Scanner/names.txt -enumerate",
+                            "end_time": "Mon, 19 May 2025 23:17:45 GMT",
+                            "file_type": "",
+                            "logs": "level=info msg=\"exists    | sskyroute-test | ap-northeast-2 | AuthUsers: [] | AllUsers: [READ, READ_ACP] | 0 objects (0 B)\"",
+                            "sensitive_files": "",
+                            "start_time": "Mon, 19 May 2025 23:17:37 GMT",
+                            "success_failure": "success",
+                            "target": "sskyroute-test",
+                            "tool_id": 7
+                        }
+                    ],
+                    "parsed_s3scanner_sensitive_files": [
+                        {
+                            "object": "hello+4.txt",
+                            "object_size": "77 B",
+                            "object_type": ".txt",
+                            "target": "skyroute7"
+                        },
+                        {
+                            "object": "hello2+4.txt",
+                            "object_size": "77 B",
+                            "object_type": ".txt",
+                            "target": "skyroute7"
+                        }
+                    ]
+                    }
+                ],
+                "cloud_enum_results": {
+                    "cloudEnumDiscoveredFile": [
+                        {
+                            "file_url": "http://sskyroute.s3.ap-northeast-2.amazonaws.com/sskyroute",
+                            "scan_result_id": 1
+                        },
+                        {
+                            "file_url": "http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/sskyroute-private",
+                            "scan_result_id": 2
+                        },
+                        {
+                            "file_url": "http://sskyroute-test.s3.ap-northeast-2.amazonaws.com/sskyroute-test",
+                            "scan_result_id": 3
+                        }
+                    ],
+                    "cloudEnumScanResult": [
+                        {
+                            "command": "python3 /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/cloud_enum.py -k sskyroute",
+                            "end_time": "2025-05-19 23:24:30",
+                            "id": 1,
+                            "logs": "OPEN S3 BUCKET: http://sskyroute.s3.ap-northeast-2.amazonaws.com/\u001b[0m\n    FILES:\n      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/sskyroute",
+                            "start_time": "2025-05-19 23:19:12",
+                            "success_failure": "success",
+                            "target": "http://sskyroute.s3.ap-northeast-2.amazonaws.com/",
+                            "tool_id": 6
+                        },
+                        {
+                            "command": "python3 /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/cloud_enum.py -k sskyroute",
+                            "end_time": "2025-05-19 23:24:30",
+                            "id": 2,
+                            "logs": "OPEN S3 BUCKET: http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/\u001b[0m\n    FILES:\n      ->http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/sskyroute-private",
+                            "start_time": "2025-05-19 23:19:12",
+                            "success_failure": "success",
+                            "target": "http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/",
+                            "tool_id": 6
+                        },
+                        {
+                            "command": "python3 /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/cloud_enum.py -k sskyroute",
+                            "end_time": "2025-05-19 23:24:30",
+                            "id": 3,
+                            "logs": "OPEN S3 BUCKET: http://sskyroute-test.s3.ap-northeast-2.amazonaws.com/\u001b[0m\n    FILES:\n      ->http://sskyroute-test.s3.ap-northeast-2.amazonaws.com/sskyroute-test",
+                            "start_time": "2025-05-19 23:19:12",
+                            "success_failure": "success",
+                            "target": "http://sskyroute-test.s3.ap-northeast-2.amazonaws.com/",
+                            "tool_id": 6
+                        }
+                    ],
+                    "raw_cloud_enum_result_file": "/home/skyroute/cloud-1/capstone/capstone/logs/cloud_enum_20250519_231912_671413.log",
+                    "status": "success"
+                }
+            },
+            "port": {
+                "nmap_results": [
+                    {
+                        "domain": "ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com",
+                        "ip": "15.165.170.99",
+                        "original_ip": "15.165.170.99",
+                        "parsed_nmap_result": [
+                        {
+                            "command": "/usr/bin/nmap -Pn -sV 15.165.170.99",
+                            "end_time": "2025-05-22 04:35:06",
+                            "logs": "Starting Nmap 7.80 ( https://nmap.org ) at 2025-05-22 04:33 PDT\nNmap scan report for ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com (15.165.170.99)\nHost is up (0.0075s latency).\nNot shown: 998 filtered ports\nPORT   STATE SERVICE VERSION\n22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.11 (Ubuntu Linux; protocol 2.0)\n80/tcp open  http    Apache httpd 2.4.58 ((Ubuntu))\nService Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel\n\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\nNmap done: 1 IP address (1 host up) scanned in 122.20 seconds\n",
+                            "port_number": 22,
+                            "port_status": "open",
+                            "protocol": "tcp",
+                            "service_name": "ssh",
+                            "service_version": "OpenSSH 9.6p1 Ubuntu 3ubuntu13.11 (Ubuntu Linux; protocol 2.0)",
+                            "start_time": "2025-05-22 04:33:03",
+                            "success": 1,
+                            "target": "ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com",
+                            "tool_id": 1
+                        },
+                        {
+                            "command": "/usr/bin/nmap -Pn -sV 15.165.170.99",
+                            "end_time": "2025-05-22 04:35:06",
+                            "logs": "Starting Nmap 7.80 ( https://nmap.org ) at 2025-05-22 04:33 PDT\nNmap scan report for ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com (15.165.170.99)\nHost is up (0.0075s latency).\nNot shown: 998 filtered ports\nPORT   STATE SERVICE VERSION\n22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.11 (Ubuntu Linux; protocol 2.0)\n80/tcp open  http    Apache httpd 2.4.58 ((Ubuntu))\nService Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel\n\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\nNmap done: 1 IP address (1 host up) scanned in 122.20 seconds\n",
+                            "port_number": 80,
+                            "port_status": "open",
+                            "protocol": "tcp",
+                            "service_name": "http",
+                            "service_version": "Apache httpd 2.4.58 ((Ubuntu))",
+                            "start_time": "2025-05-22 04:33:03",
+                            "success": 1,
+                            "target": "ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com",
+                            "tool_id": 1
+                        }
+                    ],
+                        "raw_nmap_result": "Starting Nmap 7.80 ( https://nmap.org ) at 2025-05-22 04:33 PDT\nNmap scan report for ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com (15.165.170.99)\nHost is up (0.0075s latency).\nNot shown: 998 filtered ports\nPORT   STATE SERVICE VERSION\n22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.11 (Ubuntu Linux; protocol 2.0)\n80/tcp open  http    Apache httpd 2.4.58 ((Ubuntu))\nService Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel\n\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\nNmap done: 1 IP address (1 host up) scanned in 122.20 seconds\n"
+                    }
+                                        
+                ]
+            },
+            "domain": {
+                "amass_results": [
+                    {
+                        "parsed_amass_results": {
+                            "command": "amass enum -passive -d sskyroute.com",
+                            "end_time": "2025-05-19T23:35:23.072609",
+                            "logs": "www.sskyroute.com\ndata.sskyroute.com\nsskyroute.com\nwww.data.sskyroute.com",
+                            "logs_full": "www.sskyroute.com\ndata.sskyroute.com\nsskyroute.com\nwww.data.sskyroute.com\n\n\nThe enumeration has finished\nDiscoveries are being migrated into the local database\n",
+                            "start_time": "2025-05-19T23:34:31.856570",
+                            "subdomains": "www.sskyroute.com\ndata.sskyroute.com\nsskyroute.com\nwww.data.sskyroute.com",
+                            "success": 1,
+                            "target": "sskyroute.com",
+                            "tool_id": 2
+                        }
+                    }
+                ],
+                "nuclei_results": [
+                    {
+                    "nulcei_result": {
+                        "command": "nuclei -u http://data.sskyroute.com -t /home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml -stats",
+                        "end_time": "2025-05-19T23:30:06.930446",
+                        "log": "[detect-dangling-s3-cname] [dns] [info] data.sskyroute.com [\"CNAME\\tdata.sskyroute.com.s3-website.ap-northeast-2.amazonaws.com.\",\"CNAME\\ts3-website.ap-northeast-2.amazonaws.com.\"]\n[detect-dangling-s3-cname] [http] [info] http://data.sskyroute.com",
+                        "risk_level": "high",
+                        "start_time": "2025-05-19T23:30:02.483893",
+                        "success": 1,
+                        "target": "http://data.sskyroute.com",
+                        "tool_id": 1,
+                        "url": "CNAME\tdata.sskyroute.com.s3-website.ap-northeast-2.amazonaws.com.\nCNAME\ts3-website.ap-northeast-2.amazonaws.com.",
+                        "url_list": [
+                        "CNAME\tdata.sskyroute.com.s3-website.ap-northeast-2.amazonaws.com.",
+                        "CNAME\ts3-website.ap-northeast-2.amazonaws.com."
+                        ],
+                        "vulnerability": "detect-dangling-s3-cname [dns] and [http] matched"
+                    }
+                    }
+                ]
+            },
+            "mock_shadow_domain_result": {
+                "dangling_dns": [
+                    {
+                        "resource": "d111111abcdef8.cloudfront.net",
+                        "resource_type": "AWS CloudFront",
+                        "resource_identifier": "d111111abcdef8",
+                        "linked_domains": ["media.skyroute.com"],
+                        "status": "dangling_dns"
+                    }
+                ],
+                "potential_exposure": [
+                    {
+                        "resource": "bucket1.s3.amazonaws.com",
+                        "resource_type": "AWS S3",
+                        "resource_identifier": "bucket1",
+                        "linked_domains": ["cdn.skyroute.com"],
+                        "is_user_owned": False,
+                        "status": "potential_exposure"
+                    },
+                    {
+                        "resource": "static-site.github.io",
+                        "resource_type": "GitHub Pages",
+                        "resource_identifier": "static-site",
+                        "linked_domains": ["static.skyroute.com"],
+                        "status": "potential_exposure"
+                    }
+                ],
+                "linked_known_resource": [
+                    {
+                        "resource": "my-owned-bucket.s3.amazonaws.com",
+                        "resource_type": "AWS S3",
+                        "resource_identifier": "my-owned-bucket",
+                        "linked_domains": ["img.skyroute.com"],
+                        "is_user_owned": True,
+                        "status": "linked_known_resource"
+                    }
+                ]
+            },
+            "mock_shadow_network_result": [
+                {
+                    "port": 22,
+                    "expected_service": "ssh",
+                    "actual_service": "closed",
+                    "reason": "Expected open port is closed",
+                    "type": "closed_expected_port",
+                    "scan_result_id": 101
+                },
+                {
+                    "port": 3306,
+                    "expected_service": None,
+                    "actual_service": "mysql",
+                    "reason": "Unexpected open port",
+                    "type": "unexpected_open_port",
+                    "scan_result_id": 101
+                },
+                {
+                    "port": 443,
+                    "expected_service": "https",
+                    "actual_service": "http",
+                    "reason": "Service mismatch",
+                    "type": "mismatched_service",
+                    "scan_result_id": 101
+                }
+            ],
+            "mock_shadow_resource_result": [
+                {
+                    "bucket": "private-logs-bucket",
+                    "allusers_permission": "[\"READ\", \"WRITE\"]",
+                    "authusers_permission": "[]",
+                    "scan_result_id": 101,
+                    "reason": "not allowed open buckets"
+                },
+                {
+                    "bucket": "audit-trails-2023",
+                    "allusers_permission": "[\"FULL_CONTROL\"]",
+                    "authusers_permission": "[\"READ\"]",
+                    "scan_result_id": 101,
+                    "reason": "not allowed open buckets"
+                }
+            ]
+
+        }
+        
+        # 선택된 리소스에 대한 데이터만 반환
+        result =  {k: v for k, v in mock_data.items() if k in resources}
+        
+        # shadow 분석 결과 조건부 포함
+        if "s3" in resources:
+            result["mock_shadow_resource_result"] = mock_data.get("mock_shadow_resource_result")
+
+        if "port" in resources:
+            result["mock_shadow_network_result"] = mock_data.get("mock_shadow_network_result")
+
+        if "domain" in resources:
+            result["mock_shadow_domain_result"] = mock_data.get("mock_shadow_domain_result")
+
+        return result
+
+
+    def get_tools_for_resources(selected_resources):
+        tools = set()
+        for resource in selected_resources:
+            tools.update(RESOURCE_TOOL_MAPPING.get(resource, []))
+        return list(tools)
+
+    def normalize_list_field(field):
+        if isinstance(field, list):
+            return field
+        elif isinstance(field, str) and field.strip() == "":
+            return []
+        elif isinstance(field, str):
+            return [field]
+        elif isinstance(field, (int, float)):
+            return [str(field)]
+        else:
+            return []
+
+    def normalize_report_data(report_data):
+        for rtype, rdata in report_data.get("resources", {}).items():
+            for finding in rdata.get("findings", []):
+                if "sensitive_files" in finding:
+                    finding["sensitive_files"] = normalize_list_field(finding["sensitive_files"])
+                if "file_type" in finding and isinstance(finding["file_type"], str) and finding["file_type"].strip() == "":
+                    finding["file_type"] = "Unknown"
+                if "url_list" in finding:
+                    finding["url_list"] = normalize_list_field(finding["url_list"])
+                if "url" in finding and isinstance(finding["url"], str) and finding["url"].strip() == "":
+                    finding["url"] = "N/A"
+
+            if rtype == "s3":
+                files = rdata.get("cloud_enum_results", {}).get("files", [])
+                for f in files:
+                    if "file_url" in f and isinstance(f["file_url"], str) and f["file_url"].strip() == "":
+                        f["file_url"] = "N/A"
+                    if "bucket_index" in f and (str(f["bucket_index"]).strip() == "" or f["bucket_index"] is None):
+                        f["bucket_index"] = -1
+
+    def safe_first_date(data_list, key="start_time"):
+        if isinstance(data_list, list) and len(data_list) > 0:
+            first = data_list[0]
+            if isinstance(first, dict):
+                val = first.get(key, "")
+                if isinstance(val, str):
+                    parts = val.strip().split()
+                    if len(parts) > 0:
+                        return parts[0]
+        return "N/A"
+
+    def sanitize_filename(name: str):
+        return name.replace(":", "-").replace(" ", "_")
+
+    def in_date_range(iso_str, start_date, end_date):
+        try:
+            dt = datetime.fromisoformat(iso_str)
+            return start_date <= dt <= end_date
+        except:
+            return False
+
+    def process_raw_data(raw_data, start_date, end_date):
+        # 동적으로 discovered_resources 구성
+        discovered = {}
+
+        if "s3" in raw_data:
+            discovered["s3_buckets"] = 0  # 나중에 overwrite됨
+
+        if "port" in raw_data:
+            discovered["open_ports"] = 0
+
+        if "domain" in raw_data:
+            discovered["subdomains"] = 0
+
+        report = {
+            "generated_at": datetime.now().isoformat(),
+            "period": {"start": start_date, "end": end_date},
+            "resources": {},
+            "overall_summary": {
+                "discovered_resources": discovered
+            }
+        }
+
+        if "s3" in raw_data:
+            s3_raw = raw_data["s3"]
+            scanner_wrappers = s3_raw.get("s3scanner_results", [])
+            s3scanner_results = []
+
+            for wrapper in scanner_wrappers:
+                s3scanner_results.extend(wrapper.get("parsed_s3scanner_result", []))
+
+            cloud_enum_raw = s3_raw.get("cloud_enum_results", {})
+            cloud_enum_main = cloud_enum_raw.get("cloudEnumScanResult", [])
+            cloud_enum_files = cloud_enum_raw.get("cloudEnumDiscoveredFile", [])
+
+            # 버킷명 기반 민감 파일 맵 생성
+            sensitive_file_map = {}
+            for wrapper in scanner_wrappers:
+                for sf in wrapper.get("parsed_s3scanner_sensitive_files", []):
+                    bucket = sf.get("target")
+                    if bucket:
+                        sensitive_file_map.setdefault(bucket, []).append(sf.get("object", "Unknown"))
+
+            # findings 재구성
+            s3_findings = []
+            for entry in s3scanner_results:
+                bucket = entry.get("bucket_name", "Unknown")
+                allusers = entry.get("allusers_permission", "[]")
+                authusers = entry.get("authusers_permission", "[]")
+                
+                # bucket 별 민감 파일 가져오기
+                sensitive_files = sensitive_file_map.get(bucket, [])
+                files_str = ", ".join(sensitive_files) 
+                files = sensitive_files if sensitive_files else []
+
+                s3_findings.append({
+                    "bucket": bucket,
+                    "details": f"AuthUsers: {authusers}, AllUsers: {allusers}",
+                    "files": files_str  # 🔁 recommendation → files 로 변경
+                })
+
+            s3_timeline = []
+            first = safe_first_date(s3scanner_results)
+            if first != "N/A":
+                s3_timeline.append({
+                    "date": first,
+                    "event": f"{len(s3scanner_results)} buckets scanned"
+                })
+
+            first = safe_first_date(cloud_enum_main)
+            if first != "N/A":
+                s3_timeline.append({
+                    "date": first,
+                    "event": f"{len(cloud_enum_files)} sensitive files discovered"
+                })
+
+
+            report["overall_summary"]["discovered_resources"]["s3_buckets"] = len(s3scanner_results)
+            report["resources"]["s3"] = {
+                "summary": {
+                    "total_buckets": len(s3scanner_results),
+                    "public_buckets": sum(1 for x in s3scanner_results if x.get("allusers_permission")),
+                    "auth_access_buckets": sum(1 for x in s3scanner_results if x.get("authusers_permission")),
+                    "sensitive_files": len(cloud_enum_files)
+                },
+                "findings": s3_findings,
+                "timeline": s3_timeline,
+                "cloud_enum_results": {
+                    "files": cloud_enum_files
+                }
+            }
+
+            all_times = [r.get("start_time") for r in s3scanner_results if r.get("start_time")] + \
+                [r.get("start_time") for r in cloud_enum_main if r.get("start_time")]
+            report["resources"]["s3"]["start_time"] = get_earliest_time(all_times)
+
+        if "port" in raw_data:
+            port_raw = raw_data["port"]
+            nmap_wrappers = port_raw.get("nmap_results", [])
+            nmap_results = []
+
+            for wrapper in nmap_wrappers:
+                nmap_results.extend(wrapper.get("parsed_nmap_result", []))
+
+            port_findings = []
+
+            for result in nmap_results:
+                port_number = normalize_list_field(result.get("port_number"))
+                target = result.get("target", "Unknown")
+                finding = {
+                    "port": port_number,
+                    "service_info": {
+                        "protocol": normalize_list_field(result.get("protocol")),
+                        "status": normalize_list_field(result.get("port_status")),
+                        "service": normalize_list_field(result.get("service_name")),
+                        "version": normalize_list_field(result.get("service_version"))
+                    },
+                    "details": f"{normalize_list_field(result.get('service_name'))}({port_number}/{normalize_list_field(result.get('protocol'))}) \uc11c\ube44\uc2a4 \ubc1c\uacac, \ubc84\uc804: {normalize_list_field(result.get('service_version'))}"
+                }
+                port_findings.append(finding)
+
+            open_ports = sum(1 for x in nmap_results if x.get("port_status") == "open")
+            report["overall_summary"]["discovered_resources"]["open_ports"] = open_ports
+
+            port_timeline = []
+            first = safe_first_date(nmap_results)
+            if first != "N/A":
+                port_timeline.append({
+                    "date": first,
+                    "event": f"{open_ports} open ports detected"
+                })
+
+            report["resources"]["port"] = {
+                "summary": {
+                    "open_ports": open_ports,
+                    "services_found": len(port_findings)
+                },
+                "findings": port_findings,
+                "timeline": port_timeline
+            }
+
+            all_times = [r.get("start_time") for r in nmap_results if r.get("start_time")]
+            report["resources"]["port"]["start_time"] = get_earliest_time(all_times)
+
+
+        if "domain" in raw_data:
+            domain_raw = raw_data["domain"]
+
+            # Amass
+            amass_wrappers = domain_raw.get("amass_results", [])
+            amass_results = []
+            for wrapper in amass_wrappers:
+                parsed = wrapper.get("parsed_amass_results")
+                if parsed:
+                    amass_results.append(parsed)
+
+            # Nuclei
+            nuclei_wrappers = domain_raw.get("nuclei_results", [])
+            nuclei_results = []
+            for wrapper in nuclei_wrappers:
+                parsed = wrapper.get("nulcei_result")
+                if parsed:
+                    nuclei_results.append(parsed)
+
+            # target = result.get("target", "Unknown")
+
+            domain_findings = []
+
+            for result in nuclei_results:
+                vuln_msg = result.get("vulnerability", "").lower()
+                risk_level = result.get("risk_level", "unknown").lower()
+                target = result.get("target", "Unknown")
+
+                if "dns" in vuln_msg and "http" in vuln_msg:
+                    issue = "Dangling DNS (CNAME: DNS+HTTP matched)"
+                elif "dns" in vuln_msg:
+                    issue = "Potential CNAME Misconfiguration (DNS only)"
+                elif "http" in vuln_msg:
+                    issue = "Potential CNAME Misconfiguration (HTTP only)"
+                else:
+                    issue = "Unclassified CNAME Behavior"
+
+                domain_findings.append({
+                    "target": target,
+                    "domain": normalize_list_field(target),
+                    "issue": issue,
+                    "risk_level": risk_level,
+                    "details": normalize_list_field(result.get("vulnerability")),
+                    "cname": result.get("url", "N/A"),
+                    # "recommendation": "Remove the unused CNAME record or point it to a valid resource"
+                })
+
+
+            domain_timeline = []
+            first = safe_first_date(amass_results)
+            if first != "N/A":
+                domain_timeline.append({
+                    "date": first,
+                    "event": f"{len(amass_results)} subdomains discovered"
+                })
+
+            first = safe_first_date(nuclei_results)
+            if first != "N/A":
+                domain_timeline.append({
+                    "date": first,
+                    "event": f"{len(domain_findings)} dangling DNS entries detected"
+                })
+
+            report["overall_summary"]["discovered_resources"]["subdomains"] = len(amass_results)
+            report["resources"]["domain"] = {
+                "summary": {
+                    "total_subdomains": len(amass_results),
+                    "active_subdomains": len(amass_results),
+                    "dangling_dns": len(domain_findings)
+                },
+                "findings": domain_findings,
+                "timeline": domain_timeline
+            }
+            
+            all_times = [r.get("start_time") for r in nuclei_results if r.get("start_time")]
+            report["resources"]["domain"]["start_time"] = get_earliest_time(all_times)
+
+
+        shadow = {}
+
+        domain_result = raw_data.get("mock_shadow_domain_result")
+        if domain_result:
+            summary = {
+                "dangling_dns": len(domain_result.get("dangling_dns", [])),
+                "potential_exposure": len(domain_result.get("potential_exposure", [])),
+                "linked_known_resource": len(domain_result.get("linked_known_resource", []))
+            }
+            findings = domain_result.get("dangling_dns", []) + \
+                    domain_result.get("potential_exposure", []) + \
+                    domain_result.get("linked_known_resource", [])
+            shadow["shadow_domain"] = {
+                "summary": summary,
+                "findings": findings
+            }
+
+        network_result = raw_data.get("mock_shadow_network_result", [])
+        if network_result:
+            summary = {
+                "closed_expected_port": sum(1 for r in network_result if r["type"] == "closed_expected_port"),
+                "unexpected_open_port": sum(1 for r in network_result if r["type"] == "unexpected_open_port"),
+                "mismatched_service": sum(1 for r in network_result if r["type"] == "mismatched_service")
+            }
+            shadow["shadow_network"] = {
+                "summary": summary,
+                "findings": network_result
+            }
+
+        resource_result = raw_data.get("mock_shadow_resource_result", [])
+        if resource_result:
+            summary = {
+                "public_buckets_exposed": len(resource_result)
+            }
+            shadow["shadow_resource"] = {
+                "summary": summary,
+                "findings": resource_result
+            }
+
+        # report에 반영
+        if shadow:
+            report["resources"]["shadow"] = shadow
+
+        print("[FINAL DEBUG] resources keys:", report["resources"].keys())
+        print("[FINAL DEBUG] shadow keys:", report["resources"].get("shadow", {}).keys())
+
+
+        # 데이터 포맷 정리 (기존 코드 유지)
+        normalize_report_data(report)
+        return report
+
+    def get_earliest_time(time_list):
+        """문자열 리스트 중 가장 이른 ISO 시간 리턴"""
+        dt_list = []
+        for t in time_list:
+            try:
+                dt = parse_dt(t)
+                if dt.tzinfo is not None:
+                    dt = dt.replace(tzinfo=None)  # timezone 제거 → naive datetime 으로 변환
+                dt_list.append(dt)
+            except Exception:
+                continue
+        if dt_list:
+            return min(dt_list).isoformat()
+        return None
+
 
     @app.route('/api/generate_report', methods=['POST'])
     def api_generate_report():
@@ -487,14 +1167,28 @@ def create_app():
         start_date = data.get('start_date')
         end_date = data.get('end_date')
         resources = data.get('resources', [])
+
         if not start_date or not end_date or not resources:
             return jsonify({'status': 'error', 'message': '필터가 부족합니다.'}), 400
 
-        # (실제로는 DB 조회, PDF 생성 태스크 트리거)
-        pdf_url = f"/static/reports/report_{start_date}_{end_date}.pdf"
-        # 예: celery_report_generate.delay(start_date, end_date, resources)
-        return jsonify({'status': 'ok', 'pdf_url': pdf_url})
+        # 소문자 리소스명 통일
+        raw_data = generate_mock_raw_data(start_date, end_date, [r.lower() for r in resources])
+        report_data = process_raw_data(raw_data, start_date, end_date)
 
+        filename = f"report_{sanitize_filename(start_date)}_{sanitize_filename(end_date)}.pdf"
+        save_path = os.path.join("static", "reports", filename)
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+        try:
+            generate_pdf_report(report_data, save_path)
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': f'PDF 생성 실패: {str(e)}'}), 500
+
+        return jsonify({
+            'status': 'ok',
+            'pdf_url': f"/static/reports/{filename}"
+        })
+    
     @app.route('/api/oneoff_scan', methods=['POST'])
     def oneoff_scan():
         """
@@ -725,5 +1419,3 @@ if __name__ == '__main__':
     if os.path.exists(s3_path):
         s3_file_id = parse_s3_file(s3_path)
         r.set("s3_file_id", s3_file_id)
-
-    app.run(debug=True)
