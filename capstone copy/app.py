@@ -243,7 +243,7 @@ def create_app():
             with open("schedule_config.json", "w") as f:
                 json.dump({"interval_seconds": interval}, f)
 
-            # save_scan_setting(int(interval))
+            save_scan_setting(int(interval))
 
             return jsonify({"status": "ok", "interval": interval}), 200
 
@@ -506,7 +506,7 @@ def create_app():
                             "file_type": "",
                             "logs": "level=info msg=\"exists    | sskyroute-userdata | ap-northeast-2 | AuthUsers: [READ_ACP] | AllUsers: []\"",
                             "sensitive_files": "",
-                            "start_time": "Mon, 19 May 2025 23:17:37 GMT",
+                            "start_time": "Sat, 06 June 2025 23:17:37 GMT",
                             "success_failure": "success",
                             "target": "sskyroute-userdata",
                             "tool_id": 7
@@ -521,7 +521,7 @@ def create_app():
                             "file_type": "",
                             "logs": "level=info msg=\"exists    | sskyroute | ap-northeast-2 | AuthUsers: [] | AllUsers: [READ, READ_ACP] | 0 objects (0 B)\"",
                             "sensitive_files": "",
-                            "start_time": "Mon, 19 May 2025 23:17:37 GMT",
+                            "start_time": "Sat, 06 June 2025 23:17:37 GMT",
                             "success_failure": "success",
                             "target": "sskyroute",
                             "tool_id": 7
@@ -606,20 +606,20 @@ def create_app():
                     "cloudEnumScanResult": [
                         {
                             "command": "python3 /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/cloud_enum.py -k sskyroute",
-                            "end_time": "2025-05-19 23:24:30",
+                            "end_time": "2025-06-06 23:24:30",
                             "id": 1,
                             "logs": "OPEN S3 BUCKET: http://sskyroute.s3.ap-northeast-2.amazonaws.com/\u001b[0m\n    FILES:\n      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/sskyroute",
-                            "start_time": "2025-05-19 23:19:12",
+                            "start_time": "2025-06-06 23:19:12",
                             "success_failure": "success",
                             "target": "http://sskyroute.s3.ap-northeast-2.amazonaws.com/",
                             "tool_id": 6
                         },
                         {
                             "command": "python3 /home/skyroute/cloud-1/capstone/capstone/tools/cloud_enum/cloud_enum.py -k sskyroute",
-                            "end_time": "2025-05-19 23:24:30",
+                            "end_time": "2025-06-06 23:24:30",
                             "id": 2,
                             "logs": "OPEN S3 BUCKET: http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/\u001b[0m\n    FILES:\n      ->http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/sskyroute-private",
-                            "start_time": "2025-05-19 23:19:12",
+                            "start_time": "2025-06-06 23:19:12",
                             "success_failure": "success",
                             "target": "http://sskyroute-private.s3.ap-northeast-2.amazonaws.com/",
                             "tool_id": 6
@@ -648,28 +648,28 @@ def create_app():
                         "parsed_nmap_result": [
                         {
                             "command": "/usr/bin/nmap -Pn -sV 15.165.170.99",
-                            "end_time": "2025-05-22 04:35:06",
+                            "end_time": "2025-06-14 04:35:06",
                             "logs": "Starting Nmap 7.80 ( https://nmap.org ) at 2025-05-22 04:33 PDT\nNmap scan report for ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com (15.165.170.99)\nHost is up (0.0075s latency).\nNot shown: 998 filtered ports\nPORT   STATE SERVICE VERSION\n22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.11 (Ubuntu Linux; protocol 2.0)\n80/tcp open  http    Apache httpd 2.4.58 ((Ubuntu))\nService Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel\n\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\nNmap done: 1 IP address (1 host up) scanned in 122.20 seconds\n",
                             "port_number": 22,
                             "port_status": "open",
                             "protocol": "tcp",
                             "service_name": "ssh",
                             "service_version": "OpenSSH 9.6p1 Ubuntu 3ubuntu13.11 (Ubuntu Linux; protocol 2.0)",
-                            "start_time": "2025-05-22 04:33:03",
+                            "start_time": "2025-06-14 04:33:03",
                             "success": 1,
                             "target": "ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com",
                             "tool_id": 1
                         },
                         {
                             "command": "/usr/bin/nmap -Pn -sV 15.165.170.99",
-                            "end_time": "2025-05-22 04:35:06",
+                            "end_time": "2025-06-06 04:35:06",
                             "logs": "Starting Nmap 7.80 ( https://nmap.org ) at 2025-05-22 04:33 PDT\nNmap scan report for ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com (15.165.170.99)\nHost is up (0.0075s latency).\nNot shown: 998 filtered ports\nPORT   STATE SERVICE VERSION\n22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.11 (Ubuntu Linux; protocol 2.0)\n80/tcp open  http    Apache httpd 2.4.58 ((Ubuntu))\nService Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel\n\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\nNmap done: 1 IP address (1 host up) scanned in 122.20 seconds\n",
                             "port_number": 80,
                             "port_status": "open",
                             "protocol": "tcp",
                             "service_name": "http",
                             "service_version": "Apache httpd 2.4.58 ((Ubuntu))",
-                            "start_time": "2025-05-22 04:33:03",
+                            "start_time": "2025-06-06 04:33:03",
                             "success": 1,
                             "target": "ec2-15-165-170-99.ap-northeast-2.compute.amazonaws.com",
                             "tool_id": 1
@@ -685,10 +685,10 @@ def create_app():
                     {
                         "parsed_amass_results": {
                             "command": "amass enum -passive -d sskyroute.com",
-                            "end_time": "2025-05-19T23:35:23.072609",
+                            "end_time": "2025-06-06T23:35:23.072609",
                             "logs": "www.sskyroute.com\ndata.sskyroute.com\nsskyroute.com\nwww.data.sskyroute.com",
                             "logs_full": "www.sskyroute.com\ndata.sskyroute.com\nsskyroute.com\nwww.data.sskyroute.com\n\n\nThe enumeration has finished\nDiscoveries are being migrated into the local database\n",
-                            "start_time": "2025-05-19T23:34:31.856570",
+                            "start_time": "2025-06-06T23:34:31.856570",
                             "subdomains": "www.sskyroute.com\ndata.sskyroute.com\nsskyroute.com\nwww.data.sskyroute.com",
                             "success": 1,
                             "target": "sskyroute.com",
@@ -700,10 +700,10 @@ def create_app():
                     {
                     "nulcei_result": {
                         "command": "nuclei -u http://data.sskyroute.com -t /home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml -stats",
-                        "end_time": "2025-05-19T23:30:06.930446",
+                        "end_time": "2025-06-06T23:30:06.930446",
                         "log": "[detect-dangling-s3-cname] [dns] [info] data.sskyroute.com [\"CNAME\\tdata.sskyroute.com.s3-website.ap-northeast-2.amazonaws.com.\",\"CNAME\\ts3-website.ap-northeast-2.amazonaws.com.\"]\n[detect-dangling-s3-cname] [http] [info] http://data.sskyroute.com",
                         "risk_level": "high",
-                        "start_time": "2025-05-19T23:30:02.483893",
+                        "start_time": "2025-06-06T23:30:02.483893",
                         "success": 1,
                         "target": "http://data.sskyroute.com",
                         "tool_id": 1,
@@ -833,6 +833,35 @@ def create_app():
             return [str(field)]
         else:
             return []
+    
+    def normalize_date(date_str):
+        """
+        다양한 형식의 날짜 문자열을 ISO 8601로 변환 (예: '2025-05-19T23:30:06' 형식)
+        변환 실패 시 None 반환
+        """
+        if not date_str or not isinstance(date_str, str):
+            return None
+        try:
+            dt = parse_dt(date_str)
+            return dt.isoformat()
+        except Exception:
+            return None
+
+    def normalize_mock_timestamps(mock_data):
+        def apply_to_dicts(data):
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    if key in ("start_time", "end_time"):
+                        data[key] = normalize_date(value)
+                    elif isinstance(value, (dict, list)):
+                        apply_to_dicts(value)
+            elif isinstance(data, list):
+                for item in data:
+                    apply_to_dicts(item)
+
+        apply_to_dicts(mock_data)
+        return mock_data
+
 
     def normalize_report_data(report_data):
         for rtype, rdata in report_data.get("resources", {}).items():
@@ -870,10 +899,21 @@ def create_app():
 
     def in_date_range(iso_str, start_date, end_date):
         try:
-            dt = datetime.fromisoformat(iso_str)
+            dt = parse_dt(iso_str)
+
+            # 타임존이 있으면 제거
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)
+        
+            # DEBUG 로그
+            print("[DEBUG] dt:", dt, "| start_date:", start_date, "| end_date:", end_date)
+            print("[DEBUG types] dt:", type(dt), "start:", type(start_date), "end:", type(end_date))
+        
             return start_date <= dt <= end_date
-        except:
+        except Exception as e:
+            print("[ERROR] in_date_range parse failed:", iso_str, "| error:", e)
             return False
+
 
     def process_raw_data(raw_data, start_date, end_date):
         # 동적으로 discovered_resources 구성
@@ -902,11 +942,38 @@ def create_app():
             scanner_wrappers = s3_raw.get("s3scanner_results", [])
             s3scanner_results = []
 
+            for r in s3_raw.get("parsed_s3scanner_result", []):
+                start_str = r.get("start_time", "")
+                try:
+                    dt = parse_dt(start_str)
+                    dt = dt.replace(tzinfo=None) if dt.tzinfo else dt  # offset-aware 제거
+                    if start_date <= dt <= end_date:
+                        s3scanner_results.append(r)
+                except Exception as e:
+                    print(f"[ERROR][s3scanner] 날짜 파싱 실패: '{start_str}' -> {e}")
+            
             for wrapper in scanner_wrappers:
-                s3scanner_results.extend(wrapper.get("parsed_s3scanner_result", []))
+                for r in wrapper.get("parsed_s3scanner_result", []):
+                    if in_date_range(r.get("start_time", ""), start_date, end_date):
+                        s3scanner_results.append(r)
+                        print(f"[DEBUG][s3scanner] 포함된 start_time: {r.get('start_time')} | bucket: {r.get('bucket_name')}")
 
-            cloud_enum_raw = s3_raw.get("cloud_enum_results", {})
-            cloud_enum_main = cloud_enum_raw.get("cloudEnumScanResult", [])
+
+            cloud_enum_raw = raw_data.get("cloud_enum_results", {})
+            cloud_enum_main = []
+
+            # 날짜 필터링된 cloudEnumScanResult
+            for r in cloud_enum_raw.get("cloudEnumScanResult", []):
+                start_str = r.get("start_time", "")
+                try:
+                    dt = parse_dt(start_str)
+                    dt = dt.replace(tzinfo=None) if dt.tzinfo else dt  # tz 제거
+                    if start_date <= dt <= end_date:
+                        cloud_enum_main.append(r)
+                except Exception as e:
+                    print(f"[ERROR][cloud_enum] 날짜 파싱 실패: '{start_str}' -> {e}")
+
+            # cloudEnumDiscoveredFile은 start_time이 없으므로 전체 사용 또는 결과 id 기반 필터링 필요
             cloud_enum_files = cloud_enum_raw.get("cloudEnumDiscoveredFile", [])
 
             # 버킷명 기반 민감 파일 맵 생성
@@ -976,7 +1043,11 @@ def create_app():
             nmap_results = []
 
             for wrapper in nmap_wrappers:
-                nmap_results.extend(wrapper.get("parsed_nmap_result", []))
+                nmap_results.extend([
+                r for r in wrapper.get("parsed_nmap_result", [])
+                if in_date_range(r.get("start_time", ""), start_date, end_date)
+            ])
+
 
             port_findings = []
 
@@ -1023,48 +1094,75 @@ def create_app():
             domain_raw = raw_data["domain"]
 
             # Amass
-            amass_wrappers = domain_raw.get("amass_results", [])
+            amass_wrappers = domain_raw.get("amass_results", [])  
             amass_results = []
+            amass_subdomains = set()
+
             for wrapper in amass_wrappers:
-                parsed = wrapper.get("parsed_amass_results")
-                if parsed:
-                    amass_results.append(parsed)
+                r = wrapper.get("parsed_amass_results", {})
+                start_str = r.get("start_time", "")
+                try:
+                    dt = parse_dt(start_str)
+                    dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
+                    if start_date <= dt <= end_date:
+                        amass_results.append(r)
+                        subdomains = r.get("subdomains", "")
+                        for line in subdomains.strip().splitlines():
+                            amass_subdomains.add(line.strip())
+                except Exception as e:
+                    print(f"[ERROR][amass] 날짜 파싱 실패: '{start_str}' -> {e}")
+
 
             # Nuclei
             nuclei_wrappers = domain_raw.get("nuclei_results", [])
             nuclei_results = []
-            for wrapper in nuclei_wrappers:
-                parsed = wrapper.get("nulcei_result")
-                if parsed:
-                    nuclei_results.append(parsed)
 
-            # target = result.get("target", "Unknown")
+            for wrapper in nuclei_wrappers:
+                result = wrapper.get("nulcei_result", {})  # ← 오타일 수도 있으니 확인 필요: nuclei_result?
+                start_str = result.get("start_time", "")
+
+                try:
+                    dt = parse_dt(start_str)
+                    dt = dt.replace(tzinfo=None) if dt.tzinfo else dt
+
+                    if start_date <= dt <= end_date:
+                        nuclei_results.append(result)
+                except Exception as e:
+                    print(f"[ERROR][nuclei] 날짜 파싱 실패: '{start_str}' -> {e}")
 
             domain_findings = []
 
-            for result in nuclei_results:
-                vuln_msg = result.get("vulnerability", "").lower()
-                risk_level = result.get("risk_level", "unknown").lower()
-                target = result.get("target", "Unknown")
+            for sub in sorted(amass_subdomains):
+                full_url = f"http://{sub}"
+                finding = {
+                    "domain": full_url
+                }
 
-                if "dns" in vuln_msg and "http" in vuln_msg:
-                    issue = "Dangling DNS (CNAME: DNS+HTTP matched)"
-                elif "dns" in vuln_msg:
-                    issue = "Potential CNAME Misconfiguration (DNS only)"
-                elif "http" in vuln_msg:
-                    issue = "Potential CNAME Misconfiguration (HTTP only)"
-                else:
-                    issue = "Unclassified CNAME Behavior"
+                matched_nuclei = None
+                for result in nuclei_results:
+                    if result.get("target", "").strip() == full_url:
+                        matched_nuclei = result
+                        break
 
-                domain_findings.append({
-                    "target": target,
-                    "domain": normalize_list_field(target),
-                    "issue": issue,
-                    "risk_level": risk_level,
-                    "details": normalize_list_field(result.get("vulnerability")),
-                    "cname": result.get("url", "N/A"),
-                    # "recommendation": "Remove the unused CNAME record or point it to a valid resource"
-                })
+                if matched_nuclei:
+                    vuln_msg = matched_nuclei.get("vulnerability", "").lower()
+                    if "dns" in vuln_msg and "http" in vuln_msg:
+                        issue = "Dangling DNS (CNAME: DNS+HTTP matched)"
+                    elif "dns" in vuln_msg:
+                        issue = "Potential CNAME Misconfiguration (DNS only)"
+                    elif "http" in vuln_msg:
+                        issue = "Potential CNAME Misconfiguration (HTTP only)"
+                    else:
+                        issue = "Unclassified CNAME Behavior"
+
+                    finding.update({
+                        "issue": issue,
+                        "risk_level": matched_nuclei.get("risk_level", "unknown"),
+                        "details": normalize_list_field(matched_nuclei.get("vulnerability")),
+                        "cname": "\t   ".join(normalize_list_field(matched_nuclei.get("url_list", [])))
+                    })
+
+                domain_findings.append(finding)
 
 
             domain_timeline = []
@@ -1174,9 +1272,13 @@ def create_app():
         if not start_date or not end_date or not resources:
             return jsonify({'status': 'error', 'message': '필터가 부족합니다.'}), 400
 
+        start_date_dt = parse_dt(start_date)
+        end_date_dt = parse_dt(end_date)
+
         # 소문자 리소스명 통일
         raw_data = generate_mock_raw_data(start_date, end_date, [r.lower() for r in resources])
-        report_data = process_raw_data(raw_data, start_date, end_date)
+        normalized_data = normalize_mock_timestamps(raw_data)
+        report_data = process_raw_data(normalized_data, start_date_dt, end_date_dt)
 
         filename = f"report_{sanitize_filename(start_date)}_{sanitize_filename(end_date)}.pdf"
         save_path = os.path.join("static", "reports", filename)
