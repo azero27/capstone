@@ -484,7 +484,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
     template_path = "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"
     # r = redis.Redis(host='localhost', port=6379, db=0)
 
-    if tool_id == 6 and not is_initial and resource_type == "url":
+    if all_parsed_for_nuclei and resource_type == "url":
         # Redis에서 이미 nuclei 실행했는지 확인
         nuclei_flag_key = f"nuclei_done:{scan_result_id}"
         if not r.get(nuclei_flag_key):

@@ -45,7 +45,14 @@ def get_scan_result(scan_id):
                 count = sum(1 for r in rows if r.get("success") == 1)
                 status = "success" if count > 0 else "fail"
                 summary = f"{count} subdomains found" if count else "No subdomains"
-                log = "\n\n".join([r.get("log", "") for r in rows if r.get("log")])
+
+                unique_logs = sorted(set(
+                    line.strip()
+                    for r in rows if r.get("log")
+                    for line in r["log"].splitlines()
+                    if line.strip()
+                ))
+                log = "\n".join(unique_logs)
 
             elif tool_name == "Nuclei":
                 count = sum(1 for r in rows if r.get("success") == 1)
