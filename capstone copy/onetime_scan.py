@@ -1,11 +1,14 @@
-# oneoff_full_scan.py
 import redis
-from celery import Celery
-from task_defs import schedule_scan
+from celery import Celery, chord
+from task_defs import schedule_scan, analyze_shadow_components
 from DB.scan_setting import latest_scan_setting_id
+from DB.cloud_info import get_or_create_cloud_info
 from DB.save_scan_result import save_scan_result_start
+from dns_utils import convert_domain_to_ip, convert_ip_to_domain
+from shadow_it_analysis.extract_keyword import extract_keyword
+from datetime import datetime
 
-# Redis 연결 (기존에 쓰는 동일한 DB/키를 공유)
+# Redis 연결
 r = redis.Redis(host='localhost', port=6379, db=0)
 
 # Celery 인스턴스
@@ -14,38 +17,73 @@ celery = Celery('capstone_tasks',
                 backend='redis://localhost:6379/0')
 celery.conf.timezone = 'Asia/Seoul'
 
-def run_full_scan_once():
-    """
-    1) 최신 scan_setting_id 조회
-    2) Redis에 저장된 scheduled_ip / scheduled_domain / scheduled_keyword 전부 꺼내서
-       하나하나 schedule_scan 태스크로 등록
-    3) 실행 후 Redis 의 has_user_input 플래그를 false 로 돌려둠
-    """
-    # 1) 최신 스캔 설정 ID
+def run_onetime_scan(ip_address=None, domain=None, keyword=None):
+
+    now_ts = datetime.now().timestamp()
+    print(f"\n [ONETIME SCAN] 시작: {now_ts}")
+
+    # 1) 파라미터 우선 가져오기 / Redis에 저장된 값 사용
+    if not ip_address and r.get("scheduled_ip"):
+        ip_address = r.get("scheduled_ip").decode()
+    if not domain and r.get("scheduled_domain"):
+        domain = r.get("scheduled_domain").decode()
+    if not keyword and r.get("scheduled_keyword"):
+        keyword = r.get("scheduled_keyword").decode()
+
+    # 2) IP<->도메인 자동 변환
+    if ip_address and not domain:
+        domain = convert_ip_to_domain(ip_address)
+    elif domain and not ip_address:
+        ip_address = convert_domain_to_ip(domain)
+
+    # 3) 키워드 추출 (domain.csv)
+    if not keyword:
+        try:
+            keyword = extract_keyword('csv_files/domain.csv')
+            if keyword:
+                r.set('scheduled_keyword', keyword)
+        except Exception as e:
+            print(f"[ERROR] extract_keyword 실패: {e}")
+
+    # 4) DB에 CloudInfo, ScanResult 생성
+    cloud_info_id = get_or_create_cloud_info(ip_address, domain)
     scan_setting_id = latest_scan_setting_id()
+    scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
-    # 2) Redis 에 있는 값들 조회
-    ip = r.get('scheduled_ip')
-    domain = r.get('scheduled_domain')
-    keyword = r.get('scheduled_keyword')
+    # 5) Redis 플래그 갱신
+    pipe = r.pipeline()
+    pipe.set('has_user_input', 'false')   
+    pipe.set('scan_status', 'running')    
+    pipe.set('last_scan_time', str(now_ts))  
+    pipe.set('latest_scan_result_id', str(scan_result_id))
+    pipe.execute()
 
-    # 3) 실제로 한번만 호출
-    if ip:
-        schedule_scan.delay('ip', ip.decode(), scan_setting_id)
-        print(f"[ONEOFF] IP 일회성 스캔 예약 → {ip.decode()}")
+    # 6) schedule_scan 태스크 리스트 구성
+    scan_tasks = []
+    if ip_address:
+        scan_tasks.append(
+            schedule_scan.s('ip',      ip_address, scan_setting_id, 1, scan_result_id)
+        )
     if domain:
-        schedule_scan.delay('domain', domain.decode(), scan_setting_id)
-        print(f"[ONEOFF] Domain 일회성 스캔 예약 → {domain.decode()}")
+        scan_tasks.append(
+            schedule_scan.s('domain',  domain,     scan_setting_id, 1, scan_result_id)
+        )
     if keyword:
-        schedule_scan.delay('keyword', keyword.decode(), scan_setting_id)
-        print(f"[ONEOFF] Keyword 일회성 스캔 예약 → {keyword.decode()}")
+        scan_tasks.append(
+            schedule_scan.s('keyword', keyword,    scan_setting_id, 1, scan_result_id)
+        )
 
-    # 4) 다시 일회성 모드로 재진입 방지
-    r.set('has_user_input', 'false')
-    print("[ONEOFF] 일회성 전체 스캔 태스크 등록 끝")
+    # 7) 병렬 실행 + 결과 종합
+    if scan_tasks:
+        chord(scan_tasks)( analyze_shadow_components.s(scan_result_id) )
+        print(f"[OK] One-time scan tasks scheduled (ScanResult ID={scan_result_id})")
+    else:
+        print("[WARN] 실행할 스캔 태스크 없음 — IP/도메인/키워드 확인 필요")
 
-# 근데 이제 등록은 했는데 실제 스캔이 안돌아갈 가능성도? 오류 처리 필요
+    return scan_result_id
 
-# 버튼 연결하고 나면 지울 거 터미널에서 디버깅 실행용으로 둔거
-if __name__ == '__main__':
-    run_full_scan_once()
+
+
+@celery.task(name='tasks.run_oneoff_full_scan')
+def run_oneoff_full_scan_task(ip_address=None, domain=None, keyword=None):
+    return run_onetime_scan(ip_address, domain, keyword)
