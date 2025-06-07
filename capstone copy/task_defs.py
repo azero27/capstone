@@ -22,6 +22,7 @@ import redis
 import json 
 import uuid
 import mysql.connector
+from shadow_it_analysis.analyze_shadow_components import analyze_shadow_components
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
 from shadow_it_analysis.shadow_network import analyze_shadow_network
