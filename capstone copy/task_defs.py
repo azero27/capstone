@@ -1,4 +1,4 @@
-from celery import Celery, Task
+from celery import Celery, Task, chord
 from resource_tool_map import RESOURCE_TOOL_MAP, classify_resource, custom_preprocess
 from flask import Flask
 from datetime import datetime
