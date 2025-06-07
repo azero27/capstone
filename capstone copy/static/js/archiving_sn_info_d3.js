@@ -200,21 +200,15 @@ function showResourcePanel(node, resourceList) {
 
 function createResourceTree(resource) {
   let html = `<b>${resource.value} 내용물</b><ul>`;
-  if (resource.type === 's3') {
-    html += `<li>file1.txt</li><li>backup.zip</li><li>image.png</li>`;
-  } else if (resource.type === 'port') {
-    html += `<li>Port: ${resource.value} (${getServiceName(resource.value)})</li>`;
-  } else if (resource.type === 'domain') {
-    html += `<li>IP: ${resource.target}</li>`;
-  } else if (resource.type === 'lambda') {
-    html += `<li>코드 파일: index.js</li><li>환경변수: prod</li>`;
-  } else if (resource.type === 'ec2') {
-    html += `<li>Private IP: 10.0.1.${Math.floor(Math.random()*200+10)}</li><li>AMI: ami-0ff8a91507f77f867</li>`;
-  } else if (resource.type === 'rds') {
-    html += `<li>DB 엔진: MySQL</li><li>Storage: 100GB</li>`;
+
+  if (resource.contents && resource.contents.length > 0) {
+    for (const item of resource.contents) {
+      html += `<li>${item}</li>`;
+    }
   } else {
-    html += `<li>상세 내용 없음</li>`;
+    html += `<li>(내용 없음)</li>`;
   }
+
   html += `</ul>`;
   return html;
 }
