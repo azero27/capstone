@@ -152,7 +152,7 @@ function renderScanTree(results) {
   } else if (shadowITState.status === 'success') {
     dot.classList.add('success-dot');
     summary.innerHTML = shadowITState.found && shadowITState.found.length > 0
-      ? `<b>발견:</b> ${shadowITState.found.join(', ')}`
+      ? `<b>발견:</b> ${shadowITState.found.join('<br><br>')}`
       : `<b>발견된 Shadow IT 없음</b>`;
   } else {
     dot.classList.add('failed-dot');

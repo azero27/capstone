@@ -37,24 +37,34 @@ def get_information(scan_result_id):
                 "target": ip,           # 연결은 IP 기준
                 "is_shadow": False,
                 "contents": [
-                    f"도메인: {domain}" if domain else "도메인: 없음",
+                    f"Domain: {domain}" if domain else "Domain: 없음",
                     f"IP: {ip}"
                 ]
             })
 
         # 2. ShadowNetwork 로딩 (포트 기반)
         cursor.execute("""
-            SELECT port FROM ShadowNetwork WHERE scan_result_id = %s
+            SELECT port, reason FROM ShadowNetwork WHERE scan_result_id = %s
         """, (scan_result_id,))
-        shadow_ports = set(str(r["port"]) for r in cursor.fetchall())
+        shadow_ports = set()
+        shadow_port_reasons = {}
+        for r in cursor.fetchall():
+            port = str(r["port"])
+            shadow_ports.add(port)
+            shadow_port_reasons[port] = r["reason"]
 
         # 3. ShadowResource 로딩 (도메인, s3 기반)
         cursor.execute("""
-            SELECT bucket_name
+            SELECT bucket_name, reason
             FROM ShadowResource
             WHERE scan_result_id = %s
         """, (scan_result_id,))
-        shadow_resources = set((r["bucket_name"]) for r in cursor.fetchall())
+        shadow_resources = set()
+        shadow_s3_reasons = {}
+        for r in cursor.fetchall():
+            bucket = r["bucket_name"]
+            shadow_resources.add(bucket)
+            shadow_s3_reasons[bucket] = r["reason"]
 
         # 4. NmapResult → 포트
         cursor.execute("""
@@ -70,16 +80,21 @@ def get_information(scan_result_id):
                 f"Service: {row['service_name']}",
                 f"Version: {row['service_version']}"
             ]
+
+            
+            is_shadow = port in shadow_ports
+            if is_shadow and port in shadow_port_reasons:
+                contents.insert(0, f"[Shadow IT] {shadow_port_reasons[port]}")
+
             resource_data.append({
                 "type": "port",
                 "value": port,
                 "target": row["target"],
-                "is_shadow": port in shadow_ports,
+                "is_shadow": is_shadow,
                 "contents": contents
             })
 
 
-        # NucleiResult → 도메인 기반 Shadow 리소스
         # NucleiResult → 도메인 기반 Shadow 리소스
         cursor.execute("""
             SELECT target, risk_level, url
@@ -97,7 +112,10 @@ def get_information(scan_result_id):
             url_lines = [line for line in url_raw.strip().splitlines() if line.strip().lower() != "url:"]
 
             # 최종 contents 구성
-            contents = [f"도메인: {domain}"] + url_lines
+            contents = [f"Domain: {domain}"] + url_lines
+
+            if is_shadow:
+                contents.insert(0, "[Shadow IT] Dangling DNS 탐지")
 
             resource_data.append({
                 "type": "domain",
@@ -143,8 +161,9 @@ def get_information(scan_result_id):
             files = info["files"] or ["(no objects)"]
             contents = perm_strs + files
 
-            # ✅ ShadowIT 설명 추가
             is_shadow = bucket in shadow_resources
+            if is_shadow and bucket in shadow_s3_reasons:
+                contents.insert(0, f"[Shadow IT] {shadow_s3_reasons[bucket]}")
 
             resource_data.append({
                 "type": "s3",
