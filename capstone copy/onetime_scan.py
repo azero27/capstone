@@ -82,8 +82,3 @@ def run_onetime_scan(ip_address=None, domain=None, keyword=None):
 
     return scan_result_id
 
-
-
-@celery.task(name='tasks.run_oneoff_full_scan')
-def run_oneoff_full_scan_task(ip_address=None, domain=None, keyword=None):
-    return run_onetime_scan(ip_address, domain, keyword)

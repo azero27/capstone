@@ -43,9 +43,18 @@ def get_shadowit(scan_id):
 
         # 결과 구성
         for row in shadow_net:
-            result["found"].append(
-                f"Shadow Network<br>&nbsp;&nbsp;포트 - {row['port']}<br>&nbsp;&nbsp;실제 서비스 - {row['actual_service']}<br>&nbsp;&nbsp;예상 서비스 - {row['expected_service']}"
+            reason = row.get("reason", "").strip()
+            html = (
+                f"Shadow Network<br>"
+                f"&nbsp;&nbsp;포트 - {row['port']}<br>"
+                f"&nbsp;&nbsp;실제 서비스 - {row['actual_service']}<br>"
+                f"&nbsp;&nbsp;예상 서비스 - {row['expected_service']}"
             )
+            if reason:
+                html += f"<br>&nbsp;&nbsp;원인 - {reason}"  # ✅ 이유에 "원인 -" 추가
+
+            result["found"].append(html)
+
 
         for row in shadow_res:
             perms = []
@@ -54,9 +63,17 @@ def get_shadowit(scan_id):
             if row["authusers_permission"]:
                 perms.append(f"AuthUsers: {row['authusers_permission']}")
             perm_str = "; ".join(perms)
-            result["found"].append(
-                f"Shadow Resource<br>&nbsp;&nbsp;이름 - {row['bucket_name']}<br>&nbsp;&nbsp;권한 - {perm_str if perms else '&nbsp;&nbsp;Private'}"
+
+            reason = row.get("reason", "").strip()
+            html = (
+                f"Shadow Resource<br>"
+                f"&nbsp;&nbsp;이름 - {row['bucket_name']}<br>"
+                f"&nbsp;&nbsp;권한 - {perm_str if perms else 'Private'}"
             )
+            if reason:
+                html += f"<br>&nbsp;&nbsp;원인 - {reason}"  # ✅ 이유에 "원인 -" 추가
+
+            result["found"].append(html)
 
         return jsonify(result)
 
