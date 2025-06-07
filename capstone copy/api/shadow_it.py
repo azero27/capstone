@@ -44,7 +44,7 @@ def get_shadowit(scan_id):
         # 결과 구성
         for row in shadow_net:
             result["found"].append(
-                f"Shadow Network 발견\n포트: {row['port']}\n실제 서비스: {row['actual_service']}\n예상 서비스: {row['expected_service']}"
+                f"Shadow Network<br>&nbsp;&nbsp;포트 - {row['port']}<br>&nbsp;&nbsp;실제 서비스 - {row['actual_service']}<br>&nbsp;&nbsp;예상 서비스 - {row['expected_service']}"
             )
 
         for row in shadow_res:
@@ -55,8 +55,7 @@ def get_shadowit(scan_id):
                 perms.append(f"AuthUsers: {row['authusers_permission']}")
             perm_str = "; ".join(perms)
             result["found"].append(
-                f"Shadow Resource 발견\n이름: {row['bucket_name']}\n권한: {perm_str}" if perms
-                else f"Shadow Resource 발견\n이름: {row['bucket_name']}\n권한: Private"
+                f"Shadow Resource<br>&nbsp;&nbsp;이름 - {row['bucket_name']}<br>&nbsp;&nbsp;권한 - {perm_str if perms else '&nbsp;&nbsp;Private'}"
             )
 
         return jsonify(result)
