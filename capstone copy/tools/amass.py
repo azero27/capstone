@@ -7,7 +7,7 @@ def run_amass(keyword: str):
     """
     domain = f"{keyword}.com"
     start_time = datetime.datetime.now()
-    command = ["amass", "enum", "-passive", "-d", domain]
+    command = ["amass", "enum", "-passive", "-timeout", "2", "-max-dns-queries", "1000", "-d", domain]
 
     result = subprocess.run(command, capture_output=True, text=True)
     end_time = datetime.datetime.now()
