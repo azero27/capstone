@@ -22,7 +22,7 @@ import redis
 import json 
 import uuid
 import mysql.connector
-from shadow_it_analysis.analyze_shadow_components import analyze_shadow_components
+
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
 from shadow_it_analysis.shadow_network import analyze_shadow_network
@@ -658,7 +658,7 @@ def run_oneoff_full_scan(resource_type):
 
     # 병렬 실행 + 결과 종합
     if scan_tasks:
-        chord(scan_tasks)(analyze_shadow_components.s(scan_result_id))
+        chord(scan_tasks)(analyze_shadow_components_mock.s(scan_result_id))
         print(f"[ONEOFF] 일회성 전체 스캔 태스크 등록 완료 (parallel execution)")
     else:
         print("[WARN] 실행할 스캔 태스크 없음 — IP/도메인/키워드 확인 필요")
