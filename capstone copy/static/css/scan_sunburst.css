@@ -1,0 +1,35 @@
+#sunburstChart {
+  padding-top: 20px;
+  width: 600px;
+  height: 600px;
+  margin: 30px auto 0 auto;
+  display: block;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 14px rgba(40,70,110,0.07);
+}
+
+.sunburst-label {
+  font-size: 11px;
+  fill: white;
+  pointer-events: none;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #444;
+  stroke-width: 0.6px;
+}
+
+.sunburst-tooltip {
+  position: absolute;
+  background: #222c;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.20);
+}
+
+
