@@ -270,43 +270,88 @@ function renderScanTree(results) {
   tree.appendChild(shadowColumn);
 }
 
+const toolMatchers = {
+  nmap:          { regex: /\d+\/tcp\s+open\s+/g,           label: '열린 포트', source: 'log' },
+  cloud_enum:    { regex: /OPEN S3 BUCKET: http:\/\/[^\s]+/g, label: '공개 버킷', source: 'log' },
+  amass:         { regex: /exists\s+\|\s+[^\|]+\|\s+[^\|]+\|\s+[^\|]+\|\s+[^\|]+\|\s+\d+\s+objects/g,
+                   label: '버킷·오브젝트', source: 'log' },
+  s3scanner:     { regex: /exists\s+\|\s+[^\|]+\|\s+[^\|]+\|\s+[^\|]+\|\s+[^\|]+\|\s+\d+\s+objects/g,
+                   label: '버킷·오브젝트', source: 'log' },
+  nuclei:        { regex: /\[INF\]\s+Scan\s+completed.*No\s+results\s+found/g,
+                   label: '결과 없음 표시', source: 'log' },
+
+};
+
 // 결과 테이블 렌더 함수
 function renderResultTable(results) {
   const table = document.getElementById('resultTableBody');
   table.innerHTML = '';
 
-  results.forEach((result) => {
+  results.forEach(result => {
     const tr = document.createElement('tr');
 
+    // Step
     const tdStep = document.createElement('td');
     tdStep.textContent = result.step;
+    tr.appendChild(tdStep);
 
+    // Tool
     const tdTool = document.createElement('td');
-    tdTool.textContent = `${result.tool} (#${result.tool_id})`;
+    tdTool.textContent = result.tool;
+    tr.appendChild(tdTool);
 
+    // Status + Count
     const tdStatus = document.createElement('td');
-    tdStatus.textContent = result.status;
+    let statusText = result.status;
 
     if (result.status === 'success') {
+      const key = result.tool.toLowerCase();
+
+      if (key === 'amass' && typeof result.summary === 'string') {
+        // Amass: summary에서 도메인 패턴으로 개수 세기
+        const matches = result.summary.match(domainRegex) || [];
+        // 중복 제거하려면: [...new Set(matches)]
+        const count = matches.length;
+        statusText += ` (서브도메인: ${count}개)`;
+      }
+      else {
+        // 그 외 툴: toolMatchers 사용
+        const matcher = toolMatchers[key];
+        if (matcher) {
+          const text = (matcher.source === 'log' ? result.log : result.summary) || '';
+          const matches = text.match(matcher.regex) || [];
+          const count = matcher.group != null
+            ? matches.reduce((acc, m) => {
+                const g = new RegExp(matcher.regex).exec(m);
+                return acc + (g && g[matcher.group] ? 1 : 0);
+              }, 0)
+            : matches.length;
+          statusText += ` (${matcher.label}: ${count}개)`;
+        }
+      }
+
       tdStatus.classList.add('status-success');
-    } else if (result.status === 'fail') {
+    }
+    else if (result.status === 'fail') {
       tdStatus.classList.add('status-fail');
-    } else if (result.status === 'in_progress') {
+    }
+    else {  // in_progress
+      statusText += ' (진행 중)';
       tdStatus.classList.add('status-in-progress');
     }
 
+    tdStatus.textContent = statusText;
+    tr.appendChild(tdStatus);
+
+    // Detail (View Log 버튼)
     const tdDetail = document.createElement('td');
-    const btn = document.createElement('button');
-    btn.textContent = 'View Log';
-    btn.classList.add('view-log-btn');
-    btn.onclick = () => {
+    const btnLog = document.createElement('button');
+    btnLog.textContent = 'View Log';
+    btnLog.classList.add('view-log-btn');
+    btnLog.onclick = () => {
       document.getElementById('logContent').textContent = result.log || 'No log available.';
     };
-    tdDetail.appendChild(btn);
-
-    tr.appendChild(tdStep);
-    tr.appendChild(tdTool);
-    tr.appendChild(tdStatus);
+    tdDetail.appendChild(btnLog);
     tr.appendChild(tdDetail);
 
     table.appendChild(tr);
