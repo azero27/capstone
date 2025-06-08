@@ -1,3 +1,4 @@
+#utils/pdf_generator.py
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet
@@ -68,37 +69,6 @@ resource_label_map = {
     "s3": "S3",
     "port": "Port"
 }
-
-def prepare_diff_records(report_data, selected_resources):
-    from utils.mock_data import generate_mock_diff_records_tools, generate_mock_diff_records_shadow
-    from utils.pdf_generator import TOOL_TO_RESOURCE_TYPE
-
-    def flatten_diff_records(records_grouped):
-        flat = []
-        for group in records_grouped:
-            for k, v in group.items():
-                source = k.replace("_result", "")
-                for record in v:
-                    record["source"] = source
-                    record["resource_type"] = TOOL_TO_RESOURCE_TYPE.get(source, "unknown")
-                    flat.append(record)
-        return flat
-
-    all_tools = flatten_diff_records(generate_mock_diff_records_tools())
-    all_shadow = flatten_diff_records(generate_mock_diff_records_shadow())
-
-    # Shadow 결과는 선택된 리소스에 따라 필터링
-    filtered_shadow = [r for r in all_shadow if r["resource_type"] in selected_resources]
-
-    # 도구 결과도 선택된 리소스에 따라 필터링
-    filtered_tools = [r for r in all_tools if r["resource_type"] in selected_resources]
-
-    report_data["diff_records_tools"] = filtered_tools
-    report_data["diff_records_shadow"] = filtered_shadow
-    report_data["diff_records"] = filtered_tools + filtered_shadow
-
-    return report_data
-
 
 def generate_diff_table(records):
     table_data = [["Target", "Diff Type", "Tool"]]
@@ -263,6 +233,7 @@ def generate_domain_table(findings):
         domain = f.get("domain", "")
         issue = f.get("issue", "")
         cname = f.get("cname", "")
+        vuln = f.get("vuln", "")
 
         # 줄바꿈 정리
         if isinstance(cname, list):
@@ -273,22 +244,30 @@ def generate_domain_table(findings):
         table_data.append([
             Paragraph(domain, styleN8),
             Paragraph(issue, styleN8),
-            Paragraph(cname, styleN8)
+            Paragraph(cname, styleN8),
+            Paragraph(vuln, styleN8)
         ])
 
     return table_data
 
+from reportlab.platypus import Paragraph
+
 def generate_shadow_table(findings, title_key):
     headers = [title_key] + [k for k in findings[0].keys() if k != title_key]
     table_data = [headers]
+
     for f in findings:
         row = [f.get(title_key, "")]
         for k in headers[1:]:
             v = f.get(k, "")
             if isinstance(v, list):
                 v = ", ".join(map(str, v))
+            # 긴 텍스트는 줄바꿈 및 PDF 너비 초과 방지를 위해 Paragraph로 감싸기
+            if isinstance(v, str) and len(v) > 30:
+                v = Paragraph(v, styleN8)
             row.append(v)
         table_data.append(row)
+
     return table_data
 
 def generate_pdf_report(report_data, save_path):
