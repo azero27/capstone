@@ -1,4 +1,4 @@
-from utils.pdf_generator import generate_pdf_report  
+from utils.pdf_generator import generate_pdf_report
 import sys
 import os
 import csv
@@ -128,7 +128,7 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        #cloud_info 및 scan_result_id 미리 생성
+        cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = save_scan_setting(15)
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
@@ -897,6 +897,9 @@ def create_app():
     def sanitize_filename(name: str):
         return name.replace(":", "-").replace(" ", "_")
 
+    def extract_clean_urls(url_list):
+        return [line.split('\t')[-1] for line in url_list if isinstance(line, str)]
+
     def in_date_range(iso_str, start_date, end_date):
         try:
             dt = parse_dt(iso_str)
@@ -999,7 +1002,7 @@ def create_app():
                 s3_findings.append({
                     "bucket": bucket,
                     "details": f"AuthUsers: {authusers}, AllUsers: {allusers}",
-                    "files": files_str  # 🔁 recommendation → files 로 변경
+                    "files": files_str  # recommendation → files 로 변경
                 })
 
             s3_timeline = []
@@ -1118,7 +1121,7 @@ def create_app():
             nuclei_results = []
 
             for wrapper in nuclei_wrappers:
-                result = wrapper.get("nulcei_result", {})  # ← 오타일 수도 있으니 확인 필요: nuclei_result?
+                result = wrapper.get("nulcei_result", {})  
                 start_str = result.get("start_time", "")
 
                 try:
@@ -1147,7 +1150,7 @@ def create_app():
                 if matched_nuclei:
                     vuln_msg = matched_nuclei.get("vulnerability", "").lower()
                     if "dns" in vuln_msg and "http" in vuln_msg:
-                        issue = "Dangling DNS (CNAME: DNS+HTTP matched)"
+                        issue = "Dangling DNS (DNS+HTTP matched)"
                     elif "dns" in vuln_msg:
                         issue = "Potential CNAME Misconfiguration (DNS only)"
                     elif "http" in vuln_msg:
@@ -1155,11 +1158,12 @@ def create_app():
                     else:
                         issue = "Unclassified CNAME Behavior"
 
+                    cleaned_urls = extract_clean_urls(matched_nuclei.get("url_list", []))
                     finding.update({
                         "issue": issue,
                         "risk_level": matched_nuclei.get("risk_level", "unknown"),
                         "details": normalize_list_field(matched_nuclei.get("vulnerability")),
-                        "cname": "\t   ".join(normalize_list_field(matched_nuclei.get("url_list", [])))
+                        "cname": "   ".join(cleaned_urls)
                     })
 
                 domain_findings.append(finding)
@@ -1253,7 +1257,7 @@ def create_app():
             try:
                 dt = parse_dt(t)
                 if dt.tzinfo is not None:
-                    dt = dt.replace(tzinfo=None)  # timezone 제거 → naive datetime 으로 변환
+                    dt = dt.replace(tzinfo=None)  
                 dt_list.append(dt)
             except Exception:
                 continue
@@ -1282,7 +1286,14 @@ def create_app():
 
         filename = f"report_{sanitize_filename(start_date)}_{sanitize_filename(end_date)}.pdf"
         save_path = os.path.join("static", "reports", filename)
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        save_dir = os.path.dirname(save_path)
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+
+        from utils.mock_data import generate_mock_diff_records_tools, generate_mock_diff_records_shadow
+        from utils.pdf_generator import generate_pdf_report, prepare_diff_records
+
+        report_data = prepare_diff_records(report_data, [r.lower() for r in resources])
 
         try:
             generate_pdf_report(report_data, save_path)
@@ -1433,6 +1444,18 @@ def create_app():
                 if start_date <= node['date'] <= end_date
             ]
             return jsonify(filtered_nodes)
+
+    # Example usage:
+    mock_diff_records = [
+        {"scan_result_id": 7, "target": "sskyroute.com", "diff_type": "added"},
+        {"scan_result_id": 8, "target": "www.sskyroute.com", "diff_type": "removed"},
+        {"scan_result_id": 11, "target": "sskyroute.com", "diff_type": "added"},
+        {"scan_result_id": 11, "target": "www.sskyroute.com", "diff_type": "added"},
+        {"scan_result_id": 19, "target": "www.sskyroute.com", "diff_type": "added"},
+        {"scan_result_id": 19, "target": "sskyroute.com", "diff_type": "added"},
+        {"scan_result_id": 21, "target": "www.sskyroute.com", "diff_type": "added"},
+        {"scan_result_id": 21, "target": "sskyroute.com", "diff_type": "added"},
+    ]
 
     @app.route('/api/timeline_diff', methods=['POST'])
     def api_timeline_diff():
