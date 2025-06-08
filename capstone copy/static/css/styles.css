@@ -225,9 +225,17 @@ body {
 .scan-dot {
   width: 16px;
   height: 16px;
-  background-color: green;
+  min-width: 16px;
+  min-height: 16px;
+  max-width: 16px;
+  max-height: 16px;
   border-radius: 50%;
   margin-right: 8px;
+  background-color: green;
+  display: inline-block;
+  flex-shrink: 0;   /* 추가! */
+  flex-grow: 0;     /* 추가! */
+  box-sizing: border-box;
 }
 
 .scan-dot.failed-dot {

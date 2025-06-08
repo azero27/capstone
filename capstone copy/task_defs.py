@@ -1,4 +1,4 @@
-from celery import Celery, Task
+from celery import Celery, Task, chord
 from resource_tool_map import RESOURCE_TOOL_MAP, classify_resource, custom_preprocess
 from flask import Flask
 from datetime import datetime
@@ -22,6 +22,7 @@ import redis
 import json 
 import uuid
 import mysql.connector
+
 
 from shadow_it_analysis.shadow_domain import analyze_nuclei_shadow_domains
 from shadow_it_analysis.shadow_network import analyze_shadow_network
@@ -483,7 +484,7 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
     template_path = "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"
     # r = redis.Redis(host='localhost', port=6379, db=0)
 
-    if tool_id == 6 and not is_initial and resource_type == "url":
+    if all_parsed_for_nuclei and resource_type == "url":
         # Redis에서 이미 nuclei 실행했는지 확인
         nuclei_flag_key = f"nuclei_done:{scan_result_id}"
         if not r.get(nuclei_flag_key):
@@ -639,12 +640,30 @@ def run_oneoff_full_scan(resource_type):
     else:
         scan_result_id = None
 
-    # 5) schedule_scan 태스크 한 번만 호출
-    # 기존의 스캔 로직(schedule_scan)을 재사용하여 도구 체이닝 활용
-    schedule_scan.apply_async(args=(resource_type, value, scan_setting_id, 1, scan_result_id))
+    # 5) 모든 도구를 병렬로 실행
+    scan_tasks = []
+    
+    if ip_address:
+        scan_tasks.append(
+            schedule_scan.s('ip', ip_address, scan_setting_id, 1, scan_result_id)
+        )
+    if domain_name:
+        scan_tasks.append(
+            schedule_scan.s('domain', domain_name, scan_setting_id, 1, scan_result_id)
+        )
+    if keyword:
+        scan_tasks.append(
+            schedule_scan.s('keyword', keyword, scan_setting_id, 1, scan_result_id)
+        )
+
+    # 병렬 실행 + 결과 종합
+    if scan_tasks:
+        chord(scan_tasks)(analyze_shadow_components_mock.s(scan_result_id))
+        print(f"[ONEOFF] 일회성 전체 스캔 태스크 등록 완료 (parallel execution)")
+    else:
+        print("[WARN] 실행할 스캔 태스크 없음 — IP/도메인/키워드 확인 필요")
 
     # 6) 일회성 모드로 설정 (주기적 실행 방지)
     r.set('has_user_input', 'false')
-    print("[ONEOFF] 일회성 전체 스캔 태스크 등록 완료")
 
-    return scan_result_id
+    return scan_result_id 

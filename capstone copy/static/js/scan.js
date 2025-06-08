@@ -270,7 +270,7 @@ function renderScanTree(results) {
   tree.appendChild(shadowColumn);
 }
 
-// 결과 테이블 렌더 함수
+// 결과 테이블 렌더 함수More actions
 function renderResultTable(results) {
   const table = document.getElementById('resultTableBody');
   table.innerHTML = '';
@@ -303,7 +303,7 @@ function renderResultTable(results) {
       document.getElementById('logContent').textContent = result.log || 'No log available.';
     };
     tdDetail.appendChild(btn);
-
+More actions
     tr.appendChild(tdStep);
     tr.appendChild(tdTool);
     tr.appendChild(tdStatus);

@@ -490,6 +490,7 @@ def create_app():
         # "IAM": ["EnumerateIAM"]
     }
 
+    """
     def generate_mock_raw_data(start_date, end_date, resources):
         mock_data = {
             "s3": {
@@ -800,6 +801,7 @@ def create_app():
 
         }
         
+        
         # 선택된 리소스에 대한 데이터만 반환
         result =  {k: v for k, v in mock_data.items() if k in resources}
         
@@ -814,6 +816,7 @@ def create_app():
             result["mock_shadow_domain_result"] = mock_data.get("mock_shadow_domain_result")
 
         return result
+    """
 
 
     def get_tools_for_resources(selected_resources):
