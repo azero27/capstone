@@ -15,10 +15,52 @@ import pandas as pd
 import seaborn as sns
 from reportlab.lib.styles import ParagraphStyle
 import numpy as np
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.platypus import Spacer
+
+pdfmetrics.registerFont(TTFont('NanumGothic', '/usr/share/fonts/truetype/nanum/NanumGothic.ttf'))
+pdfmetrics.registerFont(TTFont('NanumGothic-Bold', '/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf'))
 
 styles = getSampleStyleSheet()
-styleN = styles['Normal']
-styleN8 = ParagraphStyle('Normal8', parent=styleN, fontSize=8)
+styles.add(ParagraphStyle(name='KoreanNormal', fontName='NanumGothic', fontSize=10, leading=12))
+styles.add(ParagraphStyle(
+    name='KoreanTitle',
+    fontName='NanumGothic-Bold',
+    fontSize=18,
+    leading=22,
+    spaceBefore=12,
+    spaceAfter=16,
+    alignment=TA_CENTER  # 중앙 정렬
+))
+
+styles.add(ParagraphStyle(
+    name='KoreanHeading2',
+    fontName='NanumGothic-Bold',
+    fontSize=14,
+    leading=18,
+    spaceBefore=12,  # 위 간격
+    spaceAfter=8,    # 아래 간격
+    alignment=TA_LEFT
+))
+
+styles.add(ParagraphStyle(
+    name='KoreanHeading3',
+    fontName='NanumGothic',
+    fontSize=12,
+    leading=16,
+    spaceBefore=10,  # 위 간격
+    spaceAfter=6,    # 아래 간격
+    alignment=TA_LEFT
+))
+styleN = styles['KoreanNormal']
+styleN8 = ParagraphStyle('KoreanNormal8', parent=styleN, fontSize=8, leading=12)
+
+# styles = getSampleStyleSheet()
+# styleN = styles['Normal']
+# styleN8 = ParagraphStyle('Normal8', parent=styleN, fontSize=8)
 max_width = A4[0] - 2 * inch
 
 plt.style.use('ggplot')
@@ -69,6 +111,23 @@ resource_label_map = {
     "port": "Port"
 }
 
+def generate_labels_from_tool_result_map(tool_result_source_map):
+    label_map = {}
+    targets = []
+    counter = 1
+
+    for tool, records in tool_result_source_map.items():
+        for record in records:
+            target = record.get("target")
+            if target and target not in label_map:
+                label = f"R{counter}"
+                label_map[target] = label
+                targets.append(target)
+                counter += 1
+
+    short_labels = [label_map[t] for t in targets]
+    return short_labels, label_map, targets
+
 def prepare_diff_records(report_data, selected_resources):
     from utils.mock_data import generate_mock_diff_records_tools, generate_mock_diff_records_shadow
     from utils.pdf_generator import TOOL_TO_RESOURCE_TYPE
@@ -97,23 +156,33 @@ def prepare_diff_records(report_data, selected_resources):
     report_data["diff_records_shadow"] = filtered_shadow
     report_data["diff_records"] = filtered_tools + filtered_shadow
 
+    grouped_map = defaultdict(list)
+    for r in filtered_tools + filtered_shadow:
+        grouped_map[r["source"] + "_result"].append(r)
+    report_data["tool_result_source_map"] = grouped_map
+
+    short_labels, label_map, targets = generate_labels_from_tool_result_map(grouped_map)
+    report_data["label_map"] = label_map
+
     return report_data
 
 
-def generate_diff_table(records):
-    table_data = [["Target", "Diff Type", "Tool"]]
+def generate_diff_table(records, label_map=None):
+    table_data = [["Label", "Target", "Diff Type", "Tool", "Description"]]
     for r in records:
-        table_data.append([
-            r.get("target", ""),
-            r.get("diff_type", ""),
-            r.get("source", ""),
-            # str(r.get("scan_result_id", "")),
-            # str(r.get("prev_scan_result_id", "")),
-            # r.get("description", "")
-        ])
+        target = r.get("target", "")
+        label = label_map.get(target, "") if label_map else ""
+        row = [
+            Paragraph(label, styleN8),
+            Paragraph(target, styleN8),
+            Paragraph(str(r.get("diff_type", "")), styleN8),
+            Paragraph(str(r.get("source", "")), styleN8),
+            Paragraph(str(r.get("Description", "")), styleN8)
+        ]
+        table_data.append(row)
     return table_data
 
-def generate_resource_change_chart_image(diff_records):
+def generate_resource_change_chart_image(diff_records, tool_result_source_map):
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
     from datetime import datetime
@@ -124,9 +193,12 @@ def generate_resource_change_chart_image(diff_records):
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
     plt.subplots_adjust(bottom=0.3)
 
-    # Prepare y-axis labels
-    targets = sorted(set(r["target"] for r in diff_records))
+    short_labels, label_map, targets = generate_labels_from_tool_result_map(tool_result_source_map)
     y_map = {t: i for i, t in enumerate(targets)}
+
+    # Prepare y-axis labels
+    # targets = sorted(set(r["target"] for r in diff_records))
+    # y_map = {t: i for i, t in enumerate(targets)}
 
     for r in diff_records:
         y = y_map[r["target"]]
@@ -137,7 +209,7 @@ def generate_resource_change_chart_image(diff_records):
 
     # Y-axis
     ax.set_yticks(list(y_map.values()))
-    ax.set_yticklabels(list(y_map.keys()), fontsize=9)
+    ax.set_yticklabels([label_map[t] for t in targets], fontsize=9)
 
     # Axis labels and title
     ax.set_xlabel("Scan ID", fontsize=11)
@@ -178,6 +250,7 @@ def generate_resource_change_chart_image(diff_records):
     tmpfile = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
     fig.savefig(tmpfile.name, bbox_inches='tight', dpi=200)
     plt.close()
+
     return tmpfile.name
 
 def generate_resource_chart(discovered_resources: dict) -> BytesIO:
@@ -195,9 +268,13 @@ def generate_resource_chart(discovered_resources: dict) -> BytesIO:
     colors = [color_map.get(label, "#1f77b4") for label in labels]
 
     plt.style.use('seaborn-whitegrid')
-    fig, ax = plt.subplots(figsize=(8, 4), dpi=150)
+    fig, ax = plt.subplots(figsize=(6, 3), dpi=150)
 
     ax.bar(x, values, width=width, color=colors, edgecolor="black", linewidth=1)
+
+    ax.set_xlim(-0.5, 2.5)  # 최소 3개 막대를 보여주는 형태
+    ax.set_ylim(0, max(1.2, max(values)*1.1))  # y축도 적절히 확보
+
 
     ax.set_title("Discovered Resources", loc='left', fontsize=13, pad=10)
     ax.set_ylabel("Count", fontsize=11)
@@ -236,25 +313,42 @@ def format_label(key):
 def generate_s3_table(findings):
     table_data = [["Bucket", "AuthUsers", "AllUsers", "Sensitive Files"]]
     for f in findings:
-        table_data.append([
-            f.get("bucket", ""),
-            extract_permission(f.get("details", ""), "AuthUsers"),
-            extract_permission(f.get("details", ""), "AllUsers"),
-            ", ".join(f.get("files", []))
-        ])
+        bucket = f.get("bucket", "")
+        auth_users = extract_permission(f.get("details", ""), "AuthUsers")
+        all_users = extract_permission(f.get("details", ""), "AllUsers")
+        files = f.get("files", []) or []
+
+        if isinstance(files, str):
+            files = [s.strip() for s in files.split(",") if s.strip()]
+        elif not isinstance(files, list):
+            files = []
+
+        if len(files) <= 2:
+            files_str = ", ".join(files)  # 짧으면 한 줄에
+        else:
+            files_str = "\n".join(files)  # 길면 줄바꿈
+
+        row = [
+            Paragraph(bucket, styleN8),
+            Paragraph(auth_users, styleN8),
+            Paragraph(all_users, styleN8),
+            Paragraph(files_str, styleN8)
+        ]
+        table_data.append(row)
     return table_data
 
 def generate_port_table(findings):
     table_data = [["Port", "Protocol", "Service", "Status", "Version"]]
     for f in findings:
         svc = f.get("service_info", {})
-        table_data.append([
-            ", ".join(map(str, f.get("port", []))),
-            ", ".join(svc.get("protocol", [])),
-            ", ".join(svc.get("service", [])),
-            ", ".join(svc.get("status", [])),
-            ", ".join(svc.get("version", [])),
-        ])
+        row = [
+            Paragraph(", ".join(map(str, f.get("port", []))), styleN8),
+            Paragraph(", ".join(svc.get("protocol", [])), styleN8),
+            Paragraph(", ".join(svc.get("service", [])), styleN8),
+            Paragraph(", ".join(svc.get("status", [])), styleN8),
+            Paragraph(", ".join(svc.get("version", [])), styleN8)
+        ]
+        table_data.append(row)
     return table_data
 
 def generate_domain_table(findings):
@@ -266,9 +360,10 @@ def generate_domain_table(findings):
 
         # 줄바꿈 정리
         if isinstance(cname, list):
-            cname = ", ".join(cname)
+            cname = "\n".join(cname)
         elif isinstance(cname, str):
-            cname = cname.replace("\\n", "\n").replace("\t", "").strip()
+            # 쉼표로 나눠서 각 줄에 하나씩 배치
+            cname = "\n".join([s.strip() for s in cname.split(",") if s.strip()])
 
         table_data.append([
             Paragraph(domain, styleN8),
@@ -280,14 +375,14 @@ def generate_domain_table(findings):
 
 def generate_shadow_table(findings, title_key):
     headers = [title_key] + [k for k in findings[0].keys() if k != title_key]
-    table_data = [headers]
+    table_data = [[Paragraph(format_label(h), styleN8) for h in headers]]
     for f in findings:
-        row = [f.get(title_key, "")]
+        row = []
         for k in headers[1:]:
             v = f.get(k, "")
             if isinstance(v, list):
                 v = ", ".join(map(str, v))
-            row.append(v)
+            row.append(Paragraph(str(v), styleN8))
         table_data.append(row)
     return table_data
 
@@ -296,22 +391,34 @@ def generate_pdf_report(report_data, save_path):
 
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     doc = SimpleDocTemplate(save_path, pagesize=A4)
-    styles = getSampleStyleSheet()
+    
     flowables = []
 
-    def add_paragraph(text, style='Normal', space=6):
-        flowables.append(Paragraph(text, styles[style]))
+    def add_paragraph(text, style='KoreanNormal', space=6):
+        style_map = {
+            "Normal": "KoreanNormal",
+            "Title": "KoreanTitle",
+            "Heading2": "KoreanHeading2",
+            "Heading3": "KoreanHeading3"
+        }
+
+        # 먼저 매핑된 스타일 이름 구하기
+        mapped_style = style_map.get(style, style)
+        para_style = styles.get(mapped_style, styleN)  # 최종 스타일 얻기
+
+        # 단 한 번만 Paragraph 추가
+        flowables.append(Paragraph(text, para_style))
         flowables.append(Spacer(1, space))
 
     period = report_data.get("period", {"start": "N/A", "end": "N/A"})
     overall = report_data.get("overall_summary", {})
     resources = report_data.get("resources", {})
 
-    add_paragraph("<b>Security Scan Report</b>", 'Title', 12)
+    add_paragraph("Security Scan Report", 'Title', 12)
     add_paragraph(f"Scan Period: {period['start']} ~ {period['end']}", 'Normal')
 
     # Section 1: Overall Summary
-    add_paragraph("<b>1. Overall Summary</b>", 'Heading2')
+    add_paragraph("1. Overall Summary", 'Heading2')
     add_paragraph("1.1 Number of Discovered Resources", 'Heading3')
     discovered = overall.get("discovered_resources", {})
     if discovered:
@@ -332,7 +439,7 @@ def generate_pdf_report(report_data, save_path):
         if rtype not in resources:
             continue
         rdata = resources[rtype]
-        add_paragraph(f"<b>{section_index}. Resource Type: {rtype.upper()}</b>", 'Heading2')
+        add_paragraph(f"{section_index}. Resource Type: {rtype.upper()}", 'Heading2')
 
         # Summary
         add_paragraph(f"{section_index}.1 Summary", 'Heading3')
@@ -349,25 +456,32 @@ def generate_pdf_report(report_data, save_path):
         if findings:
             if rtype == "s3":
                 table_data = generate_s3_table(findings)
+                colWidths = [1.5 * inch, 1.2 * inch, 1.2 * inch, max_width - (1.5 + 1.2 + 1.2) * inch]
             elif rtype == "port":
                 table_data = generate_port_table(findings)
+                colWidths = [0.8 * inch, 1.0 * inch, 1.2 * inch, 1.0 * inch, 2.3 * inch]
             elif rtype == "domain":
                 table_data = generate_domain_table(findings)
+                colWidths = [1.9 * inch, 1.1 * inch, 3.3 * inch]
             else:
                 table_data = []
+                colWidths = [max_width / len(table_data[0])] * len(table_data[0]) if table_data else []
 
-            t = Table(table_data, hAlign='LEFT')
-            t.setStyle(TableStyle([
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-                ('TOPPADDING', (0, 0), (-1, -1), 4),
-                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
-            ]))
-            flowables.append(t)
-            flowables.append(Spacer(1, 10))
+            if table_data:
+                t = Table(table_data, colWidths=colWidths, hAlign='LEFT')
+                t.setStyle(TableStyle([
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+                    ('FONTNAME', (0, 0), (-1, -1), 'NanumGothic'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                    ('TOPPADDING', (0, 0), (-1, -1), 2),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
+                ]))
+                flowables.append(t)
+                flowables.append(Spacer(1, 10))
 
         section_index += 1
 
@@ -381,7 +495,7 @@ def generate_pdf_report(report_data, save_path):
     shadow_has_data = shadow and any(s.get("findings") for s in shadow.values())
 
     if shadow_has_data:
-        add_paragraph(f"<b>{section_index}. Shadow Analysis</b>", 'Heading2')
+        add_paragraph(f"{section_index}. Shadow Analysis", 'Heading2')
         sub_index = 1
         for skey, stitle in shadow_map.items():
             if skey not in shadow:
@@ -402,12 +516,21 @@ def generate_pdf_report(report_data, save_path):
                     else list(findings[0].keys())[0]
                 )
                 table_data = generate_shadow_table(findings, title_key)
-                t = Table(table_data, hAlign='LEFT')
+                col_num = len(table_data[0])
+                colWidths = [max_width / col_num] * col_num
+                t = Table(table_data, colWidths=colWidths, hAlign='LEFT')
                 t.setStyle(TableStyle([
                     ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-                    ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                    ('FONTNAME', (0, 0), (-1, -1), 'NanumGothic'),
                     ('FONTSIZE', (0, 0), (-1, -1), 8),
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
+                    ('TOPPADDING', (0, 0), (-1, -1), 2),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 3),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
                 ]))
                 flowables.append(t)
                 flowables.append(Spacer(1, 10))
@@ -417,13 +540,16 @@ def generate_pdf_report(report_data, save_path):
     # Section 6: Resource Change Timeline
     diff_records = report_data.get("diff_records", [])
     if diff_records:
-        add_paragraph(f"<b>{section_index}. Resource Change Timeline</b>", 'Heading2')
+        add_paragraph(f"{section_index}. Resource Change Timeline", 'Heading2')
         add_paragraph(
             "This section shows when each resource was added, removed, or changed over time.",
             'Normal'
         )
         flowables.append(Spacer(1, 12))
-        chart_path = generate_resource_change_chart_image(diff_records)  # 포함된 legend 및 마커
+        chart_path = generate_resource_change_chart_image(
+            report_data.get("diff_records", []),
+            report_data.get("tool_result_source_map", {})  # 새로 추가됨
+        )
         flowables.append(Image(chart_path, width=7 * inch, height=3 * inch))
         flowables.append(Spacer(1, 12))
     
@@ -439,17 +565,28 @@ def generate_pdf_report(report_data, save_path):
         records = grouped.get(rtype, [])
         if not records:
             continue
-        add_paragraph(f"<b>{section_index}.{idx} Detailed Changes by {rtype.upper()}</b>", 'Heading3')
-        table_data = generate_diff_table(records)
-        t = Table(table_data, colWidths=[max_width / len(table_data[0])] * len(table_data[0]), repeatRows=1)
+        add_paragraph(f"{section_index}.{idx} Detailed Changes by {rtype.upper()}", 'Heading3')
+        table_data = generate_diff_table(records, label_map=report_data.get("label_map", {}))
+        unit = max_width / 6.0
+        colWidths = [
+            0.9 * unit,
+            1.4 * unit,
+            0.8 * unit,
+            1.0 * unit,
+            1.9 * unit
+        ]
+        t = Table(table_data, colWidths=colWidths, repeatRows=1)
         t.setStyle(TableStyle([
             ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-            ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+            ('FONTNAME', (0,0), (-1,-1), 'NanumGothic'),
             ('FONTSIZE', (0,0), (-1,-1), 8),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-            ('LEFTPADDING', (0,0), (-1,-1), 6),
-            ('RIGHTPADDING', (0,0), (-1,-1), 6)
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+            ('LEFTPADDING', (0, 0), (-1, -1), 3),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
         ]))
         flowables.append(t)
         flowables.append(Spacer(1, 10))
