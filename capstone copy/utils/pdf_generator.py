@@ -1,3 +1,4 @@
+#utils/pdf_generator.py
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet
@@ -357,6 +358,7 @@ def generate_domain_table(findings):
         domain = f.get("domain", "")
         issue = f.get("issue", "")
         cname = f.get("cname", "")
+        vuln = f.get("vuln", "")
 
         # 줄바꿈 정리
         if isinstance(cname, list):
@@ -368,10 +370,13 @@ def generate_domain_table(findings):
         table_data.append([
             Paragraph(domain, styleN8),
             Paragraph(issue, styleN8),
-            Paragraph(cname, styleN8)
+            Paragraph(cname, styleN8),
+            Paragraph(vuln, styleN8)
         ])
 
     return table_data
+
+from reportlab.platypus import Paragraph
 
 def generate_shadow_table(findings, title_key):
     headers = [title_key] + [k for k in findings[0].keys() if k != title_key]
@@ -382,8 +387,12 @@ def generate_shadow_table(findings, title_key):
             v = f.get(k, "")
             if isinstance(v, list):
                 v = ", ".join(map(str, v))
+            # 긴 텍스트는 줄바꿈 및 PDF 너비 초과 방지를 위해 Paragraph로 감싸기
+            if isinstance(v, str) and len(v) > 30:
+                v = Paragraph(v, styleN8)
             row.append(Paragraph(str(v), styleN8))
         table_data.append(row)
+
     return table_data
 
 def generate_pdf_report(report_data, save_path):
