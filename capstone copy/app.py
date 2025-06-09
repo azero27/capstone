@@ -23,6 +23,8 @@ from api.snapshot.infoView import info_bp
 from api.snapshot.scan_result_api import scan_result_bp
 from api.archive_timeline import timeline_bp
 from api.shadow_it import shadowit_bp
+from api.generate_report import generate_report_bp
+from api.resource_options import resource_bp
 from parses.parse_file import parse_domain_file, parse_port_file, parse_s3_file
 from flask_cors import CORS
 from waitress import serve
@@ -67,6 +69,8 @@ def create_app():
     app.register_blueprint(scan_result_bp)
     app.register_blueprint(timeline_bp)
     app.register_blueprint(shadowit_bp)
+    app.register_blueprint(generate_report_bp)
+    app.register_blueprint(resource_bp)
 
     try:
         if latest_scan_setting_id() is None:
@@ -128,7 +132,7 @@ def create_app():
             s3_file_id = parse_s3_file(s3_path)
             r.set("s3_file_id", s3_file_id)
 
-        cloud_info 및 scan_result_id 미리 생성
+        #cloud_info 및 scan_result_id 미리 생성
         cloud_info_id = get_or_create_cloud_info(ip_address, domain)
         scan_setting_id = save_scan_setting(15)
         scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
