@@ -435,7 +435,7 @@ function updateSunburstChart(tools) {
     .append("text")
     .attr("class", "label")
     .style("font-size", "11px")
-    .style("fill", "white")
+    .style("fill", "black")
     .style("pointer-events", "none");
 
   labels.merge(enterLabels)
