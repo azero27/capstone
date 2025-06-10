@@ -1,3 +1,4 @@
+// 전역 상태 변수
 let results = [];
 let toolsState = {};
 let shadowITState = { status: 'wait', found: [] };
@@ -8,6 +9,35 @@ let sunburstRoot = null;
 let sunburstZoomNode = null;
 let sunburstAncestorsStack = [];
 let currentZoomPath = null;
+
+
+const toolMatchers = {
+  nmap: {
+    regex: /\d+\/tcp\s+open\s+/g,
+    label: '열린 포트',
+    source: 'log'
+  },
+  cloud_enum: {
+    regex: /OPEN S3 BUCKET: http:\/\/[^\s]+/g,
+    label: '공개 버킷',
+    source: 'log'
+  },
+  s3scanner: {
+    regex: /level=info msg="exists\s+\| [^|]+\| [^|]+\| [^|]+\| [^|]+\| \d+ objects?/g,
+    label: '인스턴스',
+    source: 'log'
+  },
+  nuclei: {
+    // Targets loaded 숫자 추출 예시
+    regex: /\[INF\]\s+Targets loaded for current scan:\s*(\d+)/i,
+    label: '대상 검색',
+    source: 'log',
+    group: 1
+  }
+};
+
+// Amass 도메인 카운트용 정규표현식 (summary 형태)
+const domainRegex = /\b[a-z0-9.-]+\.[a-z]{2,}\b/gi;
 
 // ------ 진입점 ------
 document.addEventListener('DOMContentLoaded', scanMonitor);
@@ -23,6 +53,7 @@ async function scanMonitor() {
     console.warn('초기 상태 fetch 실패:', e);
     return;
   }
+
   shadowITState = { status: 'wait', found: [] };
   lastUpdateTimestamp = 0;
   shadowITChecked = false;
@@ -36,19 +67,19 @@ async function scanMonitor() {
       if (res.ok) {
         const data = await res.json();
         if (data.results && data.results.length > 0) {
-          const uniqueResults = {};
-          for (const r of data.results) {
-            if (!r || typeof r !== 'object') continue;
+          const unique = {};
+          data.results.forEach(r => {
+            if (!r || typeof r !== 'object') return;
             const key = `${r.tool_id}_${r.step}`;
-            if (!uniqueResults[key] || (r.timestamp || 0) > (uniqueResults[key].timestamp || 0)) {
-              uniqueResults[key] = r;
+            if (!unique[key] || (r.timestamp || 0) > (unique[key].timestamp || 0)) {
+              unique[key] = r;
             }
-          }
-          const deduped = Object.values(uniqueResults);
-          const latestTimestamp = Math.max(...deduped.map(r => r.timestamp || 0));
-          if (latestTimestamp > lastUpdateTimestamp) {
+          });
+          const deduped = Object.values(unique);
+          const latestTs = Math.max(...deduped.map(r => r.timestamp || 0));
+          if (latestTs > lastUpdateTimestamp) {
             results = deduped;
-            lastUpdateTimestamp = latestTimestamp;
+            lastUpdateTimestamp = latestTs;
             toolsState = transformToToolsState(results);
             updated = true;
           }
@@ -64,43 +95,35 @@ async function scanMonitor() {
       renderResultTable(results);
       updateSunburstChart(toolsState);
 
-      // zoom 상태 유지 (업데이트 후에도!)
+      // zoom 유지
       if (sunburstZoomNode) {
-        const matchNode = sunburstRoot.descendants().find(
+        const match = sunburstRoot.descendants().find(
           n => n.data.name === sunburstZoomNode.data.name && n.depth === sunburstZoomNode.depth
         );
-        if (matchNode) {
-          applyZoomTransform(matchNode, sunburstRoot, d3.arc()
+        if (match) {
+          applyZoomTransform(match, sunburstRoot, d3.arc()
             .startAngle(d => d.x0)
             .endAngle(d => d.x1)
             .innerRadius(d => d.y0)
             .outerRadius(d => d.y1)
           );
-          sunburstZoomNode = matchNode;
+          sunburstZoomNode = match;
         }
       }
     }
 
-    // ------ 모든 스캔이 끝나면 shadowIT 분석 및 폴링 중단 ------
+    // 스캔 종료 시 Shadow IT 분석
     if (isAllScanFinished(results) && !shadowITChecked) {
       shadowITChecked = true;
       try {
         const res = await fetch(`/api/scan/${scanId}/shadowit`);
-        if (res.ok) {
-          shadowITState = await res.json();
-        } else {
-          shadowITState = { status: 'fail', found: [] };
-        }
-      } catch (err) {
+        shadowITState = res.ok ? await res.json() : { status: 'fail', found: [] };
+      } catch {
         shadowITState = { status: 'fail', found: [] };
       }
       renderScanTreeAndShadow(results, shadowITState);
-
-      // 폴링 정지
-      if (pollingIntervalId !== null) {
-        clearInterval(pollingIntervalId);
-        pollingIntervalId = null;
-      }
+      clearInterval(pollingIntervalId);
+      pollingIntervalId = null;
     }
   }, 2000);
 }
@@ -114,19 +137,20 @@ function transformToToolsState(results) {
       status: r.status,
       summary: r.summary,
       log: r.log,
-      tool_id: r.tool_id,
+      tool_id: r.tool_id
     });
   });
   return tools;
 }
 
 function updateScanStatus(status) {
-  const statusElement = document.getElementById('scan-status');
-  if (statusElement) {
-    statusElement.textContent = status;
-    statusElement.className = `status ${status}`;
+  const el = document.getElementById('scan-status');
+  if (el) {
+    el.textContent = status;
+    el.className = `status ${status}`;
   }
 }
+
 function isAllScanFinished(results) {
   return results.length > 0 && results.every(r => r.status === 'success' || r.status === 'fail');
 }
@@ -136,15 +160,19 @@ function renderScanTreeAndShadow(results, shadowITState) {
   const tree = document.getElementById('scanTree');
   if (!tree) return;
   tree.innerHTML = '';
+
+  // Step별 그룹화
   const stepGroups = {};
-  results.forEach(result => {
-    if (!stepGroups[result.step]) stepGroups[result.step] = [];
-    stepGroups[result.step].push(result);
+  results.forEach(r => {
+    if (!stepGroups[r.step]) stepGroups[r.step] = [];
+    stepGroups[r.step].push(r);
   });
 
-  for (const step of Object.keys(stepGroups).sort((a, b) => a - b)) {
+  // 각 Step 렌더
+  Object.keys(stepGroups).sort((a,b)=>a-b).forEach(step => {
     const column = document.createElement('div');
     column.className = 'scan-step-column';
+
     const stepLabel = document.createElement('div');
     stepLabel.textContent = `[Step ${step}]`;
     stepLabel.style.fontWeight = 'bold';
@@ -152,76 +180,92 @@ function renderScanTreeAndShadow(results, shadowITState) {
     column.appendChild(stepLabel);
 
     stepGroups[step].forEach(result => {
-      const node = document.createElement('div');
-      node.className = 'scan-node';
+      const resultNode = document.createElement('div');
+      resultNode.className = 'scan-node';
+
+      // dot & line
       const row = document.createElement('div');
       row.className = 'scan-row';
-      const dot = document.createElement('div');
-      dot.className = 'scan-dot';
-      if (result.status === 'fail') dot.classList.add('failed-dot');
-      else if (result.status === 'in_progress') dot.classList.add('loading-dot');
-      else if (result.status === 'success') dot.classList.add('success-dot');
-      const line = document.createElement('div');
-      line.className = 'scan-line';
-      if (result.status === 'fail') line.classList.add('failed');
-      else if (result.status === 'success') line.classList.add('completed');
-      const summary = document.createElement('div');
-      summary.className = 'scan-summary';
-      summary.innerText = result.summary;
-      row.appendChild(dot);
-      row.appendChild(line);
-      row.appendChild(summary);
+      const dot  = document.createElement('div'); dot.className = 'scan-dot';
+      if      (result.status==='fail')        dot.classList.add('failed-dot');
+      else if (result.status==='in_progress') dot.classList.add('loading-dot');
+      else if (result.status==='success')     dot.classList.add('success-dot');
+      const line = document.createElement('div'); line.className = 'scan-line';
+      if (result.status==='fail')        line.classList.add('failed');
+      else if (result.status==='success') line.classList.add('completed');
+
+      // summary + count
+      const summaryDiv = document.createElement('div');
+      summaryDiv.className = 'scan-summary';
+      let txt = result.summary || '';
+
+      if (result.status === 'success') {
+        const key = result.tool.toLowerCase();
+        
+        if (key === 'amass') {
+          // Amass log 기반 objects 카운트
+          const domains = (result.log || '').match(domainRegex) || [];
+          txt += ` (서브도메인: ${domains.length}개)`;
+          } 
+        else {
+          const m = toolMatchers[key];
+          if (m) {
+            const sourceText = (m.source==='log' ? result.log : result.summary) || '';
+            const allMatches = Array.from(sourceText.matchAll(m.regex));
+            const cnt = m.group!=null
+              ? allMatches.reduce((sum, arr) => sum + parseInt(arr[m.group] || 0, 10), 0)
+              : allMatches.length;
+            summaryText += ` (${m.label}: ${cnt}개)`;
+          }
+  	}
+      } else if (result.status==='in_progress') {
+        txt += ' (진행 중)';
+      }
+
+      summaryDiv.textContent = txt;
+
+      // tool label
       const toolLabel = document.createElement('div');
       toolLabel.className = 'scan-tool';
       toolLabel.innerText = `${result.tool} (ID: ${result.tool_id})`;
-      node.appendChild(row);
-      node.appendChild(toolLabel);
-      column.appendChild(node);
+
+      row.appendChild(dot);
+      row.appendChild(line);
+      row.appendChild(summaryDiv);
+      resultNode.appendChild(row);
+      resultNode.appendChild(toolLabel);
+      column.appendChild(resultNode);
     });
 
     tree.appendChild(column);
-  }
+  });
 
-  // ---- Shadow IT 컬럼 추가 ----
-  const shadowColumn = document.createElement('div');
-  shadowColumn.className = 'scan-step-column';
-  const shadowLabel = document.createElement('div');
-  shadowLabel.textContent = `[Shadow IT]`;
-  shadowLabel.style.fontWeight = 'bold';
-  shadowLabel.style.marginBottom = '10px';
-  shadowLabel.style.color = '#F7685B';
-  shadowColumn.appendChild(shadowLabel);
+  // Shadow IT 컬럼 (기존 로직)
+  const shadowCol = document.createElement('div');
+  shadowCol.className = 'scan-step-column';
+  const lbl = document.createElement('div');
+  lbl.textContent = `[Shadow IT]`;
+  lbl.style.fontWeight='bold'; lbl.style.marginBottom='10px'; lbl.style.color='#F7685B';
+  shadowCol.appendChild(lbl);
 
-  const node = document.createElement('div');
-  node.className = 'scan-node';
-  const row = document.createElement('div');
-  row.className = 'scan-row';
-  const dot = document.createElement('div');
-  dot.className = 'scan-dot';
-  let summary = document.createElement('div');
-  summary.className = 'scan-summary';
-
-  if (shadowITState.status === 'wait') {
-    dot.style.backgroundColor = '#ddd';
-    summary.innerText = '모든 스캔 종료 후 분석 시작';
-  } else if (shadowITState.status === 'in_progress') {
-    dot.classList.add('loading-dot');
-    summary.innerText = 'Shadow IT 분석 중...';
-  } else if (shadowITState.status === 'success') {
-    dot.classList.add('success-dot');
-    summary.innerHTML = shadowITState.found && shadowITState.found.length > 0
+  const n = document.createElement('div'); n.className='scan-node';
+  const r = document.createElement('div'); r.className='scan-row';
+  const d = document.createElement('div'); d.className='scan-dot';
+  const s = document.createElement('div'); s.className='scan-summary';
+  if (shadowITState.status==='wait') {
+    d.style.backgroundColor='#ddd'; s.innerText='모든 스캔 종료 후 분석 시작';
+  } else if (shadowITState.status==='in_progress') {
+    d.classList.add('loading-dot'); s.innerText='Shadow IT 분석 중...';
+  } else if (shadowITState.status==='success') {
+    d.classList.add('success-dot');
+    s.innerHTML = shadowITState.found.length>0
       ? `<b>발견:</b> ${shadowITState.found.join('<br><br>')}`
       : `<b>발견된 Shadow IT 없음</b>`;
   } else {
-    dot.classList.add('failed-dot');
-    summary.innerText = '실패';
+    d.classList.add('failed-dot'); s.innerText='실패';
   }
-
-  row.appendChild(dot);
-  row.appendChild(summary);
-  node.appendChild(row);
-  shadowColumn.appendChild(node);
-  tree.appendChild(shadowColumn);
+  r.appendChild(d); r.appendChild(s); n.appendChild(r); shadowCol.appendChild(n);
+  tree.appendChild(shadowCol);
 }
 
 // --------- 결과 테이블 ---------
@@ -231,28 +275,20 @@ function renderResultTable(results) {
   table.innerHTML = '';
   results.forEach(result => {
     const tr = document.createElement('tr');
-    const tdStep = document.createElement('td');
-    tdStep.textContent = result.step;
-    const tdTool = document.createElement('td');
-    tdTool.textContent = `${result.tool} (#${result.tool_id})`;
-    const tdStatus = document.createElement('td');
-    tdStatus.textContent = result.status;
-    if (result.status === 'success') tdStatus.classList.add('status-success');
-    else if (result.status === 'fail') tdStatus.classList.add('status-fail');
-    else if (result.status === 'in_progress') tdStatus.classList.add('status-in-progress');
+    const tdStep = document.createElement('td'); tdStep.textContent = result.step;
+    const tdTool = document.createElement('td'); tdTool.textContent = `${result.tool} (#${result.tool_id})`;
+    const tdStatus = document.createElement('td'); tdStatus.textContent = result.status;
+    if (result.status==='success') tdStatus.classList.add('status-success');
+    else if (result.status==='fail') tdStatus.classList.add('status-fail');
+    else if (result.status==='in_progress') tdStatus.classList.add('status-in-progress');
     const tdDetail = document.createElement('td');
-    const btn = document.createElement('button');
-    btn.textContent = 'View Log';
-    btn.classList.add('view-log-btn');
+    const btn = document.createElement('button'); btn.textContent='View Log'; btn.classList.add('view-log-btn');
     btn.onclick = () => {
-      document.getElementById('logContent').textContent = result.log || 'No log available.';
+      document.getElementById('logContent').textContent = result.log||'No log available.';
       document.getElementById('logPopup').classList.remove('hidden');
     };
     tdDetail.appendChild(btn);
-    tr.appendChild(tdStep);
-    tr.appendChild(tdTool);
-    tr.appendChild(tdStatus);
-    tr.appendChild(tdDetail);
+    tr.append(tdStep, tdTool, tdStatus, tdDetail);
     table.appendChild(tr);
   });
 }
