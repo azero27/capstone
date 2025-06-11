@@ -1,3 +1,0 @@
-sskyroute
-sskyroute-userdata
-sskyroute-private

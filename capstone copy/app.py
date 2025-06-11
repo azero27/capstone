@@ -1,4 +1,5 @@
 from utils.pdf_generator import generate_pdf_report
+import traceback
 import sys
 import os
 import csv
@@ -1305,7 +1306,8 @@ def create_app():
         try:
             generate_pdf_report(report_data, save_path)
         except Exception as e:
-            return jsonify({'status': 'error', 'message': f'PDF 생성 실패: {str(e)}'}), 500
+            print(f"[ERROR] PDF 생성 실패: {e}")
+            traceback.print_exc()  # ← 여기에 넣어야 실제 에러 트레이스백 출력됨
 
         return jsonify({
             'status': 'ok',
