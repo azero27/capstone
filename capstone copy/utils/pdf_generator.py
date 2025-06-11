@@ -36,7 +36,7 @@ styles.add(ParagraphStyle(
     leading=22,
     spaceBefore=12,
     spaceAfter=16,
-    alignment=TA_CENTER  # 중앙 정렬
+    alignment=TA_CENTER 
 ))
 
 styles.add(ParagraphStyle(
@@ -44,8 +44,8 @@ styles.add(ParagraphStyle(
     fontName='NanumGothic-Bold',
     fontSize=14,
     leading=18,
-    spaceBefore=12,  # 위 간격
-    spaceAfter=8,    # 아래 간격
+    spaceBefore=12,
+    spaceAfter=8, 
     alignment=TA_LEFT
 ))
 
@@ -54,16 +54,19 @@ styles.add(ParagraphStyle(
     fontName='NanumGothic',
     fontSize=12,
     leading=16,
-    spaceBefore=10,  # 위 간격
-    spaceAfter=6,    # 아래 간격
+    spaceBefore=10, 
+    spaceAfter=6,  
     alignment=TA_LEFT
 ))
 styleN = styles['KoreanNormal']
-styleN8 = ParagraphStyle('KoreanNormal8', parent=styleN, fontSize=8, leading=12)
+styleN8 = ParagraphStyle(
+    'KoreanNormal8',
+    parent=styleN,
+    fontSize=8,
+    leading=12,
+    wordWrap='CJK'
+)
 
-# styles = getSampleStyleSheet()
-# styleN = styles['Normal']
-# styleN8 = ParagraphStyle('Normal8', parent=styleN, fontSize=8)
 max_width = A4[0] - 2 * inch
 
 plt.style.use('ggplot')
@@ -157,10 +160,8 @@ def prepare_diff_records(report_data, selected_resources):
     all_tools = flatten_diff_records(generate_mock_diff_records_tools())
     all_shadow = flatten_diff_records(generate_mock_diff_records_shadow())
 
-    # Shadow 결과는 선택된 리소스에 따라 필터링
+    #선택된 리소스에 따라 필터링
     filtered_shadow = [r for r in all_shadow if r["resource_type"] in selected_resources]
-
-    # 도구 결과도 선택된 리소스에 따라 필터링
     filtered_tools = [r for r in all_tools if r["resource_type"] in selected_resources]
 
     report_data["diff_records_tools"] = filtered_tools
@@ -177,6 +178,12 @@ def prepare_diff_records(report_data, selected_resources):
 
     return report_data
 
+def truncate_and_escape(text, limit=300):
+    """길이 제한 후 escape 및 줄임표"""
+    text = escape(str(text))
+    if len(text) > limit:
+        return text[:limit] + '...'
+    return text
 
 def generate_diff_table(records, label_map=None):
     table_data = [["Target", "Diff Type", "Tool", "Description"]]
@@ -184,11 +191,10 @@ def generate_diff_table(records, label_map=None):
         target = r.get("target", "")
         label = label_map.get(target, "") if label_map else ""
         row = [
-            # Paragraph(escape(label), styleN8),
-            Paragraph(escape(target), styleN8),
-            Paragraph(escape(str(r.get("diff_type", ""))), styleN8),
-            Paragraph(escape(str(r.get("source", ""))), styleN8),
-            Paragraph(escape(str(r.get("description", ""))), styleN8)
+            Paragraph(truncate_and_escape(target), styleN8),
+            Paragraph(truncate_and_escape(r.get("diff_type", "")), styleN8),
+            Paragraph(truncate_and_escape(r.get("source", "")), styleN8),
+            Paragraph(truncate_and_escape(r.get("description", ""), 500), styleN8)
         ]
         table_data.append(row)
     return table_data
@@ -204,7 +210,6 @@ def generate_resource_change_chart_image(diff_records):
     fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
     plt.subplots_adjust(bottom=0.3)
 
-    # Prepare y-axis labels
     targets = sorted(set(r["target"] for r in diff_records))
     y_map = {t: i for i, t in enumerate(targets)}
 
@@ -215,17 +220,12 @@ def generate_resource_change_chart_image(diff_records):
         marker = marker_map.get(r["resource_type"], "x")
         ax.scatter(x, y, color=color, marker=marker, s=100, edgecolor='black')
 
-    # Y-axis
     ax.set_yticks(list(y_map.values()))
     ax.set_yticklabels(list(y_map.keys()), fontsize=9)
-
-    # Axis labels and title
     ax.set_xlabel("Scan ID", fontsize=11)
     ax.set_title("Resource Change Timeline", fontsize=13)
     ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.5)
 
-    # Remove internal legend
-    # Add explanation text under graph
     tools_in_chart = {r["source"] for r in diff_records}
     types_in_chart = {r["diff_type"] for r in diff_records}
 
@@ -242,7 +242,6 @@ def generate_resource_change_chart_image(diff_records):
     # diff_records에서 리소스 타입 추출
     resource_types_in_chart = set(r.get("resource_type") for r in diff_records)
 
-    # 기존 if 구조 그대로 유지해서 범례 추가
     if "domain" in resource_types_in_chart:
         legend_elements.append(Line2D([0], [0], marker='v', color='black', label='Domain', linestyle='', markersize=8))
     if "s3" in resource_types_in_chart:
@@ -250,7 +249,6 @@ def generate_resource_change_chart_image(diff_records):
     if "port" in resource_types_in_chart:
         legend_elements.append(Line2D([0], [0], marker='s', color='black', label='Port', linestyle='', markersize=8))
 
-    # 범례 그리기
     ax.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, -0.35),
             ncol=2, fontsize=9, frameon=False)
 
@@ -264,8 +262,8 @@ def generate_resource_chart(discovered_resources: dict) -> BytesIO:
     labels = list(discovered_resources.keys())
     values = list(discovered_resources.values())
 
-    x = np.arange(len(labels))  # x축 위치 지정
-    width = 0.15                 # 막대 두께 고정
+    x = np.arange(len(labels)) 
+    width = 0.15               
 
     color_map = {
         "s3_buckets": "#5c6f91",
@@ -279,8 +277,8 @@ def generate_resource_chart(discovered_resources: dict) -> BytesIO:
 
     ax.bar(x, values, width=width, color=colors, edgecolor="black", linewidth=1)
 
-    ax.set_xlim(-0.5, 2.5)  # 최소 3개 막대를 보여주는 형태
-    ax.set_ylim(0, max(1.2, max(values)*1.1))  # y축도 적절히 확보
+    ax.set_xlim(-0.5, 2.5) 
+    ax.set_ylim(0, max(1.2, max(values)*1.1))
 
 
     ax.set_title("Discovered Resources", loc='left', fontsize=13, pad=10)
@@ -331,9 +329,9 @@ def generate_s3_table(findings):
             files = []
 
         if len(files) <= 2:
-            files_str = ", ".join(files)  # 짧으면 한 줄에
+            files_str = ", ".join(files) 
         else:
-            files_str = "<br/>".join(files)  # 길면 줄바꿈
+            files_str = "<br/>".join(files) 
 
         row = [
             Paragraph(escape(bucket), styleN8),
@@ -366,11 +364,9 @@ def generate_domain_table(findings):
         cname = f.get("cname", "")
         vuln = f.get("vuln", "")
 
-        # 줄바꿈 정리
         if isinstance(cname, list):
             cname = "<br/>".join(cname)
         elif isinstance(cname, str):
-            # 쉼표로 나눠서 각 줄에 하나씩 배치
             cname = "<br/>".join([s.strip() for s in cname.split(",") if s.strip()])
 
         table_data.append([
@@ -391,11 +387,10 @@ def generate_shadow_table(findings, title_key):
     for f in findings:
         row = []
 
-        # ✅ 먼저 title_key 항목 추가
         first_val = f.get(title_key, "")
         row.append(Paragraph(escape(str(first_val)), styleN8))
 
-        # 나머지 항목 추가
+
         for k in headers[1:]:
             v = f.get(k, "")
             if isinstance(v, list):
@@ -427,11 +422,9 @@ def generate_pdf_report(report_data, save_path):
             "Heading3": "KoreanHeading3"
         }
 
-        # 먼저 매핑된 스타일 이름 구하기
         mapped_style = style_map.get(style, style)
-        para_style = styles.get(mapped_style, styleN)  # 최종 스타일 얻기
+        para_style = styles.get(mapped_style, styleN)
 
-        # 단 한 번만 Paragraph 추가
         flowables.append(Paragraph(escape(text), para_style))
         flowables.append(Spacer(1, space))
 
@@ -575,7 +568,7 @@ def generate_pdf_report(report_data, save_path):
             'Normal'
         )
         flowables.append(Spacer(1, 12))
-        chart_path = generate_resource_change_chart_image(diff_records)  # 포함된 legend 및 마커
+        chart_path = generate_resource_change_chart_image(diff_records)
         flowables.append(Image(chart_path, width=7 * inch, height=3 * inch))
         flowables.append(Spacer(1, 12))
     print(f"section6.")
@@ -613,4 +606,4 @@ def generate_pdf_report(report_data, save_path):
         doc.build(flowables)
     except Exception as e:
         print(f"[ERROR] PDF 생성 실패: {e}")
-        traceback.print_exc()  # ← 추가!
+        traceback.print_exc()

@@ -7,7 +7,6 @@ let pollingIntervalId = null;
 document.addEventListener('DOMContentLoaded', scan_show);
 
 async function handleManualScan() {
-  // Get the current resource type from localStorage
   const resourceType = localStorage.getItem('resource_type');
   
   if (!resourceType) {
@@ -33,13 +32,10 @@ async function handleManualScan() {
 
     const data = await response.json();
     console.log('일회성 스캔 시작됨:', data);
-    
-    // Store the task ID for tracking
+
     localStorage.setItem('scan_result_id', data.task_id);
-    
-    // Start monitoring the scan results
+
     scan_show();
-    
     alert('일회성 스캔이 시작되었습니다.');
 
   } catch (error) {
@@ -49,11 +45,10 @@ async function handleManualScan() {
 }
 
 async function scan_show() {
-  // 먼저 status API에서 최신 상태와 scan_result_id를 가져옵니다
-  const res = await fetch('/status');  // ✅ fetch 추가
-  const statusData = await res.json(); // ✅ 이제 에러 안 남
+  const res = await fetch('/status');
+  const statusData = await res.json()
 
-  const scanId = statusData.scan_result_id; // ✅ 최신 scan_result_id 가져오기
+  const scanId = statusData.scan_result_id;
   localStorage.setItem('scan_result_id', scanId);
 
   shadowITState = { status: 'wait', found: [] };
@@ -84,7 +79,6 @@ async function updateScanResults(scanId) {
     if (res.ok) {
       const statusData = await res.json();
       
-      // 결과가 없으면 종료
       if (!statusData.results || statusData.results.length === 0) {
         return false;
       }
@@ -142,7 +136,7 @@ function updateScanStatus(status) {
   }
 }
 
-// 모든 스캔이 끝났는지? (in_progress가 없음)
+// 모든 스캔이 끝났는지?
 function isAllScanFinished(results) {
   return results.length > 0 && results.every(r => r.status === 'success' || r.status === 'fail');
 }
@@ -154,7 +148,6 @@ async function updateShadowITState(scanId) {
     const res = await fetch(`/api/scan/${scanId}/shadowit`);
     if (res.ok) {
       const data = await res.json();
-      // data = { status: 'success'|'in_progress'|'fail', found: [...] }
       shadowITState = data;
     } else {
       shadowITState = { status: 'fail', found: [] };
@@ -226,7 +219,7 @@ function renderScanTree(results) {
     tree.appendChild(column);
   }
 
-  // ----------- Shadow IT 열 추가 (가장 오른쪽) -----------
+  //Shadow IT 열 추가 (가장 오른쪽)
   const shadowColumn = document.createElement('div');
   shadowColumn.className = 'scan-step-column';
   const shadowLabel = document.createElement('div');
@@ -270,7 +263,7 @@ function renderScanTree(results) {
   tree.appendChild(shadowColumn);
 }
 
-// 결과 테이블 렌더 함수More actions
+// 결과 테이블
 function renderResultTable(results) {
   const table = document.getElementById('resultTableBody');
   table.innerHTML = '';
@@ -303,7 +296,7 @@ function renderResultTable(results) {
       document.getElementById('logContent').textContent = result.log || 'No log available.';
     };
     tdDetail.appendChild(btn);
-More actions
+    
     tr.appendChild(tdStep);
     tr.appendChild(tdTool);
     tr.appendChild(tdStatus);
