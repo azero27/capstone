@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <title>Scanner UI</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/scan_sunburst.css') }}">
-  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
 
@@ -58,51 +56,42 @@
       <div class="secondary-button">EXIT</div>
     </div>
   </div>
-  
-<div class="scan-layout">
-  <div class="left-column">
+
+  <div class="container">
+    <!-- Top Block: Visual Scan Tree -->
     <div class="scan-visual-block">
       <h2>SCAN</h2>
       <div id="scanTree" class="scan-tree"></div>
     </div>
 
+    <!-- Bottom Block: Scan Table + Log Viewer -->
     <div class="scan-result-block">
       <h2>SCAN RESULT</h2>
-      <table class="scan-table">
-        <thead>
-          <tr>
-            <th>Step</th>
-            <th>Tool</th>
-            <th>Status</th>
-            <th>Details</th>
-          </tr>
-        </thead>
-        <tbody id="resultTableBody"></tbody>
-      </table>
+      <div class="result-wrapper">
+        <!-- Table -->
+        <table class="scan-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Tool</th>
+              <th>Status</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="resultTableBody"></tbody>
+        </table>
+
+        <!-- Log Viewer -->
+        <div class="log-viewer" id="logViewer">
+          <h4>Scan Log</h4>
+          <pre id="logContent">(로그를 보려면 "View Log"를 클릭하세요)</pre>
+        </div>
+      </div>
     </div>
   </div>
-
-<div class="scan-chart-block">
-  <h2 style="display: flex; align-items: center; gap: 10px;">
-    <button id="sunburstBackBtn" class="sunburst-back-btn" style="display: none;">
-      <span class="back-icon">&#x25C0;</span> BACK
-    </button>
-    SCAN CHART
-  </h2>
-  <div id="sunburstChart"></div>
-  <div id="sunburstTooltip" class="sunburst-tooltip"></div>
-</div>
-
+ 
   <script src="{{ url_for('static', filename='js/common.js') }}"></script>
   <script src="{{ url_for('static', filename='js/scan.js') }}"></script>
-  <!-- 로그 팝업 -->
-<div id="logPopup" class="popup hidden">
-  <div class="popup-content">
-    <span class="close-btn" onclick="closeLogPopup()">&times;</span>
-    <h3>Scan Log</h3>
-    <pre id="logContent"></pre>
-  </div>
-</div>
 
 </body>
 </html>
