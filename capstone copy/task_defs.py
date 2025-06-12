@@ -658,7 +658,7 @@ def run_oneoff_full_scan(resource_type):
 
     # 병렬 실행 + 결과 종합
     if scan_tasks:
-        chord(scan_tasks)(analyze_shadow_components_mock.s(scan_result_id))
+        chord(scan_tasks)(analyze_shadow_components_mock.si(scan_result_id))
         print(f"[ONEOFF] 일회성 전체 스캔 태스크 등록 완료 (parallel execution)")
     else:
         print("[WARN] 실행할 스캔 태스크 없음 — IP/도메인/키워드 확인 필요")

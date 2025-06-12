@@ -1,0 +1,200 @@
+
+##########################
+        cloud_enum
+   github.com/initstring
+##########################
+
+
+Keywords:    sskyroute
+Mutations:   /home/skyroute/capstone/capstone copy/tools/cloud_enum/enum_tools/fuzz.txt
+Brute-list:  /home/skyroute/capstone/capstone copy/tools/cloud_enum/enum_tools/fuzz.txt
+
+[+] Mutations list imported: 18 items
+[+] Mutated results: 109 items
+
+++++++++++++++++++++++++++
+      amazon checks
+++++++++++++++++++++++++++
+
+[+] Checking for S3 buckets
+    [!] Connection error on sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dd60>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute2025.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute2025.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0d760>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.2025.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.2025.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d4c0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-2025.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-2025.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13730>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on 2025sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='2025sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13430>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    5/109 complete...
+    [!] Connection error on 2025.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='2025.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0dbb0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on 2025-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='2025-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9130>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroutedata.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutedata.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9e80>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.data.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.data.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7730>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-data.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-data.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13280>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    10/109 complete...
+    [!] Connection error on datasskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='datasskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9220>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7d00>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7df0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroutedata-private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutedata-private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0de50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.data-private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.data-private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e131f0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    15/109 complete...
+    [!] Connection error on sskyroute-data-private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-data-private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7760>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data-privatesskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data-privatesskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d2b0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data-private.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data-private.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d7c0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data-private-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data-private-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0ddf0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroutedata-public.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutedata-public.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13c40>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    20/109 complete...
+    [!] Connection error on sskyroute.data-public.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.data-public.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d970>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-data-public.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-data-public.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0de20>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data-publicsskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data-publicsskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9ee0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data-public.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data-public.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7c10>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data-public-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data-public-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13250>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    25/109 complete...
+    [!] Connection error on sskyroutedata.private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutedata.private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7eb0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.data.private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.data.private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0da60>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-data.private.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-data.private.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d220>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data.privatesskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data.privatesskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0db50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data.private.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data.private.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13a60>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    30/109 complete...
+    [!] Connection error on data.private-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data.private-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9f10>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroutedata.public.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutedata.public.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0da30>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.data.public.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.data.public.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7790>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-data.public.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-data.public.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13880>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data.publicsskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data.publicsskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13d00>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    35/109 complete...
+    [!] Connection error on data.public.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data.public.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9fd0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on data.public-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='data.public-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9400>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteec2.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteec2.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7f10>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.ec2.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.ec2.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e138e0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-ec2.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-ec2.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13820>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    40/109 complete...
+    [!] Connection error on ec2sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='ec2sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb94f0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on ec2.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='ec2.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dac0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on ec2-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='ec2-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dd30>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroutees.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutees.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0db50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.es.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.es.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13d60>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    45/109 complete...
+    [!] Connection error on sskyroute-es.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-es.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dfd0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on essskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='essskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9550>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on es.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='es.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9070>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on es-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='es-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7e80>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteevents.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteevents.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13580>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    50/109 complete...
+    [!] Connection error on sskyroute.events.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.events.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9880>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-events.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-events.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dd30>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on events.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='events.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d610>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on events-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='events-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13640>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    55/109 complete...
+    [!] Connection error on sskyrouteexe.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteexe.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dc40>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.exe.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.exe.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dcd0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-exe.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-exe.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9220>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on exesskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='exesskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea76a0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on exe.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='exe.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e137f0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    60/109 complete...
+    [!] Connection error on exe-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='exe-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb93d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteexport.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteexport.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0d7f0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.export.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.export.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0ddf0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-export.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-export.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d400>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on exportsskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='exportsskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13820>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    65/109 complete...
+    [!] Connection error on export.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='export.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0d700>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on export-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='export-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb9760>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroutefiles.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroutefiles.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7f70>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.files.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.files.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea75e0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-files.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-files.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13310>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    70/109 complete...
+    [!] Connection error on files.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='files.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d820>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on files-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='files-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dc10>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteuserfiles.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteuserfiles.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d0a0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute.userfiles.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.userfiles.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13640>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    75/109 complete...
+    [!] Connection error on sskyroute-userfiles.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-userfiles.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dee0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userfilessskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userfilessskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e0d340>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userfiles.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userfiles.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7af0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userfiles-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userfiles-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea77c0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteuserpictures.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteuserpictures.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c1e13460>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    80/109 complete...
+    [!] Connection error on sskyroute.userpictures.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.userpictures.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7e80>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-userpictures.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-userpictures.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2ea7a00>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userpicturessskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userpicturessskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2f0dc10>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userpictures.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userpictures.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fd9c2eb92e0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userpictures-sskyroute.s3.ap-northeast-2.amazonaws.com:

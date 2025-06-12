@@ -357,7 +357,7 @@ body {
 }
 
 .log-viewer {
-  width: 0%;
+  width: 100%;
   border-left: 1px solid #ddd;
   padding-left: 20px;
   font-size: 13px;
