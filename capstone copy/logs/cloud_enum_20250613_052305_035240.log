@@ -1,0 +1,200 @@
+
+##########################
+        cloud_enum
+   github.com/initstring
+##########################
+
+
+Keywords:    sskyroute
+Mutations:   /home/skyroute/capstone/capstone copy/tools/cloud_enum/enum_tools/fuzz.txt
+Brute-list:  /home/skyroute/capstone/capstone copy/tools/cloud_enum/enum_tools/fuzz.txt
+
+[+] Mutations list imported: 19 items
+[+] Mutated results: 115 items
+
+++++++++++++++++++++++++++
+      amazon checks
+++++++++++++++++++++++++++
+
+[+] Checking for S3 buckets
+  [1m[92mOPEN S3 BUCKET: http://sskyroute.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/sskyroute
+      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/frogfile.txt
+      ->http://sskyroute.s3.ap-northeast-2.amazonaws.com/goodbye.txt
+  [1m[33mProtected S3 Bucket: http://sskyroute-2025.s3.ap-northeast-2.amazonaws.com/[0m
+    5/115 complete...
+    10/115 complete...
+    15/115 complete...
+    20/115 complete...
+    25/115 complete...
+    30/115 complete...
+    35/115 complete...
+    40/115 complete...
+    45/115 complete...
+    50/115 complete...
+    55/115 complete...
+    60/115 complete...
+    65/115 complete...
+    70/115 complete...
+    75/115 complete...
+    [!] Timeout on sskyroute-userfiles.s3.ap-northeast-2.amazonaws.com. Investigate if there are many of these
+    [!] Timeout on userfilessskyroute.s3.ap-northeast-2.amazonaws.com. Investigate if there are many of these
+    [!] Connection error on userfiles.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userfiles.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c34c53250>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userfiles-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userfiles-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c34c3acd0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyrouteuserpictures.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyrouteuserpictures.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c343f5190>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    80/115 complete...
+    [!] Connection error on sskyroute.userpictures.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute.userpictures.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c343f5940>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on sskyroute-userpictures.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-userpictures.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c3440f190>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userpicturessskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userpicturessskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c3440fdc0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userpictures.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userpictures.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c34410760>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on userpictures-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='userpictures-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c34410d30>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    85/115 complete...
+  [1m[92mOPEN S3 BUCKET: http://sskyroute-user.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute-user.s3.ap-northeast-2.amazonaws.com/sskyroute-user
+      ->http://sskyroute-user.s3.ap-northeast-2.amazonaws.com/chapter 9-OllyDbg.pdf
+      ->http://sskyroute-user.s3.ap-northeast-2.amazonaws.com/hello user/
+      ->http://sskyroute-user.s3.ap-northeast-2.amazonaws.com/hello user/고양이.jpeg
+      ->http://sskyroute-user.s3.ap-northeast-2.amazonaws.com/hello user/스크린샷 2025-06-02 오전 1.36.15.png
+    90/115 complete...
+  [1m[92mOPEN S3 BUCKET: http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/[0m
+      FILES:
+      ->http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/sskyroute-userdata
+      ->http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/Template for Malware Analysis Report.pdf
+      ->http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/chapter 8-Debugging.pdf
+      ->http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/frogfile.txt
+      ->http://sskyroute-userdata.s3.ap-northeast-2.amazonaws.com/goodbye.txt
+    95/115 complete...
+    100/115 complete...
+    105/115 complete...
+    [!] Timeout on wwwsskyroute.s3.ap-northeast-2.amazonaws.com. Investigate if there are many of these
+    110/115 complete...
+    [!] Timeout on sskyroute.test.s3.ap-northeast-2.amazonaws.com. Investigate if there are many of these
+    [!] Connection error on sskyroute-test.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='sskyroute-test.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c34418580>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on testsskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='testsskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c344260d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on test.sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='test.sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c344265e0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    [!] Connection error on test-sskyroute.s3.ap-northeast-2.amazonaws.com:
+HTTPConnectionPool(host='test-sskyroute.s3.ap-northeast-2.amazonaws.com', port=80): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f9c34426e50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+    115/115 complete...
+                            
+ Elapsed time: 00:03:10
+
+[+] Checking for AWS Apps
+[*] Brute-forcing a list of 115 possible DNS names
+    [!] DNS Timeout on sskyroute-2025.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.2025.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute2025.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on 2025sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.awsapps.com. Investigate if there are many of these.
+    5/115 complete...
+    [!] DNS Timeout on 2025.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on 2025-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutedata.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.data.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-data.awsapps.com. Investigate if there are many of these.
+    10/115 complete...
+    [!] DNS Timeout on data-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on datasskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutedata-private.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.data-private.awsapps.com. Investigate if there are many of these.
+    15/115 complete...
+    [!] DNS Timeout on sskyroute-data-private.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data-privatesskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data-private.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutedata-public.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data-private-sskyroute.awsapps.com. Investigate if there are many of these.
+    20/115 complete...
+    [!] DNS Timeout on data-public-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.data-public.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-data-public.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data-publicsskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data-public.sskyroute.awsapps.com. Investigate if there are many of these.
+    25/115 complete...
+    [!] DNS Timeout on data.private.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-data.private.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data.privatesskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutedata.private.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.data.private.awsapps.com. Investigate if there are many of these.
+    30/115 complete...
+    [!] DNS Timeout on data.private-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutedata.public.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.data.public.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-data.public.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data.publicsskyroute.awsapps.com. Investigate if there are many of these.
+    35/115 complete...
+    [!] DNS Timeout on data.public.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on data.public-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-ec2.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.ec2.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteec2.awsapps.com. Investigate if there are many of these.
+    40/115 complete...
+    [!] DNS Timeout on ec2sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on ec2.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on ec2-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutees.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.es.awsapps.com. Investigate if there are many of these.
+    45/115 complete...
+    [!] DNS Timeout on es.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-es.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on essskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on es-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteevents.awsapps.com. Investigate if there are many of these.
+    50/115 complete...
+    [!] DNS Timeout on eventssskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-events.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.events.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on events-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on events.sskyroute.awsapps.com. Investigate if there are many of these.
+    55/115 complete...
+    [!] DNS Timeout on exe.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on exesskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteexe.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.exe.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-exe.awsapps.com. Investigate if there are many of these.
+    60/115 complete...
+    [!] DNS Timeout on exportsskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-export.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteexport.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on exe-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.export.awsapps.com. Investigate if there are many of these.
+    65/115 complete...
+    [!] DNS Timeout on export.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on export-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroutefiles.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-files.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.files.awsapps.com. Investigate if there are many of these.
+    70/115 complete...
+    [!] DNS Timeout on sskyrouteuserfiles.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on filessskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on files-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.userfiles.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on files.sskyroute.awsapps.com. Investigate if there are many of these.
+    75/115 complete...
+    [!] DNS Timeout on userfiles-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-userfiles.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userfilessskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userfiles.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyrouteuserpictures.awsapps.com. Investigate if there are many of these.
+    80/115 complete...
+    [!] DNS Timeout on sskyroute.userpictures.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute-userpictures.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userpictures-sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userpictures.sskyroute.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on userpicturessskyroute.awsapps.com. Investigate if there are many of these.
+    85/115 complete...
+    [!] DNS Timeout on sskyroute-user.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on sskyroute.user.awsapps.com. Investigate if there are many of these.
+    [!] DNS Timeout on usersskyroute.awsapps.com. Investigate if there are many of these.

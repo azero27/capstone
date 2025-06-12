@@ -1,6 +1,0 @@
-sskyroute
-sskyroute-userfiles
-sskyroute-userpictures
-sskyroute-user
-sskyroute-userdata
-sskyroute-test

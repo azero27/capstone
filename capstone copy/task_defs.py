@@ -433,11 +433,12 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                     cache_result_for_dashboard(scan_result_id, tool_id, normalized, ttl=0)
 
                 elif tool_id == 6:
-                    # 1. 도구 실행 결과 먼저 누적
-                    if isinstance(parsed, list):
-                        all_parsed_for_nuclei.extend(parsed)
-                    else:
-                        all_parsed_for_nuclei.append(parsed)
+                    for result in parsed:  # parsed는 list of dict
+                        save_nuclei_result(result, scan_result_id, current_step)
+
+                        normalized = normalize_parsed_result(result, tool_id, current_step, tool_name)
+                        cache_result_for_dashboard(scan_result_id, tool_id, normalized)
+                        all_parsed_for_nuclei.append(result)
 
                 print(f"[+] 도구 {tool_id} 결과 저장 완료")
             except Exception as e:
@@ -482,9 +483,8 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
                             print("===========")
 
     template_path = "/home/skyroute/nuclei-templates/dns/detect-dangling-s3-cname.yaml"
-    # r = redis.Redis(host='localhost', port=6379, db=0)
 
-    if all_parsed_for_nuclei and resource_type == "url":
+    if all_parsed_for_nuclei:
         # Redis에서 이미 nuclei 실행했는지 확인
         nuclei_flag_key = f"nuclei_done:{scan_result_id}"
         if not r.get(nuclei_flag_key):
@@ -522,22 +522,6 @@ def schedule_scan(resource_type, value, scan_setting_id, step=1, scan_result_id=
 def analyze_shadow_components_mock(scan_result_ids):
     print(f"[SHADOW IT MOCK 분석 시작] ScanResult ID 목록: {scan_result_ids}")
 
-    # ========== MOCK 1. nuclei + 사용자 소유 버킷 ==========
-    """
-    parsed_nuclei_results = [
-        {"target": "cdn.skyroute.com", "url_list": ["CNAME\tbucket1.s3.amazonaws.com"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
-        {"target": "img.skyroute.com", "url_list": ["CNAME\tmy-owned-bucket.s3.amazonaws.com"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
-        {"target": "static.skyroute.com", "url_list": ["CNAME\tstatic-site.github.io"], "vulnerability": "detect-dangling-s3-cname [dns] matched"},
-        {"target": "media.skyroute.com", "url_list": ["CNAME\td111111abcdef8.cloudfront.net"], "vulnerability": "detect-dangling-s3-cname [dns] and [http] matched"}
-    ]
-    user_resources = {"my-owned-bucket"}
-
-    print("\n===== 1. analyze_nuclei_shadow_domains() 결과 =====")
-    nuclei_result = analyze_nuclei_shadow_domains(parsed_nuclei_results, user_resources)
-    print(json.dumps(nuclei_result, indent=2, ensure_ascii=False))
-
-    cache_shadow_component(scan_result_ids, "nuclei", nuclei_result)
-    """
 
     # ========== MOCK 2. Nmap 결과 및 허용 포트 ==========
 
