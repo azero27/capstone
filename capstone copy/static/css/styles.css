@@ -357,7 +357,7 @@ body {
 }
 
 .log-viewer {
-  width: 100%;
+  width: 40%;
   border-left: 1px solid #ddd;
   padding-left: 20px;
   font-size: 13px;
@@ -369,7 +369,6 @@ pre {
   padding: 10px;
   max-height: 200px;
   overflow-y: auto;
-  font-size: 13px;
 }
 
 /* 서브메뉴를 추가할 수 있는 스타일 */
@@ -1194,7 +1193,7 @@ h2 {
   padding: 15px;
   color: #333;
   font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.5;
   max-height: 420px;
   overflow-y: auto;
@@ -1254,5 +1253,4 @@ h2 {
 .secondary-button {
   transition: all 0.3s ease;
 }
-
 
