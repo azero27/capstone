@@ -3,16 +3,10 @@ from collections import defaultdict
 import json
 
 def extract_resource_identifier(resource: str) -> str:
-    """
-    리소스의 고유 식별자 추출 (예: S3 버킷 이름, CloudFront ID, GitHub 사용자 등)
-    """
     parts = resource.split('.')
     return parts[0] if parts else ""
 
 def identify_resource_type(resource: str) -> str:
-    """
-    도메인 패턴을 기반으로 리소스 유형을 식별
-    """
     if "s3-website" in resource or "s3.amazonaws.com" in resource:
         return "AWS S3"
     elif "cloudfront.net" in resource:
@@ -27,12 +21,6 @@ def identify_resource_type(resource: str) -> str:
         return "Unknown"
 
 def analyze_nuclei_shadow_domains(parsed_results, user_resources):
-    """
-    nuclei 결과와 사용자 입력(S3 버킷 이름)을 비교하여 다음을 분류:
-    - dangling_dns: [dns]+[http] 매칭된 위험 리소스
-    - potential_exposure: S3 중 소유하지 않은 DNS 매칭 리소스
-    - linked_known_resource: S3 중 소유한 DNS 매칭 리소스
-    """
     resource_map = defaultdict(set)
     exposure_results = []
     confirmed_dangling = []
@@ -59,7 +47,6 @@ def analyze_nuclei_shadow_domains(parsed_results, user_resources):
                 "linked_domains": sorted(resource_map[resource])
             }
 
-            # AWS S3인 경우에만 사용자 소유 여부 판단 및 포함
             if resource_type == "AWS S3":
                 base_entry["is_user_owned"] = resource_identifier in user_resources
 
@@ -108,7 +95,7 @@ parsed_nuclei_results = [
     }
 ]
 
-user_resources = {"my-owned-bucket"}  # 사용자가 소유한 S3 버킷 이름 목록
+user_resources = {"my-owned-bucket"} 
 
 
 # results = analyze_nuclei_shadow_domains(parsed_nuclei_results, user_resources)
