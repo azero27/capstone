@@ -8,10 +8,8 @@ from dns_utils import convert_domain_to_ip, convert_ip_to_domain
 from shadow_it_analysis.extract_keyword import extract_keyword
 from datetime import datetime
 
-# Redis 연결
 r = redis.Redis(host='localhost', port=6379, db=0)
 
-# Celery 인스턴스
 celery = Celery('capstone_tasks',
                 broker='redis://localhost:6379/0',
                 backend='redis://localhost:6379/0')
@@ -22,7 +20,6 @@ def run_onetime_scan(ip_address=None, domain=None, keyword=None):
     now_ts = datetime.now().timestamp()
     print(f"\n [ONETIME SCAN] 시작: {now_ts}")
 
-    # 1) 파라미터 우선 가져오기 / Redis에 저장된 값 사용
     if not ip_address and r.get("scheduled_ip"):
         ip_address = r.get("scheduled_ip").decode()
     if not domain and r.get("scheduled_domain"):
@@ -30,13 +27,11 @@ def run_onetime_scan(ip_address=None, domain=None, keyword=None):
     if not keyword and r.get("scheduled_keyword"):
         keyword = r.get("scheduled_keyword").decode()
 
-    # 2) IP<->도메인 자동 변환
     if ip_address and not domain:
         domain = convert_ip_to_domain(ip_address)
     elif domain and not ip_address:
         ip_address = convert_domain_to_ip(domain)
 
-    # 3) 키워드 추출 (domain.csv)
     if not keyword:
         try:
             keyword = extract_keyword('csv_files/domain.csv')
@@ -45,12 +40,10 @@ def run_onetime_scan(ip_address=None, domain=None, keyword=None):
         except Exception as e:
             print(f"[ERROR] extract_keyword 실패: {e}")
 
-    # 4) DB에 CloudInfo, ScanResult 생성
     cloud_info_id = get_or_create_cloud_info(ip_address, domain)
     scan_setting_id = latest_scan_setting_id()
     scan_result_id = save_scan_result_start(cloud_info_id, scan_setting_id)
 
-    # 5) Redis 플래그 갱신
     pipe = r.pipeline()
     pipe.set('has_user_input', 'false')   
     pipe.set('scan_status', 'running')    
@@ -58,7 +51,6 @@ def run_onetime_scan(ip_address=None, domain=None, keyword=None):
     pipe.set('latest_scan_result_id', str(scan_result_id))
     pipe.execute()
 
-    # 6) schedule_scan 태스크 리스트 구성
     scan_tasks = []
     if ip_address:
         scan_tasks.append(
@@ -73,7 +65,6 @@ def run_onetime_scan(ip_address=None, domain=None, keyword=None):
             schedule_scan.s('keyword', keyword,    scan_setting_id, 1, scan_result_id)
         )
 
-    # 7) 병렬 실행 + 결과 종합
     if scan_tasks:
         chord(scan_tasks)( analyze_shadow_components.s(scan_result_id) )
         print(f"[OK] One-time scan tasks scheduled (ScanResult ID={scan_result_id})")
