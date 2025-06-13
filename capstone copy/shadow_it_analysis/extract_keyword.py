@@ -15,5 +15,5 @@ def extract_keyword(csv_path: str) -> str:
                 keywords.add(ext.domain)
     
     result = sorted(list(keywords))
-    return result[0] if result else ""  # ✅ 첫 번째 키워드만 반환
+    return result[0] if result else "" 
 
