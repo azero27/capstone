@@ -10,12 +10,11 @@ def analyze_shadow_network():
     )
     cursor = conn.cursor(dictionary=True)
 
-    # 1. 최신 ScanResult ID 가져오기
     cursor.execute("SELECT MAX(id) as latest_id FROM ScanResult")
     latest_result_id = cursor.fetchone()["latest_id"]
     print("[DEBUG] Latest scan_result_id:", latest_result_id)
 
-    # 2. NmapResult (해당 scan_result_id만)
+
     cursor.execute("""
         SELECT port_number, service_name
         FROM NmapResult
@@ -25,16 +24,13 @@ def analyze_shadow_network():
     nmap_set = set((entry["port_number"], entry["service_name"].lower()) for entry in nmap_entries)
     nmap_ports = set(entry["port_number"] for entry in nmap_entries)
 
-    # 3. PortList 전체
     cursor.execute("SELECT port, service FROM PortList")
     port_list_entries = cursor.fetchall()
     portlist_set = set((item["port"], item["service"].lower()) for item in port_list_entries)
     portlist_ports = set(item["port"] for item in port_list_entries)
 
-    # 4. 결과 분류
     findings = []
 
-    # 4-1. 예상했지만 열려있지 않은 포트
     for (port, service) in portlist_set:
         if port not in nmap_ports:
             findings.append({
@@ -46,7 +42,6 @@ def analyze_shadow_network():
                 "scan_result_id": latest_result_id
             })
 
-    # 4-2. 예상하지 못했지만 열린 포트
     for entry in nmap_entries:
         port = entry["port_number"]
         service = entry["service_name"].lower()
@@ -70,7 +65,6 @@ def analyze_shadow_network():
                 "scan_result_id": latest_result_id
             })
 
-    # 5. ShadowNetwork에 저장
     for f in findings:
         cursor.execute("""
             INSERT INTO ShadowNetwork (port, actual_service, expected_service, reason, scan_result_id)
@@ -86,7 +80,6 @@ def analyze_shadow_network():
     conn.commit()
     cursor.close()
     conn.close()
-
-    # 6. 결과 출력
+    
     print(json.dumps(findings, indent=2, ensure_ascii=False))
 
