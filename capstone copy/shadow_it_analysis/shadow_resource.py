@@ -1,7 +1,6 @@
 import mysql.connector
 from datetime import datetime
 
-# 권한 설명
 PERMISSION_EXPLANATIONS = {
     "READ": "Read – 버킷 내 파일 목록과 내용을 조회할 수 있음",
     "WRITE": "Write – 버킷에 파일을 업로드할 수 있음",
@@ -32,12 +31,10 @@ def analyze_shadow_resources():
     cursor.execute("SELECT MAX(id) as latest_id FROM ScanResult")
     latest_id = cursor.fetchone()["latest_id"]
 
-    # 1. 정책상 공개 여부: S3List (s3_bucket, public)
     cursor.execute("SELECT s3_bucket, public FROM S3List")
     policy_data = cursor.fetchall()
     bucket_policy = {row["s3_bucket"]: bool(row["public"]) for row in policy_data}
 
-    # 2. 실제 권한 상태: S3scannerResult (해당 scan_result_id)
     cursor.execute("""
         SELECT bucket_name, allusers_permission, authusers_permission
         FROM S3scannerResult
@@ -45,7 +42,6 @@ def analyze_shadow_resources():
     """, (latest_id,))
     scan_data = cursor.fetchall()
 
-    # 3. 공개되면 안 되는 버킷만 필터링
     violations = []
     for item in scan_data:
         bucket = item["bucket_name"]
@@ -62,7 +58,6 @@ def analyze_shadow_resources():
                 "reason": "정책상 비공개 버킷이 AllUsers에게 공개됨"
             })
 
-    # 4. ShadowResource에 저장
     for v in violations:
         cursor.execute("""
             INSERT INTO ShadowResource (bucket_name, allusers_permission, authusers_permission, reason, scan_result_id)
@@ -77,7 +72,6 @@ def analyze_shadow_resources():
 
     conn.commit()
 
-    # 5. 로그 출력
     if not violations:
         print("모든 공개된 버킷은 정책상 허용된 상태입니다.")
     else:
