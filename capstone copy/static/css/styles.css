@@ -958,20 +958,6 @@ h2 {
   height: 100%; /* 좌측과 동일한 높이 */
 }
 
-#sunburstChart {
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-}
-
-#sunburstChart svg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* 유지비율로 꽉 채움 */
-}
-
-
-
 
 /* 버튼의 위치(사이드바 내 첫 번째 버튼, STOP/EXIT와 같은 높이, left는 동일) */
 .button-accent.sidebar-text .top-button,
@@ -1201,30 +1187,6 @@ h2 {
   white-space: pre-wrap;
 }
 
-.sunburst-back-btn {
-  background: none;
-  border: none;
-  color: #109CF1;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-right: 2px;
-  padding: 3px 8px 3px 2px;
-  border-radius: 7px;
-  transition: background 0.15s;
-}
-.sunburst-back-btn:hover {
-  background: #f1f7fa;
-}
-.back-icon {
-  font-size: 18px;
-  margin-right: 2px;
-  position: relative;
-  top: 1px;
-}
 
 .side-bar.collapsed .button-accent,
 .side-bar.collapsed .button-secondary {
